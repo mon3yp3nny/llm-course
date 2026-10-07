@@ -1,0 +1,2109 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>How an LLM works</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <nav class="tabs" aria-label="Parts">
+    <a href="#view-use" class="selected" aria-current="page">Using</a>
+    <a href="#view-train">Training</a>
+    <a href="#view-agents">Agents</a>
+    <a href="#view-mind">Mind</a>
+    <a href="#view-models">Models</a>
+    <a href="#view-faq">FAQ</a>
+  </nav>
+  <nav class="rail" aria-label="Steps"></nav>
+
+  <main>
+    <div class="view" id="view-use">
+    <header class="hero">
+      <p class="eyebrow">An interactive walkthrough</p>
+      <h1>How an LLM turns your text into an answer</h1>
+      <p class="lead">
+        Follow one prompt through the machine, one step at a time.
+        Type something, then scroll.
+      </p>
+      <p class="hero-note">
+        Background, history and side topics are folded away along the route.
+        <button type="button" class="toggle-extras"></button>
+      </p>
+      <span class="scroll-hint" aria-hidden="true">↓</span>
+    </header>
+
+    <section class="step" id="prompt" data-title="Prompt">
+      <p class="step-no">Step 1</p>
+      <h2>It starts with text</h2>
+      <p>
+        Everything a <dfn data-term="LLM">large language model</dfn> (LLM) does begins with a
+        string of characters: the <dfn>prompt</dfn>. The model never sees your intent, only this text. Change it and watch
+        every step below change with it.
+      </p>
+      <div class="demo">
+        <label for="prompt-input">Your prompt</label>
+        <textarea id="prompt-input" rows="2" spellcheck="false">The cat sat on the mat, wondering about tokenization.</textarea>
+        <p class="stat"><strong id="char-count">0</strong> characters</p>
+      </div>
+      <p class="note">
+        From step 2 on, three small meters under each heading show roughly
+        what the step demands of the hardware. <dfn>CPU</dfn> is the
+        ordinary processor found in every computer. <dfn>GPU</dfn> is a
+        chip built to do huge numbers of simple calculations at once, which
+        is exactly what a neural network needs. Memory is how much has to be
+        loaded at once; here it means the computer's working storage, not
+        remembering, which the Mind tab covers. The CPU and GPU meters show
+        how much work a step is compared with the other steps in the same
+        tab.
+      </p>
+      <details class="extra">
+        <summary><span class="extra-tag">Optional</span> System prompt: the text you do not see</summary>
+        <p>
+          In a chat product, your prompt is not the only text the model
+          receives. The company running it puts its own instructions in
+          front: the <dfn>system prompt</dfn>. It sets things like the tone,
+          the rules and today's date. Everything is then joined into one
+          long text, with special marker tokens that say who is speaking.
+        </p>
+        <div class="demo">
+          <p class="output"><span class="marker">[system]</span> You are a helpful assistant. Answer briefly and politely.
+<span class="marker">[user]</span> <span class="prompt-text" id="chat-user"></span>
+<span class="marker">[assistant]</span> </p>
+          <p class="stat">The model continues this text after the last marker.</p>
+        </div>
+        <p>
+          The impact: the same model can behave very differently in two
+          products, because their instructions differ. A system prompt
+          changes no weights. It is simply more text at the start of the
+          input, and it uses up part of the context window.
+        </p>
+        <p class="note">
+          Simplified: the markers look different for every model, and real
+          system prompts are often several pages long. The rest of this page
+          continues with your prompt alone.
+        </p>
+      </details>
+    </section>
+
+    <section class="step" id="tokens" data-title="Tokens">
+      <p class="step-no">Step 2</p>
+      <h2>The text is cut into tokens</h2>
+      <p class="load" data-load="1,0,0">Simple text processing. Any processor does it in an instant.</p>
+      <p>
+        A model cannot read letters or words directly. It works with
+        <dfn>tokens</dfn>: common chunks of text. Short, frequent words are
+        usually one token; rarer words are split into pieces. The space
+        before a word belongs to the token (shown here as
+        <span class="space-mark">·</span>).
+      </p>
+      <div class="demo">
+        <div class="chips" id="token-chips"></div>
+        <p class="stat">
+          <strong id="token-count">0</strong> tokens from
+          <strong id="char-count-2">0</strong> characters
+        </p>
+      </div>
+      <p class="note">
+        Simplified: real tokenizers (such as BPE) learn their pieces from huge
+        amounts of text. This demo only cuts off common endings such as
+        -ing or -ization, so it splits some everyday words and leaves some
+        rare ones whole. A real tokenizer would do the opposite.
+      </p>
+      <details class="extra">
+        <summary><span class="extra-tag">Origins</span> Who came up with tokens?</summary>
+        <ul class="origins">
+          <li><span>1994</span><span><strong>Philip Gage</strong> publishes byte pair encoding (BPE), a way to compress data by merging pairs of characters that often occur together.</span></li>
+          <li><span>2015</span><span><strong>Rico Sennrich, Barry Haddow and Alexandra Birch</strong> at the University of Edinburgh use it to split rare words into pieces for machine translation.</span></li>
+          <li><span>2019</span><span><strong>GPT-2</strong> from OpenAI uses this kind of tokenizer. Most LLMs since use it or a close relative.</span></li>
+        </ul>
+      </details>
+    </section>
+
+    <section class="step" id="ids" data-title="Token IDs">
+      <p class="step-no">Step 3</p>
+      <h2>Each token becomes a number</h2>
+      <p class="load" data-load="1,0,0">A lookup in a list.</p>
+      <p>
+        The model has a fixed <dfn>vocabulary</dfn>, a list of every token it knows,
+        often 50,000 to 200,000 entries. Each token is replaced by its
+        position in that list. From here on, your prompt is just a sequence
+        of integers. The number under each token is its ID.
+      </p>
+      <div class="demo">
+        <div class="chips stacked" id="id-chips"></div>
+        <pre class="sequence" id="id-sequence"></pre>
+      </div>
+      <p class="note">
+        Simplified: these IDs are made up, but stable. The same token always
+        gets the same ID, just like in a real vocabulary.
+      </p>
+    </section>
+
+    <section class="step" id="embeddings" data-title="Embeddings">
+      <p class="step-no">Step 4</p>
+      <h2>Numbers become meaning</h2>
+      <p class="load" data-load="0,1,1">Another lookup. The table is large, but small next to the layers that follow.</p>
+      <p>
+        An ID on its own says nothing: token 4,012 is not "close to" token
+        4,013. So each ID is looked up in a big table and swapped for a list
+        of numbers, a <dfn>vector</dfn>. The vector a token gets from this lookup is called its <dfn>embedding</dfn>. Click a token to see its vector.
+      </p>
+      <div class="demo">
+        <div class="chips" id="embed-chips"></div>
+        <p class="stat">Vector for <strong id="vector-label"></strong></p>
+        <div class="vector" id="vector-cells"></div>
+      </div>
+      <p>
+        These numbers are learned during training, and they place every token
+        as a point in space. Tokens used in similar ways end up near each
+        other. That closeness is how a model "knows" a cat is more like a dog
+        than like a kitchen.
+      </p>
+      <div class="demo">
+        <div class="segments compact" id="map-mode">
+          <button type="button" data-mode="2d" class="selected" aria-pressed="true">2D</button>
+          <button type="button" data-mode="3d" aria-pressed="false">3D</button>
+        </div>
+        <svg id="word-map" viewBox="0 0 600 350" role="img" tabindex="0"
+             aria-label="Map of words where related words sit close together"></svg>
+        <p class="stat" id="map-hint" hidden>Drag sideways, or use the arrow keys, to turn the map. Let go and it swings on by itself.</p>
+        <p class="stat" id="map-stat"></p>
+      </div>
+      <p>
+        A flat map hides things. Switch to 3D and the map turns to show a
+        third direction, here roughly "can you eat it?". Fish is still an
+        animal, but along this new direction it lines up with milk and
+        bread, far from cat and dog. Real vectors have hundreds of such
+        directions, so a word can be similar to different words in
+        different ways at once.
+      </p>
+      <p class="note">
+        Simplified: the vectors here are made up and 8 numbers long. Real ones
+        are learned and have hundreds or thousands of numbers. The map is
+        placed by hand and squeezed into 2 or 3 dimensions to show the idea.
+        In a real model the directions have no tidy names. Also left out:
+        the model adds information about each token's position in the text,
+        because otherwise it could not tell "dog bites man" from "man bites
+        dog".
+      </p>
+      <details class="extra">
+        <summary><span class="extra-tag">Optional</span> Multimodal: images as input</summary>
+        <p>
+          Text is not the only possible input. A <dfn>multimodal</dfn> model
+          also takes images, and sometimes sound or video. The trick is to
+          turn them into the same thing text becomes: a sequence of vectors.
+          An image is cut into small squares called patches, and each patch
+          is converted into one vector, just as each token is. Click a patch.
+        </p>
+        <div class="demo">
+          <div class="patches" id="patches"></div>
+          <p class="stat" id="patch-label"></p>
+          <div class="vector" id="patch-cells"></div>
+        </div>
+        <p>
+          From here on, the layers treat patch vectors and token vectors
+          alike, and attention lets a word look at the parts of the picture
+          it refers to. The impact: one model can describe a photo, read a
+          chart or work from a screenshot. The price: a picture becomes a
+          long row of vectors, so a single image can use as much of the
+          context window as several pages of text.
+        </p>
+        <p class="note">
+          Simplified: real models cut an image into hundreds of patches, and
+          the vector shown here is made up.
+        </p>
+        <p class="origins-title">Where it comes from</p>
+        <ul class="origins">
+          <li><span>2020</span><span><strong>Alexey Dosovitskiy</strong> and colleagues at Google introduce the <strong>Vision Transformer</strong> in a paper titled "An Image Is Worth 16x16 Words": cut the image into patches and feed them to a transformer like words.</span></li>
+          <li><span>2021</span><span><strong>OpenAI</strong> releases <strong>CLIP</strong>, which learns to place images and their descriptions close together in one shared space of vectors.</span></li>
+          <li><span>2023</span><span><strong>OpenAI</strong> adds image input to ChatGPT, bringing multimodal models to a mass audience.</span></li>
+        </ul>
+      </details>
+      <details class="extra">
+        <summary><span class="extra-tag">Origins</span> Who came up with embeddings?</summary>
+        <ul class="origins">
+          <li><span>2003</span><span><strong>Yoshua Bengio</strong> and colleagues at the Université de Montréal train a neural network that learns a vector for every word.</span></li>
+          <li><span>2013</span><span><strong>Tomas Mikolov</strong> and colleagues at Google release <strong>word2vec</strong>. It made word vectors fast to train, and famous through examples like "king − man + woman ≈ queen".</span></li>
+        </ul>
+      </details>
+    </section>
+
+    <section class="step" id="network" data-title="Neural network">
+      <p class="step-no">Step 5</p>
+      <h2>The vectors enter the neural network</h2>
+      <p class="load" data-load="0,3,3">The heavy part. All the weights must be loaded into GPU memory, and every layer means billions of multiplications.</p>
+      <p>
+        This is the part people mean when they say "the model". The
+        <dfn>neural network</dfn> is a long stack of <dfn>layers</dfn>. The
+        vectors go in at one end, and every layer rewrites them a little,
+        mixing in more of the surrounding context each time. The design of
+        this stack used by today's LLMs is called a <dfn>transformer</dfn>. It is
+        the T in <dfn>GPT</dfn>: generative pre-trained transformer.
+      </p>
+      <p>
+        Follow the token you selected in step 4 through the stack. Click a
+        layer to see its vector at that point.
+      </p>
+      <div class="demo">
+        <div class="segments" id="layer-stack"></div>
+        <p class="layer-ends"><span>Embedding</span><span>Output</span></p>
+        <p class="stat" id="layer-label"></p>
+        <div class="vector" id="layer-cells"></div>
+      </div>
+      <p>
+        What each layer does to a vector is decided by its
+        <dfn>weights</dfn>, also called <dfn>parameters</dfn>: plain numbers,
+        billions of them in a large model. They are found during
+        <dfn>training</dfn>: the model is shown enormous amounts of text,
+        asked again and again to guess the next token, and its weights are
+        nudged a little each time so that the guess gets better. The
+        second tab, <a href="#view-train">Training a model</a>, shows how. After that they are frozen. Using the finished model is called
+        <dfn>inference</dfn>: when you chat, your prompt changes the vectors
+        flowing through, never the weights. Training a finished model a
+        little further on specialised text is called <dfn>fine-tuning</dfn>.
+      </p>
+      <p>
+        What does the inside of a layer look like? Zoom in and you find
+        <dfn>neurons</dfn>: tiny units that each do one small calculation. A
+        neuron takes the numbers arriving on its lines, multiplies each by
+        that line's weight, adds everything up and passes on the result.
+        Below, the vector of the token you selected in step 4 flows through
+        a miniature network, from left to right.
+      </p>
+      <div class="demo">
+        <svg id="neural-net" viewBox="0 0 600 300" role="img"
+             aria-label="A small neural network: circles for neurons, lines for weights"></svg>
+        <p class="stat" id="neural-stat"></p>
+        <div class="actions">
+          <button type="button" id="neural-send">Send it through again</button>
+        </div>
+      </div>
+      <p class="note">
+        Simplified: the arithmetic is real, the weights are made up. A real
+        layer has thousands of neurons, and attention (step 6) sits between
+        blocks like this one.
+      </p>
+      <p class="note">
+        Simplified: the changes from layer to layer are made up; only the
+        idea is real. For scale: GPT-2 small (2019) has 12 layers and 124
+        million parameters. Current large models have many more layers and
+        billions of parameters.
+      </p>
+      <details class="extra">
+        <summary><span class="extra-tag">Optional</span> Quantization: making a model smaller</summary>
+        <p>
+          Each weight is normally stored as a very precise number, using 16
+          or 32 bits. <dfn>Quantization</dfn> stores every weight with fewer
+          bits, by rounding it to the nearest of a small set of allowed
+          values. Choose how many bits each weight gets.
+        </p>
+        <div class="demo">
+          <div class="segments" id="bit-options"></div>
+          <p class="stat">Eight example weights, as trained</p>
+          <div class="vector" id="weights-original"></div>
+          <p class="stat" id="quant-label"></p>
+          <div class="vector" id="weights-stored"></div>
+          <p class="stat" id="quant-error"></p>
+          <p class="stat">Size of a model with 7 billion parameters</p>
+          <div class="bars wide" id="size-bars"></div>
+        </div>
+        <p>
+          The impact: fewer bits mean a smaller file, less memory and faster
+          answers, because there is less data to move for every token. This is what lets a model run on a laptop or a phone
+          instead of in a data centre. The price is a small rounding error
+          in every weight. With the rounding methods in everyday use, 8 bits is
+          barely measurable, around 4 bits answers get slightly worse, and
+          below that quality drops quickly. Newer methods get much lower
+          without that drop; see the examples below.
+        </p>
+        <p class="note">
+          Simplified: real quantization picks the allowed values more
+          cleverly, separately for each group of weights. Labels such as
+          "4-bit" or "Q4" on a downloadable model refer to this.
+        </p>
+        <p class="origins-title">Where it comes from</p>
+        <ul class="origins">
+          <li><span>2023</span><span><strong>Georgi Gerganov</strong>'s open-source project <strong>llama.cpp</strong> makes it common to run 4-bit models on an ordinary laptop.</span></li>
+          <li><span>2024</span><span><strong>Microsoft Research</strong> goes to the extreme with <strong>BitNet b1.58</strong>: every weight is −1, 0 or +1, about 1.58 bits. Weights with just these three values are called <dfn>ternary</dfn>. The model is trained that way from the start instead of being rounded afterwards, which is why it still works.</span></li>
+          <li><span>2026</span><span><strong>PrismML</strong> releases <strong>Ternary Bonsai 2 27B</strong>, an existing 27-billion-parameter model compressed to −1, 0 and +1 weights, where each small group of weights shares one precise scaling number. It takes 5.9 GB instead of about 54 GB, and PrismML reports that it keeps 98% of the original's benchmark score.</span></li>
+        </ul>
+      </details>
+      <details class="extra">
+        <summary><span class="extra-tag">Optional</span> Test-time training: learning while answering</summary>
+        <p>
+          The rule above was: once training is over, the weights are frozen.
+          <dfn>Test-time training</dfn> (TTT) is the exception. Before it
+          answers, the model runs a few quick training steps on the task in
+          front of it, for example on the examples in your prompt, so its
+          weights shift towards this one problem. After the answer the
+          changes are usually thrown away, and the next request starts from
+          the original weights again.
+        </p>
+        <div class="demo">
+          <p class="stat" id="ttt-label"></p>
+          <div class="vector" id="ttt-cells"></div>
+          <div class="actions">
+            <button type="button" id="ttt-step">Train one step</button>
+            <button type="button" id="ttt-reset" class="quiet">Answer and reset</button>
+          </div>
+        </div>
+        <p>
+          The impact: the model copes better with unfamiliar tasks that
+          differ from anything in its training text, such as new kinds of
+          puzzles. The price: every request now contains a small training
+          run, which makes it much slower and more expensive. So far it is
+          mostly used in research, not in everyday chat products.
+        </p>
+        <p>
+          Two things it is easy to confuse it with. Fine-tuning also changes
+          the weights, but ahead of time and for good. And a prompt that
+          simply contains examples changes no weights at all.
+        </p>
+        <p class="note">
+          Simplified: the changes to the weights here are made up.
+        </p>
+        <p class="origins-title">Where it comes from</p>
+        <ul class="origins">
+          <li><span>2020</span><span><strong>Yu Sun</strong> and colleagues at UC Berkeley introduce test-time training, at first for image recognition.</span></li>
+          <li><span>2024</span><span><strong>Ekin Akyürek</strong> and colleagues at MIT apply it to an LLM and report large gains on ARC, a benchmark of abstract puzzles that language models find hard.</span></li>
+        </ul>
+      </details>
+      <details class="extra">
+        <summary><span class="extra-tag">Optional</span> Open weights: models you can download</summary>
+        <p>
+          A trained model is, in the end, a file full of weights. Some
+          companies keep that file to themselves and only let you send
+          prompts to their servers. Others publish it. A model with
+          <dfn>open weights</dfn> can be downloaded and run on your own
+          hardware, and it is what makes quantization and fine-tuning by
+          anyone possible in the first place.
+        </p>
+        <p>
+          The impact: your prompts never leave your machine, there is no
+          price per token, the model keeps working offline, and nobody can
+          change or withdraw it. The price: you need the hardware and the
+          know-how, and the very largest models are usually not released
+          this way.
+        </p>
+        <p>
+          Open weights are not the same as open source. The file is public,
+          but the training text and training code often are not, and the
+          licence decides what you may do with the model.
+        </p>
+        <p class="origins-title">Where it comes from</p>
+        <ul class="origins">
+          <li><span>2019</span><span><strong>OpenAI</strong> releases the weights of <strong>GPT-2</strong> in stages over nine months, out of concern about misuse. It started the debate about whether to publish at all.</span></li>
+          <li><span>2023</span><span><strong>Meta</strong> releases <strong>Llama</strong>, first to researchers and a few months later for general use. A large community forms around running, shrinking and adapting downloadable models.</span></li>
+        </ul>
+      </details>
+      <details class="extra">
+        <summary><span class="extra-tag">Origins</span> Who came up with neural networks and the transformer?</summary>
+        <ul class="origins">
+          <li><span>1958</span><span><strong>Frank Rosenblatt</strong> presents the perceptron, an early neural network that learns from examples.</span></li>
+          <li><span>1986</span><span><strong>David Rumelhart, Geoffrey Hinton and Ronald Williams</strong> popularise backpropagation, the method still used to train neural networks.</span></li>
+          <li><span>2017</span><span>Eight researchers at <strong>Google</strong> publish "Attention Is All You Need", the paper that introduces the transformer.</span></li>
+          <li><span>2018</span><span><strong>OpenAI</strong> releases the first <strong>GPT</strong>.</span></li>
+        </ul>
+      </details>
+    </section>
+
+    <section class="step" id="attention" data-title="Attention">
+      <p class="step-no">Step 6</p>
+      <h2>Tokens look at each other</h2>
+      <p class="load" data-load="0,3,2">Every token is compared with every earlier one, so the work grows quickly as the text gets longer.</p>
+      <p>
+        A token on its own is ambiguous: "mat" means something different after
+        "sat on the" than after "yoga". So what happens inside a layer? The
+        key part: each token looks back at the tokens before it and pulls in
+        information from the ones that matter. This is
+        <dfn>attention</dfn>.
+      </p>
+      <p>
+        Click a token in this example sentence. The shading shows how much
+        it draws from itself and from each earlier token. Start with "it": to know what "it"
+        is, the model has to look back at "cat". A token can never look
+        ahead, so later tokens are hidden from it.
+      </p>
+      <div class="demo">
+        <div class="chips stacked own-tokens" id="example-chips"></div>
+        <p class="stat" id="example-stat"></p>
+      </div>
+      <p class="note">
+        Simplified: these percentages are written by hand. They show the kind of
+        pattern researchers find inside trained models, such as a pronoun
+        looking back at the noun it stands for.
+      </p>
+      <p>
+        Where do the percentages come from? The model compares the vector of
+        the current token with its own vector and with that of each earlier token, and turns
+        the scores into shares that add up to 100%. Here is that calculation
+        on your own prompt.
+      </p>
+      <div class="demo">
+        <div class="chips stacked" id="attention-chips"></div>
+        <p class="stat" id="attention-stat"></p>
+      </div>
+      <p class="note">
+        Simplified: the calculation (compare, then turn the scores into
+        shares) is real, but a real model first reshapes each vector with
+        learned weights, and the vectors here are made up, so this second
+        pattern has no meaning. A trained model runs many such patterns
+        side by side, called <dfn>attention heads</dfn>, in every one of
+        its layers. Together they pick up grammar, references and facts.
+      </p>
+      <details class="extra">
+        <summary><span class="extra-tag">Optional</span> Mixture of experts: using only part of the model</summary>
+        <p>
+          Attention is one half of a layer. The other half works on each
+          token separately and holds most of the layer's weights. In a
+          <dfn>mixture of experts</dfn> (MoE) model, that half is split into
+          several smaller blocks, the "experts". A small router looks at
+          each token and sends it to only a few of them. Click a token to
+          see where it goes.
+        </p>
+        <div class="demo">
+          <div class="chips" id="moe-chips"></div>
+          <div class="experts" id="experts"></div>
+          <p class="stat" id="moe-stat"></p>
+        </div>
+        <p>
+          The impact: the model can hold far more weights, and so more
+          knowledge, than it uses for any single token. That makes it faster
+          and cheaper to run than an ordinary model of the same size. The
+          price: all experts still have to fit in memory, and such models
+          are harder to train well.
+        </p>
+        <p>
+          The name misleads a little. Experts are not tidy specialists for
+          maths or poetry. What each one handles is learned during training
+          and is usually hard to put into words.
+        </p>
+        <p class="note">
+          Simplified: the routing here is made up. For scale: Mixtral 8x7B
+          (2023) has 8 experts per layer and uses 2 per token, so of its
+          roughly 47 billion parameters only about 13 billion are at work
+          for each token.
+        </p>
+        <p class="origins-title">Where it comes from</p>
+        <ul class="origins">
+          <li><span>1991</span><span><strong>Robert Jacobs, Michael Jordan, Steven Nowlan and Geoffrey Hinton</strong> propose "adaptive mixtures of local experts".</span></li>
+          <li><span>2023</span><span><strong>Mistral AI</strong> releases <strong>Mixtral 8x7B</strong>, an openly available LLM that made the design widely known.</span></li>
+        </ul>
+      </details>
+      <details class="extra">
+        <summary><span class="extra-tag">Origins</span> Who came up with attention?</summary>
+        <ul class="origins">
+          <li><span>2014</span><span><strong>Dzmitry Bahdanau, Kyunghyun Cho and Yoshua Bengio</strong> add attention to a translation model, so it can look back at the source words that matter for the word it is writing.</span></li>
+          <li><span>2017</span><span>The <strong>transformer</strong> from Google drops the older machinery and builds the whole network around attention.</span></li>
+        </ul>
+      </details>
+    </section>
+
+    <section class="step" id="prediction" data-title="Prediction">
+      <p class="step-no">Step 7</p>
+      <h2>A score for every possible next token</h2>
+      <p class="load" data-load="0,1,1">One more comparison, against the whole vocabulary. Small next to the layers.</p>
+      <p>
+        After all the layers, the vector of the <em>last</em> token holds the
+        model's summary of the whole prompt. It is compared against every
+        token in the vocabulary, giving each one a probability: how likely
+        is it to come next?
+      </p>
+      <div class="demo">
+        <p class="context" id="predict-context"></p>
+        <div class="bars" id="predict-bars"></div>
+        <p class="stat" id="predict-stat"></p>
+      </div>
+      <p>
+        Notice what is being scored: how <em>likely</em> a token is, not
+        whether it is true. When a model produces fluent, confident text
+        that is wrong, people call it a <dfn>hallucination</dfn>.
+      </p>
+      <p class="note">
+        Simplified: these numbers do not come from the vectors and layers
+        above. They come from a much simpler kind of model, which only
+        counts which token followed which in about 60 short sentences about
+        cats, dogs and tokens. It knows about 100 tokens and looks only at
+        the last two tokens of your prompt. A real LLM produces the same
+        kind of list using the layers from steps 5 and 6.
+      </p>
+      <details class="extra">
+        <summary><span class="extra-tag">Optional</span> RAG: looking things up first</summary>
+        <p>
+          A model only knows what was in its training text. Anything newer,
+          or private, such as your company's documents, it cannot know, and
+          it may hallucinate an answer instead.
+          <dfn data-term="RAG">Retrieval-augmented generation</dfn> (RAG)
+          does not change the model. It changes the input: before the model
+          runs, a search step finds passages that fit your prompt and pastes
+          them in front of it. The model then answers with the facts right
+          there in its context window.
+        </p>
+        <div class="demo">
+          <p class="stat">A small library, searched with your prompt from step 1</p>
+          <div class="library" id="library"></div>
+          <p class="stat">What the model receives</p>
+          <p class="output" id="rag-output"></p>
+        </div>
+        <p>
+          The impact: answers can draw on current and private information,
+          and can name their sources, without any retraining. The price: the
+          answer is only as good as the search, the pasted text uses up
+          context window, and the model can still misread what it was given.
+        </p>
+        <p class="note">
+          Simplified: this demo searches by counting shared words. Real
+          systems compare vectors, as in step 4, so that a question about a
+          "kitten" also finds text about cats.
+        </p>
+        <p class="origins-title">Where it comes from</p>
+        <ul class="origins">
+          <li><span>2020</span><span><strong>Patrick Lewis</strong> and colleagues at Facebook AI Research give the approach its name in the paper "Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks".</span></li>
+        </ul>
+      </details>
+      <details class="extra">
+        <summary><span class="extra-tag">Origins</span> Who came up with predicting the next word?</summary>
+        <ul class="origins">
+          <li><span>1948</span><span><strong>Claude Shannon</strong> at Bell Labs produces English-like text by choosing each next letter or word according to how often it follows the ones before. The tiny model on this page works the same way.</span></li>
+          <li><span>2003</span><span><strong>Yoshua Bengio</strong>'s neural language model replaces the counting with a neural network.</span></li>
+        </ul>
+      </details>
+    </section>
+
+    <section class="step" id="sampling" data-title="Sampling">
+      <p class="step-no">Step 8</p>
+      <h2>One token is picked</h2>
+      <p class="load" data-load="1,0,0">Drawing one random number. Practically free.</p>
+      <p>
+        The software running the model does not simply take the top token. It holds a lottery:
+        a token with 42% holds 42 of 100 tickets, and one ticket is drawn.
+        Likely tokens usually win, but an unlikely one sometimes does. This
+        weighted random draw is called <dfn>sampling</dfn>.
+      </p>
+      <p>
+        <dfn>Temperature</dfn> hands out the tickets differently before the
+        draw: low values make the favourite almost certain, high values give
+        unlikely tokens a real chance. After the draw the probabilities are
+        thrown away. Only the winning token is kept.
+      </p>
+      <div class="demo">
+        <label for="temperature">
+          Temperature <strong id="temperature-value">1.0</strong>
+        </label>
+        <input type="range" id="temperature" min="0" max="2" step="0.1" value="1">
+        <div class="bars" id="sample-bars"></div>
+        <p class="stat" id="sample-stat"></p>
+        <div class="actions">
+          <button type="button" id="pick">Pick a token</button>
+          <span class="stat" id="pick-result"></span>
+        </div>
+        <div class="chips" id="pick-tally"></div>
+      </div>
+      <p class="note">
+        Pick several times: this randomness is why the same prompt can give
+        different answers. At temperature 0 the top token always wins.
+      </p>
+      <details class="extra">
+        <summary><span class="extra-tag">Origins</span> Where do temperature and sampling come from?</summary>
+        <ul class="origins">
+          <li><span>1800s</span><span>The word temperature is borrowed from physics. <strong>Ludwig Boltzmann</strong> described how heat spreads particles over more states; the same formula spreads the probabilities here.</span></li>
+          <li><span>2019</span><span><strong>Ari Holtzman</strong> and colleagues at the University of Washington introduce nucleus sampling, better known as <strong>top-p</strong>. You will find it next to temperature in many tools.</span></li>
+        </ul>
+      </details>
+    </section>
+
+    <section class="step" id="loop" data-title="Loop">
+      <p class="step-no">Step 9</p>
+      <h2>Repeat until done</h2>
+      <p class="load" data-load="1,3,3">Everything again for every new token. Results for earlier tokens are kept in memory so they need not be recomputed, and that store grows with the text. For each new token the chip reads through all the weights, so how fast it can pull data out of memory, the memory bandwidth, often limits the speed more than raw calculating power.</p>
+      <p>
+        One token is not an answer. The picked token is glued to the end of
+        the input, and everything runs again: tokens, vectors, attention,
+        probabilities, pick. An LLM writes its whole answer this way, one
+        token at a time, each one a fresh pass through the model.
+      </p>
+      <p>
+        The text keeps growing, and there is a limit to how many tokens the
+        model can take in at once: its <dfn>context window</dfn>. In a
+        chat, the whole conversation so far is fed in again for every new
+        answer. That is the only way the model "remembers" what was said;
+        whatever no longer fits in the window is gone.
+      </p>
+      <div class="demo">
+        <p class="output" id="loop-output"></p>
+        <div class="actions">
+          <button type="button" id="generate">Generate</button>
+          <button type="button" id="reset" class="quiet">Reset</button>
+          <span class="stat" id="loop-stat"></span>
+        </div>
+      </div>
+      <p class="note">
+        Simplified: a real model stops when it picks a special "end" token.
+        This demo stops at a full stop once it has written at least 8
+        tokens, or after 40 at the latest. It uses the temperature from
+        step 8, and its text sounds like its 63 training sentences because
+        that is all this tiny model has ever read. In practice a model also
+        keeps its intermediate results for earlier tokens, so each new pass
+        only has to work through the one new token.
+      </p>
+      <details class="extra">
+        <summary><span class="extra-tag">Optional</span> Input and output tokens: what an answer costs</summary>
+        <p>
+          Tokens are also the unit by which use of a model is billed, at
+          least for developers and companies; chat subscriptions hide this
+          behind a flat fee with usage limits. There are two kinds. <dfn>Input tokens</dfn> are everything the model reads: the
+          system prompt, the conversation so far, attached documents, tool
+          descriptions. <dfn>Output tokens</dfn> are what it writes.
+        </p>
+        <p>
+          Reading is cheap: all input tokens pass through the layers
+          together, in one go. Writing is expensive: every output token
+          needs a pass of its own, which is the loop of this step. That is
+          why output is slower, and usually priced several times higher per
+          token than input.
+        </p>
+        <div class="demo">
+          <label for="turns-slider">Turns in a conversation: <strong id="turns-count">0</strong></label>
+          <input type="range" id="turns-slider" min="1" max="30" step="1" value="10">
+          <div class="bars wide" id="io-bars"></div>
+          <p class="stat" id="io-stat"></p>
+        </div>
+        <p>
+          In a long chat the whole history is read again on every turn, so
+          the input side grows much faster than the output side. Two things
+          soften this: providers can keep those intermediate results between
+          requests, so text they have just seen is not worked through again
+          (called prompt caching, and billed at a lower rate), and the
+          software around the model can summarise old turns.
+        </p>
+        <p class="note">
+          Simplified: fixed sizes are assumed, a system prompt of 300
+          tokens, questions of 30 and answers of 200. The totals are exact
+          for those sizes.
+        </p>
+      </details>
+      <details class="extra">
+        <summary><span class="extra-tag">Optional</span> Reasoning models: thinking before answering</summary>
+        <p>
+          One pass through the layers can only work out so much, and
+          nothing carries over to the next pass except the text itself. So
+          for longer problems, the text is the model's only scratch paper. A <dfn>reasoning model</dfn> uses the loop
+          for exactly that: before the answer, it first writes out its
+          working, step by step, as ordinary tokens. Many products hide this
+          part or show it as "thinking". Then it writes the answer, with its
+          own working sitting in the context window to draw on.
+        </p>
+        <div class="demo">
+          <p class="output"><span class="marker">[user]</span> What is 17 × 24?
+<span class="marker">[thinking]</span> <span class="prompt-text">17 × 24 is 17 × 20 plus 17 × 4. That is 340 plus 68, so 408.</span>
+<span class="marker">[assistant]</span> 408</p>
+          <p class="stat">The thinking is generated token by token, exactly like the answer.</p>
+        </div>
+        <p>
+          The impact: clearly better results on problems with several steps,
+          such as maths, planning and programming. The price: the thinking
+          tokens take time and cost money like any others, so answers are
+          slower and more expensive. And it is still the same loop: the
+          working can contain mistakes too.
+        </p>
+        <p class="note">
+          Simplified: this exchange is written by hand as an illustration.
+          The tiny model on this page cannot calculate.
+        </p>
+        <p class="origins-title">Where it comes from</p>
+        <ul class="origins">
+          <li><span>2022</span><span><strong>Jason Wei</strong> and colleagues at Google show that a model gets much better at reasoning tasks when its prompt contains examples with the steps written out. They call it chain-of-thought prompting.</span></li>
+          <li><span>2024</span><span><strong>OpenAI</strong> releases <strong>o1</strong>, a model trained to think this way by itself before every answer, which made "reasoning model" a common term.</span></li>
+        </ul>
+      </details>
+      <details class="extra">
+        <summary><span class="extra-tag">Optional</span> Agents: letting the model use tools</summary>
+        <p>
+          A model can only write text. It cannot look anything up, calculate
+          reliably or press a button. An <dfn>agent</dfn> gets around this
+          with <dfn>tool use</dfn>: the model is told which tools exist, and
+          when it wants one it writes a request in a fixed format. Ordinary
+          software notices the request, runs the tool, and pastes the result
+          back into the text. Then the loop simply continues. Step through
+          one round here; the <a href="#view-agents">Agents tab</a> shows
+          what is built around it.
+        </p>
+        <div class="demo">
+          <p class="output" id="agent-output"></p>
+          <p class="stat" id="agent-stat"></p>
+          <div class="actions">
+            <button type="button" id="agent-next">Next step</button>
+            <button type="button" id="agent-reset" class="quiet">Reset</button>
+          </div>
+        </div>
+        <p>
+          The impact: the model can work with current information, exact
+          calculations and real actions, such as searching the web, running
+          code or sending a message, and it can chain many such rounds to
+          finish a longer task. The price: every round costs time and
+          tokens, and a mistake is no longer just a wrong sentence. It can
+          be a wrong action, which is why agents need limits on what they
+          may do.
+        </p>
+        <p class="note">
+          Simplified: the model's lines here are written by hand. The
+          calculator result is computed for real by this page, which is the
+          point: the tool does the arithmetic, not the model.
+        </p>
+        <p class="origins-title">Where it comes from</p>
+        <ul class="origins">
+          <li><span>2022</span><span><strong>Shunyu Yao</strong> and colleagues at Princeton and Google describe <strong>ReAct</strong>, a loop in which a model alternates between reasoning and using tools.</span></li>
+          <li><span>2023</span><span><strong>OpenAI</strong> adds function calling to its models, a standard format for tool requests that other providers soon offer too.</span></li>
+          <li><span>2024</span><span><strong>Anthropic</strong> publishes the <strong>Model Context Protocol</strong> (MCP), an open standard for connecting models to tools and data sources.</span></li>
+        </ul>
+      </details>
+      <details class="extra">
+        <summary><span class="extra-tag">Origins</span> Which models made this famous?</summary>
+        <ul class="origins">
+          <li><span>2019</span><span><strong>GPT-2</strong> from OpenAI shows that a model writing token by token can produce whole coherent paragraphs.</span></li>
+          <li><span>2022</span><span><strong>ChatGPT</strong> from OpenAI puts this loop behind a chat window and brings LLMs to the general public.</span></li>
+        </ul>
+      </details>
+    </section>
+
+    <p class="recap">
+      That is the whole trip: text → tokens → numbers → vectors → layers
+      of attention → probabilities → one token, and around again.
+    </p>
+
+    <section class="alt-path" id="decide">
+      <details class="extra">
+        <summary><span class="extra-tag">Different path</span> Models that decide instead of write</summary>
+        <p>
+          Everything above describes a <dfn>generative</dfn> model: one that
+          writes text. Some models take a different exit. A
+          <dfn>classifier</dfn> gets the text plus a question with a fixed
+          set of answers, and returns a probability for each answer.
+        </p>
+        <p>
+          Up to the layers, the trip is much the same, with one difference:
+          since nothing is being written, such a model can let every token
+          look at the whole text, forwards as well as back. Then, instead of
+          scoring every token in the vocabulary, the model scores only the
+          answers on offer. Nothing is sampled and nothing loops: the
+          probabilities are the result. Edit the prompt in step 1 and watch
+          them change.
+        </p>
+        <div class="demo">
+          <p class="context" id="classify-input"></p>
+          <p class="stat">Question: <strong>What is this text about?</strong></p>
+          <div class="bars wide" id="classify-bars"></div>
+          <p class="stat" id="classify-stat"></p>
+          <pre class="sequence" id="classify-output"></pre>
+        </div>
+        <p>
+          The impact: the output always stays within the answers you defined,
+          in a form software can act on directly. There is no free text, so
+          nothing can be invented, and one pass through the model is much
+          faster and cheaper than one pass per token. The price: it only
+          answers what you thought to ask, and it can still be wrong, by
+          putting a high probability on the wrong answer.
+        </p>
+        <p class="note">
+          Simplified: this is a real but tiny classifier. For each topic it
+          counts the words of your prompt that it knows from the map in
+          step 4. If it knows none of them, every answer gets the same
+          probability, because it has no evidence either way.
+        </p>
+        <p class="origins-title">Where it comes from</p>
+        <ul class="origins">
+          <li><span>2018</span><span><strong>Google</strong> releases <strong>BERT</strong>, a transformer built to understand text, not to write it. For years it was the standard base for classifiers.</span></li>
+          <li><span>2026</span><span><strong>TypeSafe AI</strong> releases <strong>Jev</strong>, which it calls a <dfn>System One model</dfn>: you define questions and possible answers, and it returns probabilities and never writes text. How it works inside is not published.</span></li>
+        </ul>
+      </details>
+    </section>
+
+    </div>
+
+    <div class="view" id="view-train" hidden>
+    <header class="hero">
+      <p class="eyebrow">Part two</p>
+      <h1>How an LLM learns what it knows</h1>
+      <p class="lead">
+        The first tab followed one prompt through a finished model. This one
+        goes back in time: where do the billions of weights come from?
+      </p>
+      <p class="hero-note">
+        The history behind each step is folded away along the route.
+        <button type="button" class="toggle-extras"></button>
+      </p>
+      <span class="scroll-hint" aria-hidden="true">↓</span>
+    </header>
+
+    <section class="step" id="data" data-title="Data">
+      <p class="step-no">Training · Step 1</p>
+      <h2>It starts with text, a lot of it</h2>
+      <p class="load" data-load="3,0,1">Collecting, cleaning and tokenising is ordinary computing, but at the scale of a large part of the internet. What it needs most is storage.</p>
+      <p>
+        Before any learning, someone has to collect text: web pages, books,
+        articles, program code, conversations. The
+        <dfn>training data</dfn> of a large model runs to trillions of words,
+        more than a person could read in a thousand lifetimes. It is
+        cleaned, filtered and cut into tokens, exactly as in
+        <a href="#tokens">step 2 of the first tab</a>.
+      </p>
+      <p>
+        What goes in matters. A model picks up the knowledge in its data,
+        and also its mistakes, its biases and its style.
+      </p>
+      <p>
+        Collecting stops on some date. Whatever happened afterwards is not
+        in the data, which is why every model has a
+        <dfn>knowledge cutoff</dfn>: it knows nothing more recent unless
+        the text is handed to it in the prompt.
+      </p>
+    </section>
+
+    <section class="step" id="pretraining" data-title="Pre-training">
+      <p class="step-no">Training · Step 2</p>
+      <h2>Learning by guessing the next token</h2>
+      <p class="load" data-load="1,3,3">The most expensive step of all: thousands of GPUs for weeks or months.</p>
+      <p>
+        The first and by far the largest phase is <dfn>pre-training</dfn>.
+        The exercise is always the same: take a piece of real text, hide
+        what comes next, let the model guess, then reveal the answer. Nobody
+        has to label anything, because the text itself contains the right
+        answers. Repeated over trillions of tokens, this one exercise forces
+        the model to pick up spelling, grammar, facts and some reasoning,
+        since all of them help it guess better.
+      </p>
+      <p>
+        How wrong a guess was is measured by one number, the
+        <dfn>loss</dfn>: high when the real next token came as a surprise,
+        low when the model saw it coming. Training means making the loss go
+        down. Let this page's tiny model read its sentences, and watch.
+      </p>
+      <div class="demo">
+        <label for="read-slider">Sentences read: <strong id="read-count">0</strong></label>
+        <input type="range" id="read-slider" min="0" max="63" step="1" value="8">
+        <p class="stat" id="read-last"></p>
+        <p class="stat">Its guess for what follows <strong>“The cat”</strong></p>
+        <div class="bars" id="read-bars"></div>
+        <p class="stat" id="read-empty" hidden>It has read nothing, so it has no guess at all.</p>
+        <p class="stat">Loss on three test sentences: <strong id="loss-value"></strong></p>
+        <svg class="chart" id="loss-chart" viewBox="0 0 600 170" role="img"
+             aria-label="Loss falling as the model reads more sentences"></svg>
+      </div>
+      <p>
+        What comes out of pre-training is called a <dfn>base model</dfn>: very
+        good at continuing text, and nothing more yet. Pre-training a large
+        one keeps thousands of specialised chips (GPUs) busy for weeks or
+        months, which is why only a few organisations do it.
+      </p>
+      <p class="note">
+        Simplified: this tiny model learns by counting what followed what,
+        so it knows a sentence the moment it has read it. A real model has
+        no counts, only weights, and improves in small adjustments, shown in
+        the next step.
+      </p>
+      <p class="note">
+        About the curve: the three test sentences are among the 63 it reads,
+        and the big drops come exactly when it reads one of them (sentences
+        1, 13 and 40): it is memorising the test, which step 6 returns to.
+        In between, the loss creeps up a little, because every new sentence
+        adds possibilities and makes the model slightly less sure about
+        these three. The loss shown is the average surprise per token: 0
+        would mean it was certain of every next token, 1 that it was as
+        unsure as a coin flip each time. This demo caps it at about 10 for
+        tokens the model considers impossible.
+      </p>
+      <details class="extra">
+        <summary><span class="extra-tag">Origins</span> Who came up with pre-training?</summary>
+        <ul class="origins">
+          <li><span>2018</span><span><strong>OpenAI</strong>'s first <strong>GPT</strong> establishes the recipe for language models: pre-train on plain text first, adapt to a task afterwards. It is the P in GPT.</span></li>
+        </ul>
+      </details>
+    </section>
+
+    <section class="step" id="descent" data-title="Gradient descent">
+      <p class="step-no">Training · Step 3</p>
+      <h2>How the weights are nudged</h2>
+      <p class="load" data-load="0,3,3">Training needs more memory than use: the intermediate results of every layer are kept to work backwards from, plus a nudge for every single weight.</p>
+      <p>
+        A real model keeps no tally of what followed what. It starts with random weights and guesses
+        nonsense. After each guess, a method called
+        <dfn>backpropagation</dfn> works out, for every single weight,
+        whether turning it up or down a little would have made the loss
+        smaller. Then all weights are moved a small step in the helpful
+        direction. This is <dfn>gradient descent</dfn>: walking downhill on
+        the loss, one small step at a time, with billions of weights at once.
+      </p>
+      <p>
+        How far each step goes depends on two things: how steep the slope is,
+        and a setting called the <dfn>learning rate</dfn> that scales every
+        step. Too low and learning crawls. Too high and each step jumps over
+        the valley and lands higher than before. Try it on a
+        model that has just one weight. The curve shows the loss for every
+        possible value of that weight; the best value is at the bottom.
+      </p>
+      <div class="demo">
+        <div class="segments" id="descent-rates"></div>
+        <svg class="chart" id="descent-chart" viewBox="0 0 600 170" role="img"
+             aria-label="A loss curve with the current weight marked on it"></svg>
+        <p class="stat" id="descent-stat"></p>
+        <div class="actions">
+          <button type="button" id="descent-step">Take a step</button>
+          <button type="button" id="descent-reset" class="quiet">Reset</button>
+        </div>
+      </div>
+      <p class="note">
+        Simplified: one weight and one smooth valley. A real model has
+        billions of weights and a far more rugged landscape, but every step
+        works this way.
+      </p>
+      <details class="extra">
+        <summary><span class="extra-tag">Origins</span> Who came up with this?</summary>
+        <ul class="origins">
+          <li><span>1847</span><span><strong>Augustin-Louis Cauchy</strong> describes gradient descent as a general way to find the lowest point of a function.</span></li>
+          <li><span>1986</span><span><strong>David Rumelhart, Geoffrey Hinton and Ronald Williams</strong> popularise backpropagation, which makes gradient descent practical for neural networks.</span></li>
+        </ul>
+      </details>
+    </section>
+
+    <section class="step" id="posttraining" data-title="Post-training">
+      <p class="step-no">Training · Step 4</p>
+      <h2>From text machine to assistant</h2>
+      <p class="load" data-load="0,2,3">The same machinery on far less data: days, not months. The whole model still has to be loaded.</p>
+      <p>
+        A base model does not answer questions. It continues text, and a
+        question is often continued with more questions. Everything that
+        turns it into a helpful assistant is called
+        <dfn>post-training</dfn>.
+      </p>
+      <p>
+        The first part is <dfn>fine-tuning</dfn>: continuing training on a
+        much smaller, carefully chosen set of examples. Here the examples
+        are written conversations, used with the same next-token exercise,
+        in which an assistant
+        follows instructions, answers clearly and declines harmful requests.
+        This is also where it learns the conversation format with its
+        markers, shown under "System prompt" in
+        <a href="#prompt">step 1 of the first tab</a>.
+      </p>
+      <div class="demo">
+        <div class="segments" id="tuning-mode"></div>
+        <p class="output" id="tuning-output"></p>
+        <p class="stat" id="tuning-stat"></p>
+      </div>
+      <p class="note">
+        Simplified: both continuations are written by hand to show the
+        typical difference.
+      </p>
+    </section>
+
+    <section class="step" id="feedback" data-title="Feedback">
+      <p class="step-no">Training · Step 5</p>
+      <h2>Learning from preferences</h2>
+      <p class="load" data-load="1,2,3">Plus the scarcest resource in this step: the time of the people who judge the answers.</p>
+      <p>
+        Good answers are hard to write down in advance, but easy to
+        recognise. So the next part of post-training works with judgements:
+        the model produces several answers, and people, or other models,
+        say which is better. This is <dfn>reinforcement learning</dfn>: instead of
+        being shown the right answer, as in step 4, the model gets only a
+        score for what it produced, and its weights are nudged so that
+        higher-scoring answers become more likely. When the judgements come from people, this is known as
+        <dfn>RLHF</dfn>, reinforcement learning from human feedback. Be the
+        judge.
+      </p>
+      <div class="demo">
+        <p class="context" id="feedback-prompt"></p>
+        <div class="answers" id="feedback-answers"></div>
+        <p class="stat" id="feedback-stat"></p>
+        <div class="actions">
+          <button type="button" id="feedback-reset" class="quiet" hidden>Start again</button>
+        </div>
+      </div>
+      <p>
+        Much of a model's character comes from this phase: how helpful,
+        honest, careful or chatty it is. Getting a model to reliably behave
+        as intended is called <dfn>alignment</dfn>. There is a risk on the
+        other side: a model trained to please its judges can learn to sound
+        convincing or flattering instead of being right.
+      </p>
+      <p class="note">
+        Simplified: your clicks are only recorded here and train nothing. In real training,
+        many thousands of such comparisons are first used to train a second
+        model that scores answers, and that score then steers the training.
+      </p>
+      <details class="extra">
+        <summary><span class="extra-tag">Origins</span> Who came up with learning from preferences?</summary>
+        <ul class="origins">
+          <li><span>2017</span><span><strong>Paul Christiano</strong> and colleagues at OpenAI and DeepMind show that a system can learn a task purely from people comparing pairs of its attempts.</span></li>
+          <li><span>2022</span><span><strong>OpenAI</strong> applies the method to a language model in <strong>InstructGPT</strong>, the direct forerunner of ChatGPT.</span></li>
+        </ul>
+      </details>
+    </section>
+
+    <section class="step" id="evaluation" data-title="Evaluation">
+      <p class="step-no">Training · Step 6</p>
+      <h2>Testing before release</h2>
+      <p class="load" data-load="1,2,3">Running the finished model on thousands of test questions. No learning, but the whole model has to be loaded.</p>
+      <p>
+        How do you know whether training worked? The loss only says how well
+        the model predicts text. So models are also tested on tasks. A
+        <dfn>benchmark</dfn> is a fixed set of questions with known answers,
+        such as exam questions, programming tasks or puzzles, and the score
+        is the share the model gets right. One rule matters above all: the
+        test must not be part of the training data, or the model may simply
+        have memorised the answers.
+      </p>
+      <p>
+        The tiny model shows why. Here is its loss, after reading all its
+        sentences, on three of those sentences and on three new ones built
+        from the same words. Lower is better.
+      </p>
+      <div class="demo">
+        <div class="bars evaluation" id="eval-bars"></div>
+        <p class="stat" id="eval-sentences"></p>
+      </div>
+      <p>
+        Only the second number says how the model copes with text it meets
+        for the first time. Testing on what it has already read would make
+        it look far better than it is.
+      </p>
+      <p>
+        Benchmark scores are how models are compared in headlines, and they
+        have limits. A high score in a test is not the same as being useful
+        or safe in real work. So before a release, developers also have
+        people try on purpose to make the model misbehave, which is called
+        red teaming.
+      </p>
+    </section>
+
+    <section class="step" id="adapting" data-title="After release">
+      <p class="step-no">Training · Step 7</p>
+      <h2>Adapting a finished model</h2>
+      <p class="load" data-load="0,1,2">LoRA trains only a small add-on, so one graphics card can be enough, though the whole frozen model must still be loaded. Distillation is a larger job.</p>
+      <p>
+        Once a model exists, others can keep shaping it without starting
+        over.
+      </p>
+      <p>
+        <strong>Fine-tuning</strong> trains it a little further on your own
+        examples, to teach it a style, a format or a specialist field.
+      </p>
+      <p>
+        <dfn>LoRA</dfn> is a cheap way to do that. The original weights stay
+        frozen, and only an
+        add-on with a small fraction of the weights is trained. That
+        brings fine-tuning within reach of a single graphics card. The
+        add-on is two thin tables whose product has the same shape as the
+        big one, and its result is added to what the frozen table produces.
+        How thin they are is called the rank.
+      </p>
+      <div class="demo">
+        <p class="stat">One table of weights inside a layer, 4,096 by 4,096 numbers. Choose the size of the add-on.</p>
+        <div class="segments" id="lora-ranks"></div>
+        <div class="bars wide" id="lora-bars"></div>
+        <p class="stat" id="lora-stat"></p>
+      </div>
+      <p class="note">
+        Simplified: one table is shown. A real model has hundreds, and an
+        add-on is attached to many of them. Typical ranks are 4 to 64; 256
+        is included to show where the saving shrinks. The counts are exact
+        for a table of this size.
+      </p>
+      <p>
+        <dfn>Distillation</dfn> trains a small "student" model to imitate the
+        answers of a large "teacher" model. The result is smaller and
+        faster, and keeps much of the teacher's ability.
+      </p>
+      <p>
+        Much of what looks like teaching a model is not training at all. A
+        system prompt, retrieved documents and tools all change the input,
+        not the weights. They are cheaper, take effect at once and can be
+        undone, so they are usually the first thing to try. Quantization is a different
+        case: it does change the weights, but by rounding them, not by
+        training, so the model gets smaller without learning anything new.
+        All of these are in <a href="#view-use">the first tab</a>.
+      </p>
+      <details class="extra">
+        <summary><span class="extra-tag">Origins</span> Who came up with these methods?</summary>
+        <ul class="origins">
+          <li><span>2015</span><span><strong>Geoffrey Hinton, Oriol Vinyals and Jeff Dean</strong> at Google describe distillation: a small network learning from a large one.</span></li>
+          <li><span>2021</span><span><strong>Edward Hu</strong> and colleagues at Microsoft introduce LoRA, short for low-rank adaptation.</span></li>
+        </ul>
+      </details>
+    </section>
+
+    <p class="recap">
+      That is the making of a model: data → pre-training → post-training →
+      testing → release, and adaptation afterwards.
+    </p>
+    </div>
+
+    <div class="view" id="view-agents" hidden>
+    <header class="hero">
+      <p class="eyebrow">Part three</p>
+      <h1>From answering to acting</h1>
+      <p class="lead">
+        On its own, a model writes text and stops. This part shows what is
+        built around it so that it can carry out a task.
+      </p>
+      <p class="hero-note">
+        The history behind each step is folded away along the route.
+        <button type="button" class="toggle-extras"></button>
+      </p>
+      <span class="scroll-hint" aria-hidden="true">↓</span>
+    </header>
+
+    <section class="step" id="agentic" data-title="Agentic AI">
+      <p class="step-no">Agents · Step 1</p>
+      <h2>A goal instead of a question</h2>
+      <p>
+        A chatbot takes one prompt and gives one answer.
+        <dfn>Agentic AI</dfn> describes systems that are given a goal and
+        work towards it over many rounds: decide on an action, carry it out
+        with a tool, look at the result, decide again. The model supplies
+        the decisions. Everything else is ordinary software. A single such
+        round is shown under "Agents" in
+        <a href="#loop">step 9 of the first tab</a>.
+      </p>
+      <p>
+        "Agentic" is a matter of degree, not a yes or no. Compare three
+        levels.
+      </p>
+      <div class="demo">
+        <div class="segments" id="autonomy-levels"></div>
+        <dl class="facts">
+          <dt>Who decides the next step</dt>
+          <dd id="autonomy-decides"></dd>
+          <dt>What it can touch</dt>
+          <dd id="autonomy-touches"></dd>
+          <dt>A typical request</dt>
+          <dd id="autonomy-example"></dd>
+        </dl>
+      </div>
+      <p>
+        More autonomy makes a system more useful and its mistakes more
+        costly. The skill lies in granting as much as the task needs, and
+        no more.
+      </p>
+    </section>
+
+    <section class="step" id="harness" data-title="Harness">
+      <p class="step-no">Agents · Step 2</p>
+      <h2>The harness: everything around the model</h2>
+      <p>
+        The program that turns a model into an agent is called the
+        <dfn>harness</dfn>. It runs the loop: it assembles the input, calls
+        the model, reads what the model wrote, carries out tool requests,
+        enforces the rules, and stops when the model gives a plain answer or a limit is reached. Walk once around the
+        loop.
+      </p>
+      <div class="demo">
+        <div class="stations" id="stations"></div>
+        <p class="stat" id="station-stat"></p>
+        <div class="actions">
+          <button type="button" id="station-next">Next station</button>
+          <button type="button" id="station-reset" class="quiet">Reset</button>
+        </div>
+      </div>
+      <p>
+        Four of the five stations belong to the harness. That is why the
+        same model can feel like a different product in two places: what it
+        is told, which tools it gets, what it may do without asking and how
+        its context window is managed are all decided here. The harness
+        itself is ordinary software and runs on any CPU. Only the model
+        calls need GPUs.
+      </p>
+      <p class="note">
+        Simplified: real harnesses add more, such as running several tool
+        requests at once, retrying after errors and handing parts of a task
+        to further agents.
+      </p>
+    </section>
+
+    <section class="step" id="chain" data-title="Tool chains">
+      <p class="step-no">Agents · Step 3</p>
+      <h2>Several tools, one task</h2>
+      <p>
+        Real tasks rarely need just one tool. In a <dfn>tool chain</dfn>,
+        the result of one tool becomes the input of the next, and the model
+        decides after each result what to do with it. Step through a chain
+        of three.
+      </p>
+      <div class="demo">
+        <p class="output" id="chain-output"></p>
+        <p class="stat" id="chain-stat"></p>
+        <div class="actions">
+          <button type="button" id="chain-next">Next step</button>
+          <button type="button" id="chain-reset" class="quiet">Reset</button>
+        </div>
+      </div>
+      <p>
+        A chain is only as strong as its links. If each step goes right 95% of the time and no mistake is caught, a task of 10 steps succeeds about 60% of the time, and
+        one of 50 steps about 8%. This is why long tasks are hard for
+        agents, and why harnesses add checks, tests and retries along the
+        way.
+      </p>
+      <p class="note">
+        Simplified: the model's lines are written by hand. The three tool
+        results are computed for real by this page, including today's date.
+      </p>
+    </section>
+
+    <section class="step" id="mcp" data-title="MCP">
+      <p class="step-no">Agents · Step 4</p>
+      <h2>MCP: one plug for all tools</h2>
+      <p>
+        Every tool has to be connected to the harness somehow. At first each
+        product wrote its own connection for each tool. <dfn>MCP</dfn>, the
+        Model Context Protocol, is an open standard for it. The maker of a
+        tool writes one small program, an MCP server, which announces which tools it offers and how to call them, and carries out the calls the harness sends it. Any harness that speaks MCP
+        can connect to it, and passes those descriptions on to the model.
+        It is often compared to a universal plug such as USB-C.
+      </p>
+      <p>
+        A server can offer three kinds of things: tools, which are actions
+        the model may request; resources, which are data it may read, such
+        as files or records; and ready-made prompts for common tasks. It
+        can run as a small program on your own computer, or as a service on
+        the internet that you log in to. Either way the first exchange is
+        the same: the harness asks "what do you offer?", and the server
+        answers with a list, each entry with a description in plain language and the exact inputs it expects.
+      </p>
+      <p>
+        Connect and disconnect servers, and watch what the model is told.
+      </p>
+      <div class="demo">
+        <div class="segments" id="mcp-servers"></div>
+        <p class="output" id="mcp-output"></p>
+        <p class="stat" id="mcp-stat"></p>
+      </div>
+      <p>
+        The descriptions are input like any other: the model reads them on every round. So connecting everything is not free, and a
+        long list of tools also makes it harder for the model to pick the
+        right one. And an MCP server is somebody else's software that your
+        agent will act through, so it deserves the same care as any program
+        you install.
+      </p>
+      <h3>MCP, an API or the command line?</h3>
+      <p>
+        There were ways to connect software long before MCP. An
+        <dfn>API</dfn> is the interface through which one program calls
+        another over the network. A <dfn>CLI</dfn>, the command line, is the
+        text interface in which programs are started by typing commands. An
+        agent can use all three, and they differ in ways that matter.
+      </p>
+      <table class="pairs four">
+        <thead>
+          <tr><th></th><th>Traditional API</th><th>Command line</th><th>MCP</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td data-label="">Made for</td>
+            <td data-label="Traditional API">Programmers, who read the documentation and write code against it.</td>
+            <td data-label="Command line">People typing commands, and scripts.</td>
+            <td data-label="MCP">Models. Every tool arrives with a description the model can read.</td>
+          </tr>
+          <tr>
+            <td data-label="">How the model learns what exists</td>
+            <td data-label="Traditional API">Somebody has to write a description of each function, separately for each harness.</td>
+            <td data-label="Command line">From its training text for well-known programs; otherwise by running the built-in help.</td>
+            <td data-label="MCP">The server announces its tools when it connects.</td>
+          </tr>
+          <tr>
+            <td data-label="">What goes in and comes out</td>
+            <td data-label="Traditional API">Structured data in an exact format.</td>
+            <td data-label="Command line">Free text, laid out for human eyes.</td>
+            <td data-label="MCP">Structured data, with every input spelled out.</td>
+          </tr>
+          <tr>
+            <td data-label="">What it may do</td>
+            <td data-label="Traditional API">Whatever the access key allows.</td>
+            <td data-label="Command line">Whatever that user account may do on that computer.</td>
+            <td data-label="MCP">Can be granted tool by tool, with a login for remote services.</td>
+          </tr>
+          <tr>
+            <td data-label="">Cost in the context window</td>
+            <td data-label="Traditional API">The descriptions somebody wrote for it.</td>
+            <td data-label="Command line">None until a command is run.</td>
+            <td data-label="MCP">The descriptions of every connected tool, unless they are loaded on demand.</td>
+          </tr>
+          <tr>
+            <td data-label="">What it needs</td>
+            <td data-label="Traditional API">Custom code for every connection.</td>
+            <td data-label="Command line">A computer on which the agent may run commands.</td>
+            <td data-label="MCP">A harness that speaks MCP.</td>
+          </tr>
+        </tbody>
+      </table>
+      <p>
+        MCP does not replace APIs. Most MCP servers are a thin wrapper around an existing API, adding the two things a model needs: a description
+        it can read, and a standard plug. That is where the advantages over
+        a plain API come from. A tool is connected once and then works in
+        every harness; the model discovers by itself what is on offer; and
+        access can be limited tool by tool.
+      </p>
+      <p>
+        A picture may help. An API is a form pushed through a slot: every
+        field must be right, or it comes back with an error, and the rules
+        are in a manual somewhere else. An MCP tool is the same form, just
+        as strict, but at a counter with a clerk. The clerk has the rules
+        to hand, fills the form in from what you say in your own words,
+        and if it is rejected, reads the reason and corrects it. The clerk
+        is the model. That is why MCP feels more like a conversation,
+        although every single request is as exact as before. A server can
+        even ask a question back when a detail is missing.
+      </p>
+      <p>
+        Compared with the command line, MCP is tidier and safer: exact
+        inputs and outputs instead of text to be interpreted, permission for
+        single actions instead of a whole computer, and it works where there
+        is no command line at all, such as a chat app on a phone. The
+        command line keeps real strengths, though. It needs no setup, models
+        already know the common programs, commands can be combined freely,
+        and nothing occupies the context window until it is used. Many
+        coding agents therefore use both: the command line for what is
+        already installed, MCP for services that need a login or a clear
+        boundary.
+      </p>
+      <p class="note">
+        Simplified: real descriptions also spell out each input and are
+        often ten times longer, so a few servers can take thousands of
+        tokens. Some harnesses therefore show the model only a short index
+        and fetch full descriptions when needed. The token count uses this
+        page's simple tokenizer.
+      </p>
+      <details class="extra">
+        <summary><span class="extra-tag">Origins</span> Where does MCP come from?</summary>
+        <ul class="origins">
+          <li><span>2023</span><span><strong>OpenAI</strong> adds function calling to its models, a fixed format in which a model can request a tool.</span></li>
+          <li><span>2024</span><span><strong>Anthropic</strong> publishes the Model Context Protocol as an open standard. Other major providers adopt it in the months that follow.</span></li>
+        </ul>
+      </details>
+    </section>
+
+    <section class="step" id="trust" data-title="Limits">
+      <p class="step-no">Agents · Step 5</p>
+      <h2>Keeping an agent in bounds</h2>
+      <p>
+        To a model, everything is text: your instructions, a web page it
+        reads, the result of a tool. A page or an email can contain a
+        sentence written to look like an instruction, and the model may
+        follow it. This is called <dfn>prompt injection</dfn>. In a chatbot
+        the damage is a wrong sentence. In an agent with tools it can be a
+        wrong action.
+      </p>
+      <p>
+        Models are trained to resist this, but none does so reliably, and
+        there is no complete fix. So the dependable defences sit in the
+        harness: permissions that
+        say what the agent may do without asking, a person confirming
+        anything that cannot be undone, a closed-off environment to work
+        in, and a record of every step.
+      </p>
+    </section>
+
+    <p class="recap">
+      That is an agent: a model in a loop, a harness around it, tools within
+      reach, and limits on all of it.
+    </p>
+    </div>
+
+    <div class="view" id="view-mind" hidden>
+    <header class="hero">
+      <p class="eyebrow">Part four</p>
+      <h1 class="one-line">Is it like a brain?</h1>
+      <p class="lead">
+        Words like neuron, memory and learning are borrowed from biology.
+        Some of the comparisons help, some mislead, and some questions are
+        still open.
+      </p>
+      <p class="hero-note">
+        The history behind each step is folded away along the route.
+        <button type="button" class="toggle-extras"></button>
+      </p>
+      <span class="scroll-hint" aria-hidden="true">↓</span>
+    </header>
+
+    <section class="step" id="memory" data-title="Memory">
+      <p class="step-no">Mind · Step 1</p>
+      <h2>Short-term and long-term memory</h2>
+      <p>
+        People keep a few things in mind for the moment and a lifetime of
+        knowledge in the background. A language model has a rough
+        counterpart to each, and that is a useful way to remember what it
+        can and cannot do.
+      </p>
+      <table class="pairs">
+        <thead>
+          <tr><th>In people</th><th>In a language model</th><th>Where the comparison breaks</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td data-label="In people"><strong>Short-term memory.</strong> What you are holding in mind right now.</td>
+            <td data-label="In a language model">The context window: everything in the current conversation.</td>
+            <td data-label="Where it breaks">Yours is small and fades. The model's is large and holds the text word for word, although in a very long conversation it does not use every part equally well. It ends abruptly at the limit and is wiped when the conversation ends.</td>
+          </tr>
+          <tr>
+            <td data-label="In people"><strong>Long-term memory.</strong> Knowledge and skills built up over years.</td>
+            <td data-label="In a language model">The weights, shaped during training.</td>
+            <td data-label="Where it breaks">You often sense whether you know something or are guessing, though human memory invents too. A model has at best a weak version of that sense: it cannot look anything up in its weights, and a plausible guess comes out looking exactly like a fact.</td>
+          </tr>
+          <tr>
+            <td data-label="In people"><strong>Notes and diaries.</strong> Things you wrote down to read later.</td>
+            <td data-label="In a language model"><dfn>External memory</dfn>: files, retrieved documents and the "memory" features of chat products, which save text and paste it back into later conversations.</td>
+            <td data-label="Where it breaks">It is reading, not remembering. Whatever the software does not put back into the context window does not exist for the model.</td>
+          </tr>
+          <tr>
+            <td data-label="In people"><strong>Learning from experience.</strong> Today's events become tomorrow's memories, partly during sleep.</td>
+            <td data-label="In a language model">Nothing, until the next training run.</td>
+            <td data-label="Where it breaks">A model in use does not learn from talking to you. Its weights are frozen.</td>
+          </tr>
+        </tbody>
+      </table>
+      <p>
+        The practical upshot: a model does not remember you between
+        conversations. If it seems to, some software saved a note about you
+        and handed it back.
+      </p>
+    </section>
+
+    <section class="step" id="brain" data-title="Brain">
+      <p class="step-no">Mind · Step 2</p>
+      <h2>Neurons, real and artificial</h2>
+      <p>
+        Neural networks were inspired by the brain, and the family
+        resemblance is real: many simple units, connected by links of
+        different strength, with learning as a change in those strengths
+        and knowledge spread across the whole network instead of stored in
+        one place. Beyond that, the two are very different machines.
+      </p>
+      <table class="pairs two">
+        <thead>
+          <tr><th>The brain</th><th>A language model</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td data-label="The brain">A neuron is a living cell with complex behaviour of its own.</td>
+            <td data-label="A language model">An artificial "neuron" is one tiny calculation inside a layer (step 5 of the first tab): a weighted sum followed by a simple cut-off.</td>
+          </tr>
+          <tr>
+            <td data-label="The brain">About 86 billion neurons with something like 100 trillion connections.</td>
+            <td data-label="A language model">Billions to trillions of weights, which are far simpler than a connection in the brain.</td>
+          </tr>
+          <tr>
+            <td data-label="The brain">Learns all the time, from few examples, on about 20 watts.</td>
+            <td data-label="A language model">Trained in advance and then frozen, on more text than a person could read in a thousand lifetimes, in data centres that draw as much power as a town. Running the finished model takes far less, but still much more than 20 watts.</td>
+          </tr>
+          <tr>
+            <td data-label="The brain">Lives in a body, with senses, needs and feelings.</td>
+            <td data-label="A language model">Receives text, and sometimes images or sound, and returns text.</td>
+          </tr>
+          <tr>
+            <td data-label="The brain">How it adjusts its connections is only partly understood.</td>
+            <td data-label="A language model">Uses backpropagation, which the brain is not known to use.</td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="note">
+        Simplified: the figures for the brain are common estimates, and
+        neuroscientists would add many qualifications to every row.
+      </p>
+      <details class="extra">
+        <summary><span class="extra-tag">Origins</span> Where does the comparison come from?</summary>
+        <ul class="origins">
+          <li><span>1943</span><span><strong>Warren McCulloch and Walter Pitts</strong> describe a mathematical model of a neuron, the starting point of artificial neural networks.</span></li>
+          <li><span>1958</span><span><strong>Frank Rosenblatt</strong>, a psychologist, builds the perceptron as a model of how the brain might learn.</span></li>
+        </ul>
+      </details>
+    </section>
+
+    <section class="step" id="questions" data-title="Open questions">
+      <p class="step-no">Mind · Step 3</p>
+      <h2>Questions still under debate</h2>
+      <p>
+        The mechanics on this page are well understood. What they add up to
+        is not. On the following questions, serious researchers disagree,
+        and this page does not take a side.
+      </p>
+      <div class="question">
+        <h3>Does it understand, or only predict?</h3>
+        <p>
+          <strong>One view:</strong> it reproduces patterns of words without
+          any grasp of what they refer to, a "stochastic parrot".
+        </p>
+        <p>
+          <strong>Another view:</strong> predicting text this well is only
+          possible with some internal model of the world the text
+          describes, and that is a form of understanding.
+        </p>
+      </div>
+      <div class="question">
+        <h3>Can it reason, or does it imitate reasoning?</h3>
+        <p>
+          <strong>One view:</strong> it recombines reasoning it has seen,
+          and fails when a problem is truly new.
+        </p>
+        <p>
+          <strong>Another view:</strong> it solves problems nobody wrote
+          down before, and human reasoning also leans heavily on familiar
+          patterns.
+        </p>
+      </div>
+      <div class="question">
+        <h3>Could such a system be conscious?</h3>
+        <p>
+          <strong>One view:</strong> no. Consciousness belongs to living
+          bodies with needs and something at stake, and calculation on text
+          has none of that.
+        </p>
+        <p>
+          <strong>Another view:</strong> if consciousness depends on the kind
+          of processing and not on the material, a machine could in
+          principle have it. Nobody knows which is true, and there is no
+          agreed test, so it cannot simply be ruled out.
+        </p>
+      </div>
+      <div class="question">
+        <h3>Will more of the same lead to human-level intelligence?</h3>
+        <p>
+          <strong>One view:</strong> larger models, more data and better
+          harnesses will get to <dfn>AGI</dfn>, artificial general
+          intelligence, within years.
+        </p>
+        <p>
+          <strong>Another view:</strong> something essential is missing,
+          such as learning from experience, a body or real goals, and
+          scaling will not supply it.
+        </p>
+      </div>
+      <div class="question">
+        <h3>Whose values should it follow, and who answers for what it does?</h3>
+        <p>
+          <strong>The difficulty:</strong> training gives a model its
+          character, so somebody chooses it. And when an agent acts, the
+          responsibility is shared between its maker, whoever deployed it
+          and whoever gave it the task, in ways the law has not settled.
+        </p>
+      </div>
+      <details class="extra">
+        <summary><span class="extra-tag">Origins</span> Where do these debates come from?</summary>
+        <ul class="origins">
+          <li><span>1950</span><span><strong>Alan Turing</strong> proposes replacing the question "Can machines think?" with a test: can a machine pass for a person in a written conversation?</span></li>
+          <li><span>1980</span><span><strong>John Searle</strong> argues with his "Chinese room" thought experiment that following rules for symbols is not understanding.</span></li>
+          <li><span>2021</span><span><strong>Emily Bender, Timnit Gebru</strong> and colleagues coin the phrase "stochastic parrots" for language models.</span></li>
+        </ul>
+      </details>
+    </section>
+
+    <p class="recap">
+      A language model borrows words from the brain, shares a few ideas
+      with it, and leaves the largest questions open.
+    </p>
+    </div>
+
+    <div class="view" id="view-models" data-narration="off" hidden>
+    <header class="hero">
+      <p class="eyebrow">Part five</p>
+      <h1>Models and software worth knowing</h1>
+      <p class="lead">
+        The guide so far explains ideas that last. This part names the
+        models and tools people are talking about, and it will age fastest.
+      </p>
+      <p class="hero-note">
+        Snapshot: October 2026. Rankings shift from month to month and
+        depend on what is tested, so read every "best" as "among the best
+        at the time".
+      </p>
+      <span class="scroll-hint" aria-hidden="true">↓</span>
+    </header>
+
+    <section class="step" id="frontier" data-title="Frontier">
+      <p class="step-no">Models · 1</p>
+      <h2>The highest quality</h2>
+      <p>
+        The most capable models of the moment are called
+        <dfn>frontier models</dfn>. They are very large, run in data
+        centres, and are reached through an app or a paid interface; their
+        weights are not published. In October 2026 the top of the general
+        rankings is shared by three companies, in an order that changes
+        with the kind of task.
+      </p>
+      <table class="pairs">
+        <thead>
+          <tr><th>Model</th><th>From</th><th>Notable for</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td data-label="Model"><strong>Claude Opus 5.5</strong>, with the smaller Sonnet 5.5</td>
+            <td data-label="From">Anthropic</td>
+            <td data-label="Notable for">Released in September 2026. At or near the top of general and programming rankings.</td>
+          </tr>
+          <tr>
+            <td data-label="Model"><strong>Gemini 4 Argon</strong>, with the cheaper Gemini 3.7 Flash</td>
+            <td data-label="From">Google</td>
+            <td data-label="Notable for">Announced on 30 September 2026 as Google's most capable model, with access still limited when this was written. The Flash model is known for results at low cost.</td>
+          </tr>
+          <tr>
+            <td data-label="Model"><strong>GPT-6 Astra</strong></td>
+            <td data-label="From">OpenAI</td>
+            <td data-label="Notable for">Rolled out in phases from September 2026. At or near the top, leading on some knowledge and reasoning tests.</td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="note">
+        Listed alphabetically by maker. This guide was written with the
+        help of one of these models, Claude, so treat the order as neutral
+        and check a current leaderboard before choosing.
+      </p>
+    </section>
+
+    <section class="step" id="openweights" data-title="Open weights">
+      <p class="step-no">Models · 2</p>
+      <h2>The strongest you can download</h2>
+      <p>
+        Open-weight models can be downloaded, run on your own machines and
+        adapted (see "Open weights" in
+        <a href="#network">step 5 of the first tab</a>). The best of them
+        trail the frontier by a small margin and lead on cost and control.
+        Which one is "best" depends on the ranking you consult; these are
+        the names that come up in October 2026.
+      </p>
+      <table class="pairs">
+        <thead>
+          <tr><th>Model</th><th>From</th><th>Notable for</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td data-label="Model"><strong>DeepSeek V4-Pro</strong></td>
+            <td data-label="From">DeepSeek</td>
+            <td data-label="Notable for">Often named best overall among open models, for programming and reasoning; a very permissive licence.</td>
+          </tr>
+          <tr>
+            <td data-label="Model"><strong>Qwen 3.8</strong> family</td>
+            <td data-label="From">Alibaba</td>
+            <td data-label="Notable for">The widest range of sizes under one permissive licence, from laptop-sized to very large.</td>
+          </tr>
+          <tr>
+            <td data-label="Model"><strong>Kimi K3</strong></td>
+            <td data-label="From">Moonshot AI</td>
+            <td data-label="Notable for">Leads some knowledge and reasoning tests among open models.</td>
+          </tr>
+          <tr>
+            <td data-label="Model"><strong>MiMo-V2.6-Pro</strong> and <strong>GLM-5.3</strong></td>
+            <td data-label="From">Xiaomi and Zhipu AI</td>
+            <td data-label="Notable for">At the top of at least one open-weight ranking each this autumn.</td>
+          </tr>
+          <tr>
+            <td data-label="Model"><strong>Llama 4 Scout</strong></td>
+            <td data-label="From">Meta</td>
+            <td data-label="Notable for">From 2025, and still notable for an extremely large context window, at the price of serious hardware.</td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="note">
+        "Open" covers different licences. Some allow any use; others
+        restrict commercial use. The licence, not the download button,
+        decides what you may do.
+      </p>
+    </section>
+
+    <section class="step" id="local" data-title="Local">
+      <p class="step-no">Models · 3</p>
+      <h2>Good quality on your own machine</h2>
+      <p>
+        Running a model yourself keeps your data at home and costs nothing
+        per token. What fits is a question of memory: roughly the number of
+        parameters times the bits per weight (see "Quantization" in
+        <a href="#network">step 5</a>). These are common recommendations for
+        ordinary laptops and desktops.
+      </p>
+      <table class="pairs">
+        <thead>
+          <tr><th>Model</th><th>From</th><th>Notable for</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td data-label="Model"><strong>Gemma 4</strong>, 12B and 26B</td>
+            <td data-label="From">Google</td>
+            <td data-label="Notable for">The usual first recommendation: the smaller one fits a 16 GB machine.</td>
+          </tr>
+          <tr>
+            <td data-label="Model"><strong>Qwen 3.8 27B</strong></td>
+            <td data-label="From">Alibaba</td>
+            <td data-label="Notable for">Text and images in one model of moderate size.</td>
+          </tr>
+          <tr>
+            <td data-label="Model"><strong>Ternary Bonsai 2 27B</strong></td>
+            <td data-label="From">PrismML</td>
+            <td data-label="Notable for">The same 27B model compressed to weights of −1, 0 and +1: about 6 GB instead of 54.</td>
+          </tr>
+          <tr>
+            <td data-label="Model"><strong>Spark X2.5 4B</strong></td>
+            <td data-label="From">iFLYTEK</td>
+            <td data-label="Notable for">A very small model with a context window of up to a million tokens.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="step" id="unusual" data-title="Different designs">
+      <p class="step-no">Models · 4</p>
+      <h2>Different by design</h2>
+      <p>
+        Not every notable model competes on the same scale. Some stand out
+        because they do one thing differently.
+      </p>
+      <table class="pairs">
+        <thead>
+          <tr><th>Model</th><th>From</th><th>Notable for</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td data-label="Model"><strong>Jev</strong></td>
+            <td data-label="From">TypeSafe AI</td>
+            <td data-label="Notable for">Does not write text. It returns probabilities for answers you define (see "Models that decide instead of write" at the end of the first tab).</td>
+          </tr>
+          <tr>
+            <td data-label="Model"><strong>BitNet b1.58</strong></td>
+            <td data-label="From">Microsoft Research</td>
+            <td data-label="Notable for">Trained from the start with weights of only −1, 0 and +1.</td>
+          </tr>
+          <tr>
+            <td data-label="Model"><strong>Mixtral 8x7B</strong></td>
+            <td data-label="From">Mistral AI</td>
+            <td data-label="Notable for">The model that made mixture of experts widely known in 2023; no longer current, but the design lives on.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="step" id="software" data-title="Software">
+      <p class="step-no">Models · 5</p>
+      <h2>The software around the models</h2>
+      <p>
+        A model is a file of weights. Almost everything people actually use
+        is software wrapped around one.
+      </p>
+      <table class="pairs">
+        <thead>
+          <tr><th>Software</th><th>What it is</th><th>Where it fits in this guide</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td data-label="Software"><strong>ChatGPT, Claude, Gemini</strong></td>
+            <td data-label="What it is">Chat apps: a model plus a harness, a system prompt and tools.</td>
+            <td data-label="Where it fits in this guide"><a href="#harness">Agents, step 2</a></td>
+          </tr>
+          <tr>
+            <td data-label="Software"><strong>Claude Code, Codex, Cursor</strong></td>
+            <td data-label="What it is">Coding agents: harnesses that let a model read, write and run code.</td>
+            <td data-label="Where it fits in this guide"><a href="#agentic">Agents, step 1</a></td>
+          </tr>
+          <tr>
+            <td data-label="Software"><strong>Ollama, LM Studio</strong></td>
+            <td data-label="What it is">Download and run open-weight models on your own computer with a few clicks.</td>
+            <td data-label="Where it fits in this guide"><a href="#local">Models, 3</a></td>
+          </tr>
+          <tr>
+            <td data-label="Software"><strong>llama.cpp, MLX</strong></td>
+            <td data-label="What it is">The engines underneath such tools; they made quantized models on ordinary hardware practical.</td>
+            <td data-label="Where it fits in this guide"><a href="#network">Step 5</a></td>
+          </tr>
+          <tr>
+            <td data-label="Software"><strong>vLLM</strong></td>
+            <td data-label="What it is">Serves a model to many users at once, on servers with GPUs.</td>
+            <td data-label="Where it fits in this guide"><a href="#loop">Step 9</a></td>
+          </tr>
+          <tr>
+            <td data-label="Software"><strong>Hugging Face</strong></td>
+            <td data-label="What it is">The website where most open-weight models, with their many variants, are published.</td>
+            <td data-label="Where it fits in this guide"><a href="#openweights">Models, 2</a></td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <p class="recap">
+      Names change every few months. The ideas behind them, in the other
+      tabs, change slowly.
+    </p>
+    </div>
+
+    <div class="view" id="view-faq" data-narration="off" hidden>
+    <header class="hero">
+      <p class="eyebrow">Part six</p>
+      <h1 class="one-line">Often asked</h1>
+      <p class="lead">
+        Questions that come up again and again and are not answered in the
+        steps themselves. Each answer is short and points back to the step
+        that explains the background.
+      </p>
+      <p class="hero-note">
+        Click a question to open it.
+        <button type="button" class="toggle-extras"></button>
+      </p>
+      <span class="scroll-hint" aria-hidden="true">↓</span>
+    </header>
+
+    <section class="step" id="faq-using" data-title="Everyday use">
+      <p class="step-no">Questions · Everyday use</p>
+      <h2>When you use a model</h2>
+      <details class="extra faq">
+        <summary>Does it learn from my conversations, and is my data used for training?</summary>
+        <p>
+          Not while you chat: the weights are frozen, so nothing you type changes the model. But the company running it may store conversations and use them to train a later model. Whether it does depends on the product and your settings. Offers for businesses usually exclude this by default, and consumer apps often let you switch it off. The privacy settings of the product are the place to look.
+        </p>
+        <p class="background">Background: <a href="#network">Using, step 5</a> · <a href="#data">Training, step 1</a> · <a href="#memory">Mind, step 1</a></p>
+      </details>
+      <details class="extra faq">
+        <summary>Is it doing anything while I am not typing?</summary>
+        <p>
+          No. A model computes only when it is called. Between your messages nothing runs: it does not wait, think things over or notice time passing. Each message starts a fresh run in which it reads the whole conversation again. The exception is an agent that some software has been told to start on a schedule.
+        </p>
+        <p class="background">Background: <a href="#loop">Using, step 9</a> · <a href="#harness">Agents, step 2</a></p>
+      </details>
+      <details class="extra faq">
+        <summary>Why can it not reliably count the letters in a word, or do exact arithmetic?</summary>
+        <p>
+          Because it sees tokens, not letters. A word may arrive as one or two chunks, and the letters inside a chunk are never shown to it separately. Arithmetic has a similar cause: the model predicts the digits of the result as text, which works for common sums and fails for long ones. Both get much better when the model writes out its steps, and reliable when it hands the job to a tool such as a calculator.
+        </p>
+        <p class="background">Background: <a href="#tokens">Using, step 2</a> · <a href="#loop">Using, step 9</a> · <a href="#chain">Agents, step 3</a></p>
+      </details>
+      <details class="extra faq">
+        <summary>Does a model know how it works inside?</summary>
+        <p>
+          Mostly not. It cannot inspect its own weights. When you ask how it reached an answer, it writes a plausible account in the same way it writes everything else, and that account may or may not match what happened inside. What it says about itself comes from its training text and its system prompt. Finding out what really happens inside a model is a research field of its own, done from the outside.
+        </p>
+        <p class="background">Background: <a href="#prediction">Using, step 7</a> · <a href="#questions">Mind, step 3</a></p>
+      </details>
+      <details class="extra faq">
+        <summary>Why are models so good at programming, of all things?</summary>
+        <p>
+          Several things come together. Code is text, and the internet holds
+          an enormous amount of it in good quality, with explanations and
+          worked answers alongside. It follows strict rules, which makes the
+          next token easier to predict than in everyday language. Most
+          important, code can be checked by a machine: it runs or it does
+          not, and tests pass or fail. That gives training a clear signal
+          for right and wrong without a person judging every answer, and it
+          lets an agent try, test and fix until it works. And the companies
+          building models put special effort here, because programmers are
+          their own staff and their best customers.
+        </p>
+        <p>
+          The limits are the usual ones. Models are strongest on tasks that
+          resemble much-seen code, and they can produce code that looks
+          right and is subtly wrong, so testing stays necessary.
+        </p>
+        <p class="background">Background: <a href="#data">Training, step 1</a> · <a href="#feedback">Training, step 5</a> · <a href="#chain">Agents, step 3</a> · <a href="#prediction">Using, step 7</a></p>
+      </details>
+    </section>
+
+    <section class="step" id="faq-choosing" data-title="Choosing">
+      <p class="step-no">Questions · Choosing and running</p>
+      <h2>When you choose or run one</h2>
+      <details class="extra faq">
+        <summary>Is a bigger model always better?</summary>
+        <p>
+          No. The number of parameters says how much a model could hold, not how good it is. The training data, the training method and the post-training matter as much, which is why a small recent model often beats a far larger one from two years earlier. Bigger also means slower and more expensive. The sensible choice is the smallest model that does your task well.
+        </p>
+        <p class="background">Background: <a href="#network">Using, step 5</a> · <a href="#evaluation">Training, step 6</a></p>
+      </details>
+      <details class="extra faq">
+        <summary>How do I read a model name such as "Example-3-27B-Instruct-Q4"?</summary>
+        <p>
+          The name here is made up, but real ones follow the same pattern. First comes the family and its version. "27B" is the size: 27 billion parameters. "Instruct" or "Chat" means it has been post-trained to follow instructions, as opposed to "Base". "Q4" or "4bit" means it is quantized to about 4 bits per weight. Other common parts: "MoE" or "8x7B" for mixture of experts, "Vision" or "VL" for image input, a figure such as "1M" for the context window, and "GGUF" for a file format used to run models locally.
+        </p>
+        <p class="background">Background: <a href="#network">Using, step 5</a> · <a href="#posttraining">Training, step 4</a> · <a href="#local">Models, 3</a></p>
+      </details>
+      <details class="extra faq">
+        <summary>What hardware do I need to run a model myself?</summary>
+        <p>
+          Above all, enough memory. A rule of thumb: parameters times bits per weight, divided by 8, gives the size in bytes. A model with 8 billion parameters at 4 bits needs about 4 GB, plus some room for the conversation, so it runs on a laptop with 16 GB. One with 27 billion parameters at 4 bits needs about 14 GB and wants 24 to 32 GB. A graphics card, or a computer whose processor and graphics share fast memory, makes it quick; without one it works, slowly.
+        </p>
+        <p class="background">Background: <a href="#network">Using, step 5</a> · <a href="#loop">Using, step 9</a> · <a href="#local">Models, 3</a></p>
+      </details>
+    </section>
+
+    <section class="step" id="faq-wider" data-title="Wider questions">
+      <p class="step-no">Questions · Beyond the technology</p>
+      <h2>Wider questions</h2>
+      <details class="extra faq">
+        <summary>How much energy does one answer use?</summary>
+        <p>
+          For a short text answer, about a third of a watt-hour: Google reported 0.24 Wh for a typical Gemini text prompt in 2025, and OpenAI gave 0.34 Wh for an average ChatGPT query. That is roughly a small LED lamp burning for two minutes. Three cautions: these figures come from the companies themselves, they leave out the energy spent on training, and long reasoning, images and video use many times more. The total matters because of the sheer number of requests.
+        </p>
+        <p class="background">Background: <a href="#loop">Using, step 9</a> · <a href="#pretraining">Training, step 2</a></p>
+      </details>
+      <details class="extra faq">
+        <summary>Can text written by a model be detected?</summary>
+        <p>
+          Not reliably. Detection tools make mistakes in both directions, and they have wrongly accused people of using AI, so their verdict is not proof. Some providers build a hidden statistical pattern, a watermark, into what their models write. That only works for text from those providers, and editing the text weakens it.
+        </p>
+        <p class="background">Background: <a href="#sampling">Using, step 8</a></p>
+      </details>
+      <details class="extra faq">
+        <summary>Who owns what a model writes, and was it allowed to learn from copyrighted text?</summary>
+        <p>
+          Both questions are unsettled and are answered differently from country to country. Courts are still deciding whether training on copyrighted material is permitted and under what conditions. As for the output: in many places text made by a machine alone is not protected by copyright at all, and the terms of the provider say what you may do with it. For anything that matters, this needs proper legal advice.
+        </p>
+        <p class="background">Background: <a href="#data">Training, step 1</a> · <a href="#questions">Mind, step 3</a></p>
+      </details>
+    </section>
+
+    <p class="recap">
+      Missing a question? The step-by-step tabs are the main guide; this
+      list only catches what falls between them.
+    </p>
+    </div>
+
+    <section class="glossary" id="glossary">
+      <h2>Words you will hear</h2>
+      <dl>
+        <dt>Agent</dt>
+        <dd>A model running in a loop with tools, so it can look things up and take actions over several rounds. <a href="#loop">Step 9</a></dd>
+        <dt>Agentic AI</dt>
+        <dd>Systems in which a model is given a goal and works towards it over many rounds, using tools. <a href="#agentic">Agents, step 1</a></dd>
+        <dt>AGI</dt>
+        <dd>Artificial general intelligence: a system as capable as a person across most kinds of thinking work. Whether and when it will exist is disputed. <a href="#questions">Mind, step 3</a></dd>
+        <dt>Alignment</dt>
+        <dd>Getting a model to reliably behave the way its makers intend. <a href="#feedback">Training, step 5</a></dd>
+        <dt>API</dt>
+        <dd>Application programming interface: the way one program calls another, usually over the network. Made for programmers, not for models. <a href="#mcp">Agents, step 4</a></dd>
+        <dt>Attention</dt>
+        <dd>The part of a layer where each token pulls in information from the tokens before it. <a href="#attention">Step 6</a></dd>
+        <dt>Attention head</dt>
+        <dd>One of the many attention patterns a layer runs side by side. Each can learn to look for something different. <a href="#attention">Step 6</a></dd>
+        <dt>Backpropagation</dt>
+        <dd>The method that works out, for every weight, which way to nudge it to reduce the loss. <a href="#descent">Training, step 3</a></dd>
+        <dt>Base model</dt>
+        <dd>A model after pre-training only: it continues text but is not yet an assistant. You will also hear "foundation model", a broader term for any large pre-trained model that others build on. <a href="#pretraining">Training, step 2</a></dd>
+        <dt>Benchmark</dt>
+        <dd>A fixed set of test questions with known answers, used to score and compare models. <a href="#evaluation">Training, step 6</a></dd>
+        <dt>Classifier</dt>
+        <dd>A model that does not write text but returns a probability for each of a fixed set of answers. <a href="#decide">Different path</a></dd>
+        <dt>CLI</dt>
+        <dd>Command-line interface: starting and controlling programs by typing text commands. <a href="#mcp">Agents, step 4</a></dd>
+        <dt>Context window</dt>
+        <dd>The maximum number of tokens a model can take in at once. Also used for the text currently in it. <a href="#loop">Step 9</a></dd>
+        <dt>CPU</dt>
+        <dd>The ordinary processor found in every computer. <a href="#prompt">Step 1</a></dd>
+        <dt>Distillation</dt>
+        <dd>Training a small model to imitate a large one. <a href="#adapting">Training, step 7</a></dd>
+        <dt>Embedding</dt>
+        <dd>The vector a token ID is swapped for at the start. Also the name for that lookup. <a href="#embeddings">Step 4</a></dd>
+        <dt>External memory</dt>
+        <dd>Text saved outside the model, such as files or a product's "memory" feature, and placed back into the context window when needed. The model itself keeps nothing between conversations. <a href="#memory">Mind, step 1</a></dd>
+        <dt>Fine-tuning</dt>
+        <dd>Training an already trained model further on a smaller, chosen set of examples: by its maker to turn a base model into an assistant, or later by others to specialise it. <a href="#posttraining">Training, step 4</a></dd>
+        <dt>Frontier model</dt>
+        <dd>One of the most capable models available at a given time. <a href="#frontier">Models, 1</a></dd>
+        <dt>Generative</dt>
+        <dd>Describes a model that produces new text, token by token. The G in GPT. <a href="#decide">Different path</a></dd>
+        <dt>GPT</dt>
+        <dd>Generative pre-trained transformer: a model that generates text, was trained in advance, and is built as a transformer. <a href="#network">Step 5</a></dd>
+        <dt>GPU</dt>
+        <dd>A chip built to do huge numbers of simple calculations at once. Neural networks run and train on them. <a href="#prompt">Step 1</a></dd>
+        <dt>Gradient descent</dt>
+        <dd>Improving a model by moving its weights in small steps in the direction that lowers the loss. <a href="#descent">Training, step 3</a></dd>
+        <dt>Hallucination</dt>
+        <dd>Fluent, confident output that is wrong. The model scores what is likely, not what is true. <a href="#prediction">Step 7</a></dd>
+        <dt>Harness</dt>
+        <dd>The software around a model that runs the loop: it builds the input, calls the model, carries out tool requests and enforces the rules. <a href="#harness">Agents, step 2</a></dd>
+        <dt>Inference</dt>
+        <dd>Using a finished model to produce output. Nothing is learned; the weights stay fixed. <a href="#network">Step 5</a></dd>
+        <dt>Input tokens</dt>
+        <dd>All the tokens a model reads for one answer: system prompt, conversation, documents and tool descriptions. <a href="#loop">Step 9</a></dd>
+        <dt>Knowledge cutoff</dt>
+        <dd>The date after which a model knows nothing, because its training data ends there. <a href="#data">Training, step 1</a></dd>
+        <dt>Layer</dt>
+        <dd>One stage of the neural network. Each layer rewrites every vector a little. <a href="#network">Step 5</a></dd>
+        <dt>Learning rate</dt>
+        <dd>A setting that scales how big each step of gradient descent is. <a href="#descent">Training, step 3</a></dd>
+        <dt>LLM</dt>
+        <dd>Large language model: a neural network trained on huge amounts of text to predict the next token. <a href="#prompt">Step 1</a></dd>
+        <dt>LoRA</dt>
+        <dd>A cheap way to fine-tune: the original weights stay frozen and only a small add-on is trained. <a href="#adapting">Training, step 7</a></dd>
+        <dt>Loss</dt>
+        <dd>A number for how wrong the model's guesses are. Training tries to make it smaller. <a href="#pretraining">Training, step 2</a></dd>
+        <dt>MCP</dt>
+        <dd>Model Context Protocol: an open standard for connecting tools and data sources to any model's harness. <a href="#mcp">Agents, step 4</a></dd>
+        <dt>Memory bandwidth</dt>
+        <dd>How fast a chip can move data in and out of its memory. When a model writes text, this often limits the speed more than calculating power does. <a href="#loop">Step 9</a></dd>
+        <dt>Mixture of experts</dt>
+        <dd>A model design where each token is sent through only a few of many "expert" blocks. Often shortened to MoE. <a href="#attention">Step 6</a></dd>
+        <dt>Multimodal</dt>
+        <dd>Describes a model that takes more than text as input, such as images or sound. <a href="#embeddings">Step 4</a></dd>
+        <dt>Neural network</dt>
+        <dd>The stack of layers that transforms the vectors. This is "the model". <a href="#network">Step 5</a></dd>
+        <dt>Neuron</dt>
+        <dd>In a neural network: a tiny unit that multiplies its inputs by weights, adds them up and passes on the result. Loosely named after the nerve cells of the brain. <a href="#network">Step 5</a></dd>
+        <dt>Open weights</dt>
+        <dd>Describes a model whose weights are published, so anyone can download and run it. Not the same as open source. <a href="#network">Step 5</a></dd>
+        <dt>Output tokens</dt>
+        <dd>The tokens a model writes. Each needs its own pass through the model, so they are slower and cost more than input tokens. <a href="#loop">Step 9</a></dd>
+        <dt>Parameters</dt>
+        <dd>Another word for weights. Model sizes are given as a parameter count. <a href="#network">Step 5</a></dd>
+        <dt>Post-training</dt>
+        <dd>Everything done after pre-training to turn a base model into a helpful assistant. <a href="#posttraining">Training, step 4</a></dd>
+        <dt>Pre-training</dt>
+        <dd>The first and largest training phase: guessing the next token over enormous amounts of text. <a href="#pretraining">Training, step 2</a></dd>
+        <dt>Prompt</dt>
+        <dd>The text you give the model. <a href="#prompt">Step 1</a></dd>
+        <dt>Prompt injection</dt>
+        <dd>Text in a web page, document or tool result, written to look like an instruction, that a model may follow. <a href="#trust">Agents, step 5</a></dd>
+        <dt>Quantization</dt>
+        <dd>Storing each weight with fewer bits to make a model smaller and faster, at a small cost in quality. <a href="#network">Step 5</a></dd>
+        <dt>RAG</dt>
+        <dd>Retrieval-augmented generation: a search step finds relevant text and places it in front of the prompt, so the model can answer from it. <a href="#prediction">Step 7</a></dd>
+        <dt>Reasoning model</dt>
+        <dd>A model that first writes out its working, often hidden as "thinking", and then gives its answer. <a href="#loop">Step 9</a></dd>
+        <dt>Reinforcement learning</dt>
+        <dd>Learning from a score for what the model produced, instead of from a correct answer. <a href="#feedback">Training, step 5</a></dd>
+        <dt>RLHF</dt>
+        <dd>Reinforcement learning from human feedback: people judge answers, and the model is trained towards the preferred ones. <a href="#feedback">Training, step 5</a></dd>
+        <dt>Sampling</dt>
+        <dd>Picking the next token by a random draw, weighted by the probabilities. <a href="#sampling">Step 8</a></dd>
+        <dt>System One model</dt>
+        <dd>TypeSafe AI's name for its model Jev, which returns probabilities over predefined answers and writes no text. <a href="#decide">Different path</a></dd>
+        <dt>System prompt</dt>
+        <dd>Instructions that a chat product places in front of your prompt. You normally do not see them. <a href="#prompt">Step 1</a></dd>
+        <dt>Temperature</dt>
+        <dd>A setting for how random the pick of the next token is. <a href="#sampling">Step 8</a></dd>
+        <dt>Ternary</dt>
+        <dd>Weights limited to the three values −1, 0 and +1: the extreme end of quantization. Also called 1.58-bit. <a href="#network">Step 5</a></dd>
+        <dt>Test-time training</dt>
+        <dd>Briefly training the model on the task in front of it while it answers, then usually discarding the changes. Short: TTT. <a href="#network">Step 5</a></dd>
+        <dt>Token</dt>
+        <dd>A chunk of text, often a word or part of a word. The unit a model reads and writes. <a href="#tokens">Step 2</a></dd>
+        <dt>Tool chain</dt>
+        <dd>Several tools used one after another, each result feeding the next request. <a href="#chain">Agents, step 3</a></dd>
+        <dt>Tool use</dt>
+        <dd>The model writes a request in a fixed format, software runs the tool and pastes the result back into the text. Also called function calling. <a href="#loop">Step 9</a></dd>
+        <dt>Training</dt>
+        <dd>Adjusting the weights, over enormous amounts of text, until predictions improve. <a href="#network">Step 5</a></dd>
+        <dt>Training data</dt>
+        <dd>The text a model learns from. <a href="#data">Training, step 1</a></dd>
+        <dt>Transformer</dt>
+        <dd>The layer design used by today's LLMs, built around attention. <a href="#network">Step 5</a></dd>
+        <dt>Vector</dt>
+        <dd>A list of numbers that represents a token inside the model. <a href="#embeddings">Step 4</a></dd>
+        <dt>Vocabulary</dt>
+        <dd>The fixed list of all tokens a model knows. <a href="#ids">Step 3</a></dd>
+        <dt>Weights</dt>
+        <dd>The learned numbers that decide what each layer does. Fixed after training. <a href="#network">Step 5</a></dd>
+      </dl>
+    </section>
+  </main>
+
+  <script src="tokenizer.js"></script>
+  <script src="model.js"></script>
+  <script src="network.js"></script>
+  <script src="app.js"></script>
+  <script src="training.js"></script>
+  <script src="agents.js"></script>
+  <script src="audio/manifest.js"></script>
+  <script src="audio.js"></script>
+</body>
+</html>
