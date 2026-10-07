@@ -114,6 +114,15 @@ main {
   white-space: nowrap;
 }
 
+/* With many tabs on a narrow screen the pill scrolls sideways. */
+.tabs {
+  max-width: calc(100vw - 16px);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.tabs::-webkit-scrollbar { display: none; }
+
 .tabs a {
   padding: 6px 14px;
   border-radius: 99px;
@@ -861,6 +870,59 @@ button.chip:focus-visible {
 }
 
 .facts dt { color: var(--muted); }
+
+/* The same list standing on its own, outside a demo. */
+.facts.boxed {
+  margin: 4px 0 16px;
+  padding: 16px 20px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.demo .segments.second-row { margin-top: 4px; }
+
+.pairs.machines { margin-bottom: 0; }
+
+/* Column headings that sort the table. */
+.pairs .sort {
+  padding: 0;
+  background: none;
+  color: inherit;
+  border: 0;
+  font: inherit;
+  letter-spacing: inherit;
+  text-align: left;
+  text-transform: inherit;
+  cursor: pointer;
+}
+
+.pairs .sort::after { content: " ↕"; }
+.pairs th[aria-sort="descending"] .sort { color: var(--accent); }
+.pairs th[aria-sort="descending"] .sort::after { content: " ↓"; }
+
+.pairs .sort:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.demo .segments.compact-row { margin: 12px 0 4px; }
+.demo .segments.compact-row button { padding: 7px 0; }
+/* Named with both classes so these widths win over the general four-column ones. */
+/* Only where the table is a real table; on a phone its cells stack at full width. */
+@media (min-width: 521px) {
+  .pairs.four.machines td { width: 18%; }
+  .pairs.four.machines td:first-child { width: 46%; }
+}
+
+.pairs.machines td small {
+  display: block;
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 400;
+}
+.pairs.machines .unfit { color: var(--muted); }
 .facts dd { margin: 0; }
 
 /* Stations of the harness loop */
@@ -1157,32 +1219,46 @@ button.chip:focus-visible {
 
 .alt-path { padding-bottom: 4vh; }
 
-/* Glossary */
-.glossary { padding: 4vh 0 16vh; }
+/* Glossary: a compact reference list. It is wider than the text column and
+   flows into as many columns as fit. */
+.glossary {
+  position: relative;
+  left: 50%;
+  width: min(940px, calc(100vw - 32px));
+  padding: 4vh 0 16vh;
+  transform: translateX(-50%);
+}
 
 .glossary dl {
-  display: grid;
-  grid-template-columns: max-content 1fr;
-  gap: 12px 24px;
-  margin: 24px 0 0;
-  font-size: 0.95rem;
+  columns: 270px 3;
+  column-gap: 32px;
+  margin: 20px 0 0;
+  font-size: 0.82rem;
+  line-height: 1.45;
 }
 
-.glossary dt { font-weight: 700; }
+.glossary dl > div {
+  margin: 0 0 9px;
+  break-inside: avoid;
+}
 
-.glossary dd { margin: 0; }
+.glossary dt {
+  display: inline;
+  font-weight: 700;
+}
+
+.glossary dt::after { content: ":"; }
+
+.glossary dd {
+  display: inline;
+  margin: 0;
+}
 
 .glossary a {
-  margin-left: 4px;
   color: var(--accent);
-  font-size: 0.8rem;
+  font-size: 0.72rem;
   font-weight: 600;
   white-space: nowrap;
-}
-
-@media (max-width: 520px) {
-  .glossary dl { grid-template-columns: 1fr; gap: 2px; }
-  .glossary dd { margin-bottom: 12px; }
 }
 
 /* Side rail */

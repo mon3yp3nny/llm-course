@@ -16,6 +16,7 @@
     <a href="#view-use" class="selected" aria-current="page">Using</a>
     <a href="#view-train">Training</a>
     <a href="#view-agents">Agents</a>
+    <a href="#view-hardware">Hardware</a>
     <a href="#view-mind">Mind</a>
     <a href="#view-models">Models</a>
     <a href="#view-faq">FAQ</a>
@@ -53,9 +54,9 @@
       </div>
       <p class="note">
         From step 2 on, three small meters under each heading show roughly
-        what the step demands of the hardware. <dfn>CPU</dfn> is the
-        ordinary processor found in every computer. <dfn>GPU</dfn> is a
-        chip built to do huge numbers of simple calculations at once, which
+        what the step demands of the hardware. <dfn>CPU</dfn>, the central
+        processing unit, is the ordinary processor found in every computer. <dfn>GPU</dfn>, a
+        graphics processing unit, is a chip built to do huge numbers of simple calculations at once, which
         is exactly what a neural network needs. Memory is how much has to be
         loaded at once; here it means the computer's working storage, not
         remembering, which the Mind tab covers. The CPU and GPU meters show
@@ -295,6 +296,58 @@
         million parameters. Current large models have many more layers and
         billions of parameters.
       </p>
+      <details class="extra">
+        <summary><span class="extra-tag">Optional</span> Other chips: TPU, NPU, and why not quantum</summary>
+        <p>
+          The GPU is the most common chip for neural networks, but not the
+          only one. A <dfn>TPU</dfn>, tensor processing unit, is Google's own
+          chip, designed from the start for the calculations of neural
+          networks; Google trains and runs its Gemini models on them, and
+          other large companies build similar chips of their own. An
+          <dfn>NPU</dfn>, neural processing unit, is the small relative found
+          in recent phones and laptops, built to run modest models on the
+          device itself with little power.
+        </p>
+        <p>
+          All of these do the job this guide ascribes to the GPU: huge
+          numbers of simple calculations at once. They give up some of the
+          GPU's flexibility to be cheaper or more economical at that one
+          job. Where a meter on this page says GPU, read it as "a chip of
+          this kind". The <a href="#view-hardware">Hardware tab</a> compares
+          whole machines.
+        </p>
+        <p>
+          Apple calls the NPU in its phones and Macs the
+          <dfn>Neural Engine</dfn>. It may come as a surprise that the usual
+          tools for running language models on a Mac do not use it. It was
+          built for tasks of a fixed size, such as recognising images and
+          speech, and writing text token by token suits it poorly. On a Mac,
+          models run on the graphics part of the chip, helped by fast memory
+          that the processor and the graphics share.
+        </p>
+        <p>
+          "AI GPU" is a label with three meanings. It can mean a graphics
+          chip with extra circuits built in for the arithmetic of neural
+          networks, which most recent ones have. It can mean the cards in
+          data centres, which are GPUs in name only: they have no connection
+          for a screen and a great deal of memory, and they are what the big
+          models run on. And it can mean the reverse, a graphics card that
+          uses a small neural network to sharpen the picture in games. For
+          running a model at home, none of these labels is the number that
+          matters. That is the card's memory, called <dfn>VRAM</dfn>, because
+          it decides which models fit.
+        </p>
+        <p>
+          A <dfn>QPU</dfn>, quantum processing unit, is something else
+          entirely, and it plays no part in today's language models. No LLM
+          is trained or run on a quantum computer. The machines that exist
+          are far too small and too error-prone for billions of weights, and
+          no advantage for this kind of calculation has been shown. There is
+          research, mostly small experiments in which a tiny part of a model
+          runs on a quantum chip. For now the help flows mainly the other
+          way: AI is used to help quantum computers correct their errors.
+        </p>
+      </details>
       <details class="extra">
         <summary><span class="extra-tag">Optional</span> Quantization: making a model smaller</summary>
         <p>
@@ -1414,9 +1467,206 @@
     </p>
     </div>
 
-    <div class="view" id="view-mind" hidden>
+    <div class="view" id="view-hardware" hidden>
     <header class="hero">
       <p class="eyebrow">Part four</p>
+      <h1 class="one-line">What it runs on</h1>
+      <p class="lead">
+        The same model can crawl on one machine and fly on another. This
+        part compares the kinds of computer a model can run on, and explains
+        the difference.
+      </p>
+      <span class="scroll-hint" aria-hidden="true">↓</span>
+    </header>
+
+    <section class="step" id="hw-needs" data-title="Three numbers">
+      <p class="step-no">Hardware · Step 1</p>
+      <h2>Three numbers decide everything</h2>
+      <p>
+        Running a model makes three demands on a machine, and almost every
+        difference between computers comes down to them.
+      </p>
+      <p>
+        The first is memory. All the weights have to be loaded, so the model
+        must fit. The second is memory bandwidth. For every new token the
+        weights are read through once, so the speed of that reading sets the
+        pace of writing. The third is computing power, the number of
+        calculations the chip can do per second. It matters most when a long
+        prompt is read in, and during training.
+      </p>
+      <p>
+        No machine is best at all three. Each kind of computer in this part
+        is a different compromise.
+      </p>
+    </section>
+
+    <section class="step" id="hw-plain" data-title="Ordinary computer">
+      <p class="step-no">Hardware · Step 2</p>
+      <h2>A computer without a strong graphics chip</h2>
+      <p>
+        An office laptop or desktop has a CPU and ordinary memory. There is
+        often plenty of that memory, and it is cheap. But it is slow to
+        read, and a CPU has a handful of processing cores where a graphics
+        chip has thousands. So a small model works, and you can watch it
+        write word by word. Large ones fit on paper and are too slow to
+        use. An NPU, if the machine has one, helps with small jobs such as
+        turning speech into text, not with a large language model.
+      </p>
+      <dl class="facts boxed">
+        <dt>Memory</dt>
+        <dd>16 to 64 GB, shared with everything else the computer does</dd>
+        <dt>Reading speed</dt>
+        <dd>Low: roughly 50 to 90 GB per second</dd>
+        <dt>Good for</dt>
+        <dd>Small models, privacy, trying things out</dd>
+      </dl>
+    </section>
+
+    <section class="step" id="hw-nvidia" data-title="Graphics card">
+      <p class="step-no">Hardware · Step 3</p>
+      <h2>A PC with a graphics card</h2>
+      <p>
+        A graphics card is a second computer inside the computer: its own
+        chip and its own memory, the VRAM, joined by an extremely fast
+        connection. A model that fits entirely into the VRAM runs many times
+        faster than on the CPU. The catch is the word "fits". Cards for home
+        use carry 8 to 32 GB, and whatever does not fit has to stay in the
+        slow ordinary memory, which drags the whole model down towards that
+        speed.
+      </p>
+      <p>
+        Nearly all of these cards come from NVIDIA, and much of its lead is
+        software. <dfn>CUDA</dfn>, its platform for programming the chips,
+        is what most AI tools were written for first.
+      </p>
+      <dl class="facts boxed">
+        <dt>Memory</dt>
+        <dd>8 to 32 GB of VRAM, separate from the main memory</dd>
+        <dt>Reading speed</dt>
+        <dd>Very high: around 1,000 GB per second on a top card</dd>
+        <dt>Good for</dt>
+        <dd>Fast answers from models that fit, and fine-tuning small ones</dd>
+      </dl>
+    </section>
+
+    <section class="step" id="hw-mac" data-title="Mac">
+      <p class="step-no">Hardware · Step 4</p>
+      <h2>A Mac with Apple's own chips</h2>
+      <p>
+        Apple's chips take a different route. Processor, graphics and Neural
+        Engine sit on one chip and share one pool of fast memory, called
+        <dfn>unified memory</dfn>. Nothing has to be copied to a separate
+        card, and the graphics part can use nearly all of it. A Mac with 64 or 128 GB can therefore load models that no graphics
+        card for home use can hold, and the largest Mac Studio offers 512
+        GB.
+      </p>
+      <p>
+        Its reading speed spans the two worlds: a few times that of an
+        ordinary PC on the smaller chips, and as fast as a top graphics card
+        on the largest. Its raw
+        computing power is lower than a large NVIDIA card's, which shows
+        when long prompts are read in, and in training. Others have followed: NVIDIA's DGX Spark is a small desktop box built
+        on the same idea.
+      </p>
+      <dl class="facts boxed">
+        <dt>Memory</dt>
+        <dd>16 to 512 GB, shared by processor and graphics</dd>
+        <dt>Reading speed</dt>
+        <dd>Medium to very high: 100 to 1,200 GB per second, depending on the chip</dd>
+        <dt>Good for</dt>
+        <dd>Large models at moderate speed, quietly and on little power</dd>
+      </dl>
+    </section>
+
+    <section class="step" id="hw-server" data-title="Data centre">
+      <p class="step-no">Hardware · Step 5</p>
+      <h2>A server in a data centre</h2>
+      <p>
+        The models behind the big chat services are far too large for any of
+        this. They run on servers that hold eight or more data-centre GPUs,
+        each with 80 GB of memory or more, of a faster kind than anything
+        sold for a desk. A model is spread across several cards, linked by
+        connections fast enough for them to work as one.
+      </p>
+      <p>
+        Such a server does not wait on one person. It works on many requests
+        at the same moment, which is what makes the price per token low.
+        Training uses the same machines by the thousand, wired into one
+        cluster that draws as much power as a town. The chips need not come
+        from NVIDIA: Google runs its own models on its TPUs.
+      </p>
+      <dl class="facts boxed">
+        <dt>Memory</dt>
+        <dd>80 GB and more per card, many hundreds of GB per server</dd>
+        <dt>Reading speed</dt>
+        <dd>Extreme: around 3,000 GB per second per card</dd>
+        <dt>Good for</dt>
+        <dd>The largest models, many users at once, and training</dd>
+      </dl>
+    </section>
+
+    <section class="step" id="hw-compare" data-title="Compare">
+      <p class="step-no">Hardware · Step 6</p>
+      <h2>What fits where, and how fast</h2>
+      <p>
+        Two rules from this guide are enough for a rough estimate. Size: the
+        number of parameters times the bits per weight. Speed: a machine
+        cannot write tokens faster than it can read through the weights, so
+        its reading speed divided by the size of the model gives an upper
+        limit. The last column divides that speed by the power the machine
+        draws. The result, <dfn>tokens per watt</dfn>, says how much writing
+        you get for the electricity. Choose a model and see where it runs.
+      </p>
+      <div class="demo">
+        <div class="segments" id="hw-sizes"></div>
+        <div class="segments second-row" id="hw-bits"></div>
+        <p class="stat" id="hw-size"></p>
+        <div class="segments compact-row" id="hw-sort"></div>
+        <table class="pairs four machines">
+          <thead>
+            <tr><th>Machine</th><th>Fits?</th><th><button type="button" class="sort" data-sort="speed">Speed limit</button></th><th><button type="button" class="sort" data-sort="efficiency">Tokens per watt</button></th></tr>
+          </thead>
+          <tbody id="hw-rows"></tbody>
+        </table>
+      </div>
+      <p>
+        Start small: a current phone runs the 4B and 8B models at 4 bits,
+        at a pace you can read along with, on a few watts. Then try 70B at 4
+        bits. The graphics card is the fastest machine at
+        home, and it cannot load the model at all; the Macs and the DGX
+        Spark can, at a modest pace. At 16 bits only the Mac Studio with 512 GB still holds it. And
+        the last choice, 2.8T, is the largest model anyone can download
+        today, Kimi K3 with 2.8 trillion parameters: none of these machines
+        comes close. That trade, speed against room, is the whole
+        story of running models yourself. The power column adds a third
+        view: the fastest machine is not automatically the most economical
+        one.
+      </p>
+      <p class="note">
+        Simplified: the speed limit is only reading speed divided by model
+        size. Real speeds are lower, often half, and depend on the software.
+        A model counts as fitting if it takes at most 85% of the memory,
+        leaving room for the conversation; on the phone the limit is
+        half, because a phone gives a single app only part of its memory.
+        The figures for the machines are typical and rounded, and the power figures are for the machine
+        working hard. A data-centre server looks worse here than it is: it
+        answers many people at once, which multiplies what it delivers per
+        watt. Kimi K3 is a
+        mixture-of-experts model that uses only a small part of its weights
+        for each token, so its real speed on a large enough server is far
+        better than its size suggests.
+      </p>
+    </section>
+
+    <p class="recap">
+      Memory decides what runs. Reading speed decides how fast it writes.
+      Computing power decides how fast it reads and learns.
+    </p>
+    </div>
+
+    <div class="view" id="view-mind" hidden>
+    <header class="hero">
+      <p class="eyebrow">Part five</p>
       <h1 class="one-line">Is it like a brain?</h1>
       <p class="lead">
         Words like neuron, memory and learning are borrowed from biology.
@@ -1609,7 +1859,7 @@
 
     <div class="view" id="view-models" data-narration="off" hidden>
     <header class="hero">
-      <p class="eyebrow">Part five</p>
+      <p class="eyebrow">Part six</p>
       <h1>Models and software worth knowing</h1>
       <p class="lead">
         The guide so far explains ideas that last. This part names the
@@ -1692,7 +1942,7 @@
           <tr>
             <td data-label="Model"><strong>Kimi K3</strong></td>
             <td data-label="From">Moonshot AI</td>
-            <td data-label="Notable for">Leads some knowledge and reasoning tests among open models.</td>
+            <td data-label="Notable for">Leads some knowledge and reasoning tests among open models. With 2.8 trillion parameters and a download of about 1.5 terabytes, also the largest open-weight model released so far.</td>
           </tr>
           <tr>
             <td data-label="Model"><strong>MiMo-V2.6-Pro</strong> and <strong>GLM-5.3</strong></td>
@@ -1837,7 +2087,7 @@
 
     <div class="view" id="view-faq" data-narration="off" hidden>
     <header class="hero">
-      <p class="eyebrow">Part six</p>
+      <p class="eyebrow">Part seven</p>
       <h1 class="one-line">Often asked</h1>
       <p class="lead">
         Questions that come up again and again and are not answered in the
@@ -1927,7 +2177,7 @@
         <p>
           Above all, enough memory. A rule of thumb: parameters times bits per weight, divided by 8, gives the size in bytes. A model with 8 billion parameters at 4 bits needs about 4 GB, plus some room for the conversation, so it runs on a laptop with 16 GB. One with 27 billion parameters at 4 bits needs about 14 GB and wants 24 to 32 GB. A graphics card, or a computer whose processor and graphics share fast memory, makes it quick; without one it works, slowly.
         </p>
-        <p class="background">Background: <a href="#network">Using, step 5</a> · <a href="#loop">Using, step 9</a> · <a href="#local">Models, 3</a></p>
+        <p class="background">Background: <a href="#hw-compare">Hardware, step 6</a> · <a href="#network">Using, step 5</a> · <a href="#local">Models, 3</a></p>
       </details>
     </section>
 
@@ -1966,138 +2216,80 @@
     <section class="glossary" id="glossary">
       <h2>Words you will hear</h2>
       <dl>
-        <dt>Agent</dt>
-        <dd>A model running in a loop with tools, so it can look things up and take actions over several rounds. <a href="#loop">Step 9</a></dd>
-        <dt>Agentic AI</dt>
-        <dd>Systems in which a model is given a goal and works towards it over many rounds, using tools. <a href="#agentic">Agents, step 1</a></dd>
-        <dt>AGI</dt>
-        <dd>Artificial general intelligence: a system as capable as a person across most kinds of thinking work. Whether and when it will exist is disputed. <a href="#questions">Mind, step 3</a></dd>
-        <dt>Alignment</dt>
-        <dd>Getting a model to reliably behave the way its makers intend. <a href="#feedback">Training, step 5</a></dd>
-        <dt>API</dt>
-        <dd>Application programming interface: the way one program calls another, usually over the network. Made for programmers, not for models. <a href="#mcp">Agents, step 4</a></dd>
-        <dt>Attention</dt>
-        <dd>The part of a layer where each token pulls in information from the tokens before it. <a href="#attention">Step 6</a></dd>
-        <dt>Attention head</dt>
-        <dd>One of the many attention patterns a layer runs side by side. Each can learn to look for something different. <a href="#attention">Step 6</a></dd>
-        <dt>Backpropagation</dt>
-        <dd>The method that works out, for every weight, which way to nudge it to reduce the loss. <a href="#descent">Training, step 3</a></dd>
-        <dt>Base model</dt>
-        <dd>A model after pre-training only: it continues text but is not yet an assistant. You will also hear "foundation model", a broader term for any large pre-trained model that others build on. <a href="#pretraining">Training, step 2</a></dd>
-        <dt>Benchmark</dt>
-        <dd>A fixed set of test questions with known answers, used to score and compare models. <a href="#evaluation">Training, step 6</a></dd>
-        <dt>Classifier</dt>
-        <dd>A model that does not write text but returns a probability for each of a fixed set of answers. <a href="#decide">Different path</a></dd>
-        <dt>CLI</dt>
-        <dd>Command-line interface: starting and controlling programs by typing text commands. <a href="#mcp">Agents, step 4</a></dd>
-        <dt>Context window</dt>
-        <dd>The maximum number of tokens a model can take in at once. Also used for the text currently in it. <a href="#loop">Step 9</a></dd>
-        <dt>CPU</dt>
-        <dd>The ordinary processor found in every computer. <a href="#prompt">Step 1</a></dd>
-        <dt>Distillation</dt>
-        <dd>Training a small model to imitate a large one. <a href="#adapting">Training, step 7</a></dd>
-        <dt>Embedding</dt>
-        <dd>The vector a token ID is swapped for at the start. Also the name for that lookup. <a href="#embeddings">Step 4</a></dd>
-        <dt>External memory</dt>
-        <dd>Text saved outside the model, such as files or a product's "memory" feature, and placed back into the context window when needed. The model itself keeps nothing between conversations. <a href="#memory">Mind, step 1</a></dd>
-        <dt>Fine-tuning</dt>
-        <dd>Training an already trained model further on a smaller, chosen set of examples: by its maker to turn a base model into an assistant, or later by others to specialise it. <a href="#posttraining">Training, step 4</a></dd>
-        <dt>Frontier model</dt>
-        <dd>One of the most capable models available at a given time. <a href="#frontier">Models, 1</a></dd>
-        <dt>Generative</dt>
-        <dd>Describes a model that produces new text, token by token. The G in GPT. <a href="#decide">Different path</a></dd>
-        <dt>GPT</dt>
-        <dd>Generative pre-trained transformer: a model that generates text, was trained in advance, and is built as a transformer. <a href="#network">Step 5</a></dd>
-        <dt>GPU</dt>
-        <dd>A chip built to do huge numbers of simple calculations at once. Neural networks run and train on them. <a href="#prompt">Step 1</a></dd>
-        <dt>Gradient descent</dt>
-        <dd>Improving a model by moving its weights in small steps in the direction that lowers the loss. <a href="#descent">Training, step 3</a></dd>
-        <dt>Hallucination</dt>
-        <dd>Fluent, confident output that is wrong. The model scores what is likely, not what is true. <a href="#prediction">Step 7</a></dd>
-        <dt>Harness</dt>
-        <dd>The software around a model that runs the loop: it builds the input, calls the model, carries out tool requests and enforces the rules. <a href="#harness">Agents, step 2</a></dd>
-        <dt>Inference</dt>
-        <dd>Using a finished model to produce output. Nothing is learned; the weights stay fixed. <a href="#network">Step 5</a></dd>
-        <dt>Input tokens</dt>
-        <dd>All the tokens a model reads for one answer: system prompt, conversation, documents and tool descriptions. <a href="#loop">Step 9</a></dd>
-        <dt>Knowledge cutoff</dt>
-        <dd>The date after which a model knows nothing, because its training data ends there. <a href="#data">Training, step 1</a></dd>
-        <dt>Layer</dt>
-        <dd>One stage of the neural network. Each layer rewrites every vector a little. <a href="#network">Step 5</a></dd>
-        <dt>Learning rate</dt>
-        <dd>A setting that scales how big each step of gradient descent is. <a href="#descent">Training, step 3</a></dd>
-        <dt>LLM</dt>
-        <dd>Large language model: a neural network trained on huge amounts of text to predict the next token. <a href="#prompt">Step 1</a></dd>
-        <dt>LoRA</dt>
-        <dd>A cheap way to fine-tune: the original weights stay frozen and only a small add-on is trained. <a href="#adapting">Training, step 7</a></dd>
-        <dt>Loss</dt>
-        <dd>A number for how wrong the model's guesses are. Training tries to make it smaller. <a href="#pretraining">Training, step 2</a></dd>
-        <dt>MCP</dt>
-        <dd>Model Context Protocol: an open standard for connecting tools and data sources to any model's harness. <a href="#mcp">Agents, step 4</a></dd>
-        <dt>Memory bandwidth</dt>
-        <dd>How fast a chip can move data in and out of its memory. When a model writes text, this often limits the speed more than calculating power does. <a href="#loop">Step 9</a></dd>
-        <dt>Mixture of experts</dt>
-        <dd>A model design where each token is sent through only a few of many "expert" blocks. Often shortened to MoE. <a href="#attention">Step 6</a></dd>
-        <dt>Multimodal</dt>
-        <dd>Describes a model that takes more than text as input, such as images or sound. <a href="#embeddings">Step 4</a></dd>
-        <dt>Neural network</dt>
-        <dd>The stack of layers that transforms the vectors. This is "the model". <a href="#network">Step 5</a></dd>
-        <dt>Neuron</dt>
-        <dd>In a neural network: a tiny unit that multiplies its inputs by weights, adds them up and passes on the result. Loosely named after the nerve cells of the brain. <a href="#network">Step 5</a></dd>
-        <dt>Open weights</dt>
-        <dd>Describes a model whose weights are published, so anyone can download and run it. Not the same as open source. <a href="#network">Step 5</a></dd>
-        <dt>Output tokens</dt>
-        <dd>The tokens a model writes. Each needs its own pass through the model, so they are slower and cost more than input tokens. <a href="#loop">Step 9</a></dd>
-        <dt>Parameters</dt>
-        <dd>Another word for weights. Model sizes are given as a parameter count. <a href="#network">Step 5</a></dd>
-        <dt>Post-training</dt>
-        <dd>Everything done after pre-training to turn a base model into a helpful assistant. <a href="#posttraining">Training, step 4</a></dd>
-        <dt>Pre-training</dt>
-        <dd>The first and largest training phase: guessing the next token over enormous amounts of text. <a href="#pretraining">Training, step 2</a></dd>
-        <dt>Prompt</dt>
-        <dd>The text you give the model. <a href="#prompt">Step 1</a></dd>
-        <dt>Prompt injection</dt>
-        <dd>Text in a web page, document or tool result, written to look like an instruction, that a model may follow. <a href="#trust">Agents, step 5</a></dd>
-        <dt>Quantization</dt>
-        <dd>Storing each weight with fewer bits to make a model smaller and faster, at a small cost in quality. <a href="#network">Step 5</a></dd>
-        <dt>RAG</dt>
-        <dd>Retrieval-augmented generation: a search step finds relevant text and places it in front of the prompt, so the model can answer from it. <a href="#prediction">Step 7</a></dd>
-        <dt>Reasoning model</dt>
-        <dd>A model that first writes out its working, often hidden as "thinking", and then gives its answer. <a href="#loop">Step 9</a></dd>
-        <dt>Reinforcement learning</dt>
-        <dd>Learning from a score for what the model produced, instead of from a correct answer. <a href="#feedback">Training, step 5</a></dd>
-        <dt>RLHF</dt>
-        <dd>Reinforcement learning from human feedback: people judge answers, and the model is trained towards the preferred ones. <a href="#feedback">Training, step 5</a></dd>
-        <dt>Sampling</dt>
-        <dd>Picking the next token by a random draw, weighted by the probabilities. <a href="#sampling">Step 8</a></dd>
-        <dt>System One model</dt>
-        <dd>TypeSafe AI's name for its model Jev, which returns probabilities over predefined answers and writes no text. <a href="#decide">Different path</a></dd>
-        <dt>System prompt</dt>
-        <dd>Instructions that a chat product places in front of your prompt. You normally do not see them. <a href="#prompt">Step 1</a></dd>
-        <dt>Temperature</dt>
-        <dd>A setting for how random the pick of the next token is. <a href="#sampling">Step 8</a></dd>
-        <dt>Ternary</dt>
-        <dd>Weights limited to the three values −1, 0 and +1: the extreme end of quantization. Also called 1.58-bit. <a href="#network">Step 5</a></dd>
-        <dt>Test-time training</dt>
-        <dd>Briefly training the model on the task in front of it while it answers, then usually discarding the changes. Short: TTT. <a href="#network">Step 5</a></dd>
-        <dt>Token</dt>
-        <dd>A chunk of text, often a word or part of a word. The unit a model reads and writes. <a href="#tokens">Step 2</a></dd>
-        <dt>Tool chain</dt>
-        <dd>Several tools used one after another, each result feeding the next request. <a href="#chain">Agents, step 3</a></dd>
-        <dt>Tool use</dt>
-        <dd>The model writes a request in a fixed format, software runs the tool and pastes the result back into the text. Also called function calling. <a href="#loop">Step 9</a></dd>
-        <dt>Training</dt>
-        <dd>Adjusting the weights, over enormous amounts of text, until predictions improve. <a href="#network">Step 5</a></dd>
-        <dt>Training data</dt>
-        <dd>The text a model learns from. <a href="#data">Training, step 1</a></dd>
-        <dt>Transformer</dt>
-        <dd>The layer design used by today's LLMs, built around attention. <a href="#network">Step 5</a></dd>
-        <dt>Vector</dt>
-        <dd>A list of numbers that represents a token inside the model. <a href="#embeddings">Step 4</a></dd>
-        <dt>Vocabulary</dt>
-        <dd>The fixed list of all tokens a model knows. <a href="#ids">Step 3</a></dd>
-        <dt>Weights</dt>
-        <dd>The learned numbers that decide what each layer does. Fixed after training. <a href="#network">Step 5</a></dd>
+        <div><dt>Agent</dt> <dd>A model running in a loop with tools, so it can look things up and take actions over several rounds. <a href="#loop">Step 9</a></dd></div>
+        <div><dt>Agentic AI</dt> <dd>Systems in which a model is given a goal and works towards it over many rounds, using tools. <a href="#agentic">Agents, step 1</a></dd></div>
+        <div><dt>AGI</dt> <dd>Artificial general intelligence: a system as capable as a person across most kinds of thinking work. Whether and when it will exist is disputed. <a href="#questions">Mind, step 3</a></dd></div>
+        <div><dt>Alignment</dt> <dd>Getting a model to reliably behave the way its makers intend. <a href="#feedback">Training, step 5</a></dd></div>
+        <div><dt>API</dt> <dd>Application programming interface: the way one program calls another, usually over the network. Made for programmers, not for models. <a href="#mcp">Agents, step 4</a></dd></div>
+        <div><dt>Attention</dt> <dd>The part of a layer where each token pulls in information from the tokens before it. <a href="#attention">Step 6</a></dd></div>
+        <div><dt>Attention head</dt> <dd>One of the many attention patterns a layer runs side by side. Each can learn to look for something different. <a href="#attention">Step 6</a></dd></div>
+        <div><dt>Backpropagation</dt> <dd>The method that works out, for every weight, which way to nudge it to reduce the loss. <a href="#descent">Training, step 3</a></dd></div>
+        <div><dt>Base model</dt> <dd>A model after pre-training only: it continues text but is not yet an assistant. You will also hear "foundation model", a broader term for any large pre-trained model that others build on. <a href="#pretraining">Training, step 2</a></dd></div>
+        <div><dt>Benchmark</dt> <dd>A fixed set of test questions with known answers, used to score and compare models. <a href="#evaluation">Training, step 6</a></dd></div>
+        <div><dt>Classifier</dt> <dd>A model that does not write text but returns a probability for each of a fixed set of answers. <a href="#decide">Different path</a></dd></div>
+        <div><dt>CLI</dt> <dd>Command-line interface: starting and controlling programs by typing text commands. <a href="#mcp">Agents, step 4</a></dd></div>
+        <div><dt>Context window</dt> <dd>The maximum number of tokens a model can take in at once. Also used for the text currently in it. <a href="#loop">Step 9</a></dd></div>
+        <div><dt>CPU</dt> <dd>Central processing unit: the ordinary processor found in every computer. <a href="#prompt">Step 1</a></dd></div>
+        <div><dt>CUDA</dt> <dd>NVIDIA's platform for programming its graphics chips. Most AI software was written for it first, which is a large part of NVIDIA's lead. <a href="#hw-nvidia">Hardware, step 3</a></dd></div>
+        <div><dt>Distillation</dt> <dd>Training a small model to imitate a large one. <a href="#adapting">Training, step 7</a></dd></div>
+        <div><dt>Embedding</dt> <dd>The vector a token ID is swapped for at the start. Also the name for that lookup. <a href="#embeddings">Step 4</a></dd></div>
+        <div><dt>External memory</dt> <dd>Text saved outside the model, such as files or a product's "memory" feature, and placed back into the context window when needed. The model itself keeps nothing between conversations. <a href="#memory">Mind, step 1</a></dd></div>
+        <div><dt>Fine-tuning</dt> <dd>Training an already trained model further on a smaller, chosen set of examples: by its maker to turn a base model into an assistant, or later by others to specialise it. <a href="#posttraining">Training, step 4</a></dd></div>
+        <div><dt>Frontier model</dt> <dd>One of the most capable models available at a given time. <a href="#frontier">Models, 1</a></dd></div>
+        <div><dt>Generative</dt> <dd>Describes a model that produces new text, token by token. The G in GPT. <a href="#decide">Different path</a></dd></div>
+        <div><dt>GPT</dt> <dd>Generative pre-trained transformer: a model that generates text, was trained in advance, and is built as a transformer. <a href="#network">Step 5</a></dd></div>
+        <div><dt>GPU</dt> <dd>Graphics processing unit: a chip built to do huge numbers of simple calculations at once, first made for computer graphics. Neural networks run and train on them. <a href="#prompt">Step 1</a></dd></div>
+        <div><dt>Gradient descent</dt> <dd>Improving a model by moving its weights in small steps in the direction that lowers the loss. <a href="#descent">Training, step 3</a></dd></div>
+        <div><dt>Hallucination</dt> <dd>Fluent, confident output that is wrong. The model scores what is likely, not what is true. <a href="#prediction">Step 7</a></dd></div>
+        <div><dt>Harness</dt> <dd>The software around a model that runs the loop: it builds the input, calls the model, carries out tool requests and enforces the rules. <a href="#harness">Agents, step 2</a></dd></div>
+        <div><dt>Inference</dt> <dd>Using a finished model to produce output. Nothing is learned; the weights stay fixed. <a href="#network">Step 5</a></dd></div>
+        <div><dt>Input tokens</dt> <dd>All the tokens a model reads for one answer: system prompt, conversation, documents and tool descriptions. <a href="#loop">Step 9</a></dd></div>
+        <div><dt>Knowledge cutoff</dt> <dd>The date after which a model knows nothing, because its training data ends there. <a href="#data">Training, step 1</a></dd></div>
+        <div><dt>Layer</dt> <dd>One stage of the neural network. Each layer rewrites every vector a little. <a href="#network">Step 5</a></dd></div>
+        <div><dt>Learning rate</dt> <dd>A setting that scales how big each step of gradient descent is. <a href="#descent">Training, step 3</a></dd></div>
+        <div><dt>LLM</dt> <dd>Large language model: a neural network trained on huge amounts of text to predict the next token. <a href="#prompt">Step 1</a></dd></div>
+        <div><dt>LoRA</dt> <dd>Low-rank adaptation: a cheap way to fine-tune, in which the original weights stay frozen and only a small add-on is trained. <a href="#adapting">Training, step 7</a></dd></div>
+        <div><dt>Loss</dt> <dd>A number for how wrong the model's guesses are. Training tries to make it smaller. <a href="#pretraining">Training, step 2</a></dd></div>
+        <div><dt>MCP</dt> <dd>Model Context Protocol: an open standard for connecting tools and data sources to any model's harness. <a href="#mcp">Agents, step 4</a></dd></div>
+        <div><dt>Memory bandwidth</dt> <dd>How fast a chip can move data in and out of its memory. When a model writes text, this often limits the speed more than calculating power does. <a href="#loop">Step 9</a></dd></div>
+        <div><dt>Mixture of experts</dt> <dd>A model design where each token is sent through only a few of many "expert" blocks. Often shortened to MoE. <a href="#attention">Step 6</a></dd></div>
+        <div><dt>Multimodal</dt> <dd>Describes a model that takes more than text as input, such as images or sound. <a href="#embeddings">Step 4</a></dd></div>
+        <div><dt>Neural Engine</dt> <dd>Apple's name for the NPU in its phones and Macs. <a href="#network">Step 5</a></dd></div>
+        <div><dt>Neural network</dt> <dd>The stack of layers that transforms the vectors. This is "the model". <a href="#network">Step 5</a></dd></div>
+        <div><dt>Neuron</dt> <dd>In a neural network: a tiny unit that multiplies its inputs by weights, adds them up and passes on the result. Loosely named after the nerve cells of the brain. <a href="#network">Step 5</a></dd></div>
+        <div><dt>NPU</dt> <dd>Neural processing unit: a small chip in recent phones and laptops, built to run modest models on the device itself. <a href="#network">Step 5</a></dd></div>
+        <div><dt>Open weights</dt> <dd>Describes a model whose weights are published, so anyone can download and run it. Not the same as open source. <a href="#network">Step 5</a></dd></div>
+        <div><dt>Output tokens</dt> <dd>The tokens a model writes. Each needs its own pass through the model, so they are slower and cost more than input tokens. <a href="#loop">Step 9</a></dd></div>
+        <div><dt>Parameters</dt> <dd>Another word for weights. Model sizes are given as a parameter count. <a href="#network">Step 5</a></dd></div>
+        <div><dt>Post-training</dt> <dd>Everything done after pre-training to turn a base model into a helpful assistant. <a href="#posttraining">Training, step 4</a></dd></div>
+        <div><dt>Pre-training</dt> <dd>The first and largest training phase: guessing the next token over enormous amounts of text. <a href="#pretraining">Training, step 2</a></dd></div>
+        <div><dt>Prompt</dt> <dd>The text you give the model. <a href="#prompt">Step 1</a></dd></div>
+        <div><dt>Prompt injection</dt> <dd>Text in a web page, document or tool result, written to look like an instruction, that a model may follow. <a href="#trust">Agents, step 5</a></dd></div>
+        <div><dt>QPU</dt> <dd>Quantum processing unit: the chip of a quantum computer. It plays no part in training or running today's language models. <a href="#network">Step 5</a></dd></div>
+        <div><dt>Quantization</dt> <dd>Storing each weight with fewer bits to make a model smaller and faster, at a small cost in quality. <a href="#network">Step 5</a></dd></div>
+        <div><dt>RAG</dt> <dd>Retrieval-augmented generation: a search step finds relevant text and places it in front of the prompt, so the model can answer from it. <a href="#prediction">Step 7</a></dd></div>
+        <div><dt>Reasoning model</dt> <dd>A model that first writes out its working, often hidden as "thinking", and then gives its answer. <a href="#loop">Step 9</a></dd></div>
+        <div><dt>Reinforcement learning</dt> <dd>Learning from a score for what the model produced, instead of from a correct answer. <a href="#feedback">Training, step 5</a></dd></div>
+        <div><dt>RLHF</dt> <dd>Reinforcement learning from human feedback: people judge answers, and the model is trained towards the preferred ones. <a href="#feedback">Training, step 5</a></dd></div>
+        <div><dt>Sampling</dt> <dd>Picking the next token by a random draw, weighted by the probabilities. <a href="#sampling">Step 8</a></dd></div>
+        <div><dt>System One model</dt> <dd>TypeSafe AI's name for its model Jev, which returns probabilities over predefined answers and writes no text. <a href="#decide">Different path</a></dd></div>
+        <div><dt>System prompt</dt> <dd>Instructions that a chat product places in front of your prompt. You normally do not see them. <a href="#prompt">Step 1</a></dd></div>
+        <div><dt>Temperature</dt> <dd>A setting for how random the pick of the next token is. <a href="#sampling">Step 8</a></dd></div>
+        <div><dt>Ternary</dt> <dd>Weights limited to the three values −1, 0 and +1: the extreme end of quantization. Also called 1.58-bit. <a href="#network">Step 5</a></dd></div>
+        <div><dt>Test-time training</dt> <dd>Briefly training the model on the task in front of it while it answers, then usually discarding the changes. Short: TTT. <a href="#network">Step 5</a></dd></div>
+        <div><dt>Token</dt> <dd>A chunk of text, often a word or part of a word. The unit a model reads and writes. <a href="#tokens">Step 2</a></dd></div>
+        <div><dt>Tokens per watt</dt> <dd>How many tokens a machine writes each second for every watt of power it draws: a measure of energy efficiency. Higher is better. <a href="#hw-compare">Hardware, step 6</a></dd></div>
+        <div><dt>Tool chain</dt> <dd>Several tools used one after another, each result feeding the next request. <a href="#chain">Agents, step 3</a></dd></div>
+        <div><dt>Tool use</dt> <dd>The model writes a request in a fixed format, software runs the tool and pastes the result back into the text. Also called function calling. <a href="#loop">Step 9</a></dd></div>
+        <div><dt>TPU</dt> <dd>Tensor processing unit: Google's own chip for neural networks, doing the job a GPU does elsewhere. <a href="#network">Step 5</a></dd></div>
+        <div><dt>Training</dt> <dd>Adjusting the weights, over enormous amounts of text, until predictions improve. <a href="#network">Step 5</a></dd></div>
+        <div><dt>Training data</dt> <dd>The text a model learns from. <a href="#data">Training, step 1</a></dd></div>
+        <div><dt>Transformer</dt> <dd>The layer design used by today's LLMs, built around attention. <a href="#network">Step 5</a></dd></div>
+        <div><dt>Unified memory</dt> <dd>One pool of fast memory shared by the processor and the graphics part of a chip, as in Apple's Macs. It lets large models load without a separate graphics card. <a href="#hw-mac">Hardware, step 4</a></dd></div>
+        <div><dt>Vector</dt> <dd>A list of numbers that represents a token inside the model. <a href="#embeddings">Step 4</a></dd></div>
+        <div><dt>Vocabulary</dt> <dd>The fixed list of all tokens a model knows. <a href="#ids">Step 3</a></dd></div>
+        <div><dt>VRAM</dt> <dd>Video random-access memory: the memory on a graphics card. It decides how large a model the card can hold. <a href="#network">Step 5</a></dd></div>
+        <div><dt>Weights</dt> <dd>The learned numbers that decide what each layer does. Fixed after training. <a href="#network">Step 5</a></dd></div>
       </dl>
     </section>
   </main>
@@ -2108,6 +2300,7 @@
   <script src="app.js"></script>
   <script src="training.js"></script>
   <script src="agents.js"></script>
+  <script src="hardware.js"></script>
   <script src="audio/manifest.js"></script>
   <script src="audio.js"></script>
 </body>

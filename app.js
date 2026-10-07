@@ -868,6 +868,8 @@ function showView(id) {
     const selected = tab.getAttribute('href') === `#${id}`;
     tab.classList.toggle('selected', selected);
     tab.setAttribute('aria-current', selected ? 'page' : 'false');
+    // On a narrow screen the pill scrolls; keep the chosen tab in sight.
+    if (selected) tab.scrollIntoView({ block: 'nearest', inline: 'nearest' });
   });
   buildRail();
 }
