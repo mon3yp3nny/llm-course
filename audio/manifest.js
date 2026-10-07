@@ -31,8 +31,10 @@ const NARRATION = {
   "hw-mac": "audio/hw-mac.mp3",
   "hw-server": "audio/hw-server.mp3",
   "hw-compare": "audio/hw-compare.mp3",
-  "view-mind": "audio/view-mind.mp3",
-  "memory": "audio/memory.mp3",
-  "brain": "audio/brain.mp3",
-  "questions": "audio/questions.mp3"
+  "view-robots": "audio/view-robots.mp3",
+  "rb-today": "audio/rb-today.mp3",
+  "rb-model": "audio/rb-model.mp3",
+  "rb-learning": "audio/rb-learning.mp3",
+  "rb-makers": "audio/rb-makers.mp3",
+  "rb-future": "audio/rb-future.mp3"
 };

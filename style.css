@@ -591,6 +591,7 @@ button.chip {
   .demo #word-map .group { font-size: 13px; }
   .demo .chart text { font-size: 17px; }
   .demo #neural-net text { font-size: 17px; }
+  .demo .scene text { font-size: 18px; }
 }
 
 .bars.evaluation .bar-row { grid-template-columns: 7em 1fr 2.5em; }
@@ -871,6 +872,9 @@ button.chip:focus-visible {
 
 .facts dt { color: var(--muted); }
 
+/* Inside a folded section it sits between paragraphs. */
+.extra > .facts { margin: 0 0 16px; }
+
 /* The same list standing on its own, outside a demo. */
 .facts.boxed {
   margin: 4px 0 16px;
@@ -1079,6 +1083,46 @@ button.chip:focus-visible {
 @media (prefers-reduced-motion: reduce) {
   #neural-net line, #neural-net .neuron { animation: none; }
 }
+
+/* Robot scene */
+.scene {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin-bottom: 8px;
+}
+
+.scene .table { stroke: var(--muted); stroke-width: 2; }
+.scene .bowl { fill: none; stroke: var(--muted); stroke-width: 2; stroke-linejoin: round; }
+.scene .block { fill: var(--pos); }
+.scene .arm { stroke: var(--accent); stroke-width: 4; stroke-linecap: round; }
+.scene text { fill: var(--muted); font-size: 12px; }
+
+/* Quotations */
+.quote {
+  margin: 0 0 32px;
+  padding-left: 20px;
+  border-left: 3px solid var(--accent);
+}
+
+.quote blockquote {
+  margin: 0 0 8px;
+  font-size: 1.3rem;
+  line-height: 1.4;
+  letter-spacing: -0.01em;
+  text-wrap: pretty;
+}
+
+.quote figcaption {
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.quote figcaption strong { color: var(--text); }
+
+/* A table inside an opened section needs less room than one in the text. */
+.extra .pairs { font-size: 0.85rem; }
 
 /* Frequently asked questions */
 .faq summary { font-size: 1.05rem; }

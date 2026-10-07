@@ -17,9 +17,10 @@
     <a href="#view-train">Training</a>
     <a href="#view-agents">Agents</a>
     <a href="#view-hardware">Hardware</a>
-    <a href="#view-mind">Mind</a>
+    <a href="#view-robots">Robots</a>
     <a href="#view-models">Models</a>
     <a href="#view-faq">FAQ</a>
+    <a href="#view-quotes">Quotes</a>
   </nav>
   <nav class="rail" aria-label="Steps"></nav>
 
@@ -59,7 +60,7 @@
         graphics processing unit, is a chip built to do huge numbers of simple calculations at once, which
         is exactly what a neural network needs. Memory is how much has to be
         loaded at once; here it means the computer's working storage, not
-        remembering, which the Mind tab covers. The CPU and GPU meters show
+        remembering, which the FAQ covers. The CPU and GPU meters show
         how much work a step is compared with the other steps in the same
         tab.
       </p>
@@ -729,16 +730,35 @@
         </div>
         <p>
           In a long chat the whole history is read again on every turn, so
-          the input side grows much faster than the output side. Two things
-          soften this: providers can keep those intermediate results between
-          requests, so text they have just seen is not worked through again
-          (called prompt caching, and billed at a lower rate), and the
-          software around the model can summarise old turns.
+          the input side grows much faster than the output side. The bars
+          marked "Cached" and "Compacted" show the two remedies.
+        </p>
+        <p>
+          <dfn>Prompt caching</dfn>: the provider keeps its intermediate
+          results for the beginning of the input it has just processed. When
+          the next request starts with the same text, that part is not
+          worked through again, and it is billed at a fraction of the price,
+          often about a tenth. Caching does not remove a single token. The
+          text still fills the context window, and one changed word near
+          the start makes everything after it count as new. The cache is kept only for some minutes. It saves money and waiting time, not room.
+        </p>
+        <p>
+          <dfn>Compaction</dfn>: when a conversation approaches the limit of
+          the context window, the software around the model has the older
+          part summarised and carries on with the summary in its place. This
+          does remove tokens, so it saves room as well as money. The price
+          is that details from the summarised part are gone, which is why an
+          assistant in a very long session can forget something you said
+          early on.
         </p>
         <p class="note">
           Simplified: fixed sizes are assumed, a system prompt of 300
-          tokens, questions of 30 and answers of 200. The totals are exact
-          for those sizes.
+          tokens, questions of 30 and answers of 200. Cached input is
+          counted at a tenth. Compaction replaces the earlier turns with a
+          summary of 300 tokens whenever they exceed 2,000, and the cost of writing that summary is
+          left out. The bars count tokens, not money: output tokens cost
+          several times more each, so with caching the output is often the
+          larger part of the bill.
         </p>
       </details>
       <details class="extra">
@@ -1488,9 +1508,10 @@
       </p>
       <p>
         The first is memory. All the weights have to be loaded, so the model
-        must fit. The second is memory bandwidth. For every new token the
-        weights are read through once, so the speed of that reading sets the
-        pace of writing. The third is computing power, the number of
+        must fit. The second is memory bandwidth, called reading speed in the rest of
+        this part: how many gigabytes of weights the chip can pull out of
+        memory per second. For every new token the weights are read through
+        once, so that speed sets the pace of writing. The third is computing power, the number of
         calculations the chip can do per second. It matters most when a long
         prompt is read in, and during training.
       </p>
@@ -1509,8 +1530,9 @@
         read, and a CPU has a handful of processing cores where a graphics
         chip has thousands. So a small model works, and you can watch it
         write word by word. Large ones fit on paper and are too slow to
-        use. An NPU, if the machine has one, helps with small jobs such as
-        turning speech into text, not with a large language model.
+        use. An NPU, a small extra chip for AI tasks in recent laptops, helps
+        with small jobs such as turning speech into text, not with a large
+        language model.
       </p>
       <dl class="facts boxed">
         <dt>Memory</dt>
@@ -1526,24 +1548,21 @@
       <p class="step-no">Hardware · Step 3</p>
       <h2>A PC with a graphics card</h2>
       <p>
-        A graphics card is a second computer inside the computer: its own
-        chip and its own memory, the VRAM, joined by an extremely fast
-        connection. A model that fits entirely into the VRAM runs many times
+        A graphics card is a second computer inside the computer: its own chip and its own memory, called VRAM, joined by an extremely fast connection. A model that fits entirely into the VRAM runs many times
         faster than on the CPU. The catch is the word "fits". Cards for home
         use carry 8 to 32 GB, and whatever does not fit has to stay in the
         slow ordinary memory, which drags the whole model down towards that
         speed.
       </p>
       <p>
-        Nearly all of these cards come from NVIDIA, and much of its lead is
-        software. <dfn>CUDA</dfn>, its platform for programming the chips,
+        Nearly all the cards used for AI come from NVIDIA, and much of its lead is software. <dfn>CUDA</dfn>, its platform for programming the chips,
         is what most AI tools were written for first.
       </p>
       <dl class="facts boxed">
         <dt>Memory</dt>
         <dd>8 to 32 GB of VRAM, separate from the main memory</dd>
         <dt>Reading speed</dt>
-        <dd>Very high: around 1,000 GB per second on a top card</dd>
+        <dd>Very high: 1,000 GB per second and more on a top card</dd>
         <dt>Good for</dt>
         <dd>Fast answers from models that fit, and fine-tuning small ones</dd>
       </dl>
@@ -1553,17 +1572,17 @@
       <p class="step-no">Hardware · Step 4</p>
       <h2>A Mac with Apple's own chips</h2>
       <p>
-        Apple's chips take a different route. Processor, graphics and Neural
-        Engine sit on one chip and share one pool of fast memory, called
+        Apple's chips take a different route. Processor, graphics and an extra part for AI tasks, the Neural Engine, sit on one chip and share one pool of fast memory, called
         <dfn>unified memory</dfn>. Nothing has to be copied to a separate
         card, and the graphics part can use nearly all of it. A Mac with 64 or 128 GB can therefore load models that no graphics
         card for home use can hold, and the largest Mac Studio offers 512
         GB.
       </p>
       <p>
-        Its reading speed spans the two worlds: a few times that of an
-        ordinary PC on the smaller chips, and as fast as a top graphics card
-        on the largest. Its raw
+        Its reading speed spans the two worlds: somewhat above an ordinary
+        PC on the smallest chips, and as fast as a top graphics card on the
+        largest. A phone is built the same way in miniature: one chip and
+        one shared pool of memory, of which an app may use about half. Its raw
         computing power is lower than a large NVIDIA card's, which shows
         when long prompts are read in, and in training. Others have followed: NVIDIA's DGX Spark is a small desktop box built
         on the same idea.
@@ -1592,8 +1611,7 @@
         Such a server does not wait on one person. It works on many requests
         at the same moment, which is what makes the price per token low.
         Training uses the same machines by the thousand, wired into one
-        cluster that draws as much power as a town. The chips need not come
-        from NVIDIA: Google runs its own models on its TPUs.
+        cluster that draws as much power as a town. The chips need not come from NVIDIA: Google runs its own models on chips of its own design, called TPUs.
       </p>
       <dl class="facts boxed">
         <dt>Memory</dt>
@@ -1634,7 +1652,9 @@
         at a pace you can read along with, on a few watts. Then try 70B at 4
         bits. The graphics card is the fastest machine at
         home, and it cannot load the model at all; the Macs and the DGX
-        Spark can, at a modest pace. At 16 bits only the Mac Studio with 512 GB still holds it. And
+        Spark can, at a modest pace. At 16 bits the Mac Studio with 512 GB is the only single machine
+        here that still holds it; a data-centre server does it by spreading
+        the model over several cards. And
         the last choice, 2.8T, is the largest model anyone can download
         today, Kimi K3 with 2.8 trillion parameters: none of these machines
         comes close. That trade, speed against room, is the whole
@@ -1646,10 +1666,13 @@
         Simplified: the speed limit is only reading speed divided by model
         size. Real speeds are lower, often half, and depend on the software.
         A model counts as fitting if it takes at most 85% of the memory,
-        leaving room for the conversation; on the phone the limit is
-        half, because a phone gives a single app only part of its memory.
+        leaving room for the conversation. On the laptop the limit is 60%
+        and on the phone 50%, because the system and other programs need
+        the rest.
         The figures for the machines are typical and rounded, and the power figures are for the machine
-        working hard. A data-centre server looks worse here than it is: it
+        working hard. "Tokens per watt" is strictly tokens per second per
+        watt; multiplied by 3,600 it gives tokens per watt-hour. A
+        data-centre server looks worse here than it is: it
         answers many people at once, which multiplies what it delivers per
         watt. Kimi K3 is a
         mixture-of-experts model that uses only a small part of its weights
@@ -1664,196 +1687,231 @@
     </p>
     </div>
 
-    <div class="view" id="view-mind" hidden>
+    <div class="view" id="view-robots" hidden>
     <header class="hero">
       <p class="eyebrow">Part five</p>
-      <h1 class="one-line">Is it like a brain?</h1>
+      <h1>When the model gets a body</h1>
       <p class="lead">
-        Words like neuron, memory and learning are borrowed from biology.
-        Some of the comparisons help, some mislead, and some questions are
-        still open.
+        The same kind of model that writes text is now being taught to move
+        machines. This part looks at what robots can do today, how their
+        models differ from a chat model, and what to expect next.
       </p>
       <p class="hero-note">
-        The history behind each step is folded away along the route.
-        <button type="button" class="toggle-extras"></button>
+        Snapshot: October 2026. This field moves fast, and its public
+        demonstrations run well ahead of everyday reality.
       </p>
       <span class="scroll-hint" aria-hidden="true">↓</span>
     </header>
 
-    <section class="step" id="memory" data-title="Memory">
-      <p class="step-no">Mind · Step 1</p>
-      <h2>Short-term and long-term memory</h2>
+    <section class="step" id="rb-today" data-title="Today">
+      <p class="step-no">Robots · Step 1</p>
+      <h2>What robots can do today</h2>
       <p>
-        People keep a few things in mind for the moment and a lifetime of
-        knowledge in the background. A language model has a rough
-        counterpart to each, and that is a useful way to remember what it
-        can and cannot do.
+        The robots that already work in large numbers look nothing like
+        people: arms welding cars, carts moving shelves in warehouses,
+        vacuum cleaners, driverless taxis. Each does one job in a setting
+        built for it.
       </p>
-      <table class="pairs">
-        <thead>
-          <tr><th>In people</th><th>In a language model</th><th>Where the comparison breaks</th></tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td data-label="In people"><strong>Short-term memory.</strong> What you are holding in mind right now.</td>
-            <td data-label="In a language model">The context window: everything in the current conversation.</td>
-            <td data-label="Where it breaks">Yours is small and fades. The model's is large and holds the text word for word, although in a very long conversation it does not use every part equally well. It ends abruptly at the limit and is wiped when the conversation ends.</td>
-          </tr>
-          <tr>
-            <td data-label="In people"><strong>Long-term memory.</strong> Knowledge and skills built up over years.</td>
-            <td data-label="In a language model">The weights, shaped during training.</td>
-            <td data-label="Where it breaks">You often sense whether you know something or are guessing, though human memory invents too. A model has at best a weak version of that sense: it cannot look anything up in its weights, and a plausible guess comes out looking exactly like a fact.</td>
-          </tr>
-          <tr>
-            <td data-label="In people"><strong>Notes and diaries.</strong> Things you wrote down to read later.</td>
-            <td data-label="In a language model"><dfn>External memory</dfn>: files, retrieved documents and the "memory" features of chat products, which save text and paste it back into later conversations.</td>
-            <td data-label="Where it breaks">It is reading, not remembering. Whatever the software does not put back into the context window does not exist for the model.</td>
-          </tr>
-          <tr>
-            <td data-label="In people"><strong>Learning from experience.</strong> Today's events become tomorrow's memories, partly during sleep.</td>
-            <td data-label="In a language model">Nothing, until the next training run.</td>
-            <td data-label="Where it breaks">A model in use does not learn from talking to you. Its weights are frozen.</td>
-          </tr>
-        </tbody>
-      </table>
       <p>
-        The practical upshot: a model does not remember you between
-        conversations. If it seems to, some software saved a note about you
-        and handed it back.
+        The new development is the <dfn>humanoid</dfn>, a robot with the
+        shape of a person, meant to work in places built for people. In
+        2026 humanoids moved from stage demonstrations to first real jobs:
+        carrying parts in car factories, moving boxes in warehouses,
+        sorting parcels for days on end. The first models for the home can
+        be ordered, at about the price of a small car.
+      </p>
+      <p>
+        It helps to keep the scale in view. Most humanoids delivered so far
+        are used for shows, teaching and collecting training data. Where
+        they do real work, a person is still several times faster, and the
+        robots cope best where the surroundings are tidy and predictable.
+        A cluttered kitchen is far harder than a factory floor.
       </p>
     </section>
 
-    <section class="step" id="brain" data-title="Brain">
-      <p class="step-no">Mind · Step 2</p>
-      <h2>Neurons, real and artificial</h2>
+    <section class="step" id="rb-model" data-title="The model">
+      <p class="step-no">Robots · Step 2</p>
+      <h2>How a robot's model differs from a chat model</h2>
       <p>
-        Neural networks were inspired by the brain, and the family
-        resemblance is real: many simple units, connected by links of
-        different strength, with learning as a change in those strengths
-        and knowledge spread across the whole network instead of stored in
-        one place. Beyond that, the two are very different machines.
+        The model inside the newest robots is called a
+        <dfn>vision-language-action model</dfn>, VLA for short. It is built
+        like an LLM and usually starts from one that already understands
+        pictures and text. What changes is what goes in and what comes out.
+        In goes the camera picture and an instruction. Out comes not a
+        sentence but the next small movement. Step through one task.
       </p>
-      <table class="pairs two">
+      <div class="demo">
+        <svg class="scene" id="robot-scene" viewBox="0 0 600 240" role="img"
+             aria-label="A robot gripper above a table with a block and a bowl"></svg>
+        <p class="stat">The model's output at this moment: <strong id="robot-output"></strong></p>
+        <p class="stat" id="robot-stat"></p>
+        <div class="actions">
+          <button type="button" id="robot-next">Next moment</button>
+          <button type="button" id="robot-reset" class="quiet">Reset</button>
+        </div>
+      </div>
+      <p>
+        In the simplest designs each movement is written as a token, so
+        "predict the next token" becomes "predict the next movement". Others
+        add a small extra part that turns the model's output into smooth
+        motion. Many use two parts side by side: a slow one that looks at
+        the scene and works out what to do, a few times a second, and a
+        fast one that steers the motors, a hundred times a second or more.
+      </p>
+      <table class="pairs four">
         <thead>
-          <tr><th>The brain</th><th>A language model</th></tr>
+          <tr><th></th><th>A chat model</th><th>A robot's model</th></tr>
         </thead>
         <tbody>
           <tr>
-            <td data-label="The brain">A neuron is a living cell with complex behaviour of its own.</td>
-            <td data-label="A language model">An artificial "neuron" is one tiny calculation inside a layer (step 5 of the first tab): a weighted sum followed by a simple cut-off.</td>
+            <td data-label="">Goes in</td>
+            <td data-label="A chat model">Text, sometimes pictures.</td>
+            <td data-label="A robot's model">Camera pictures, the position of every joint, and an instruction.</td>
           </tr>
           <tr>
-            <td data-label="The brain">About 86 billion neurons with something like 100 trillion connections.</td>
-            <td data-label="A language model">Billions to trillions of weights, which are far simpler than a connection in the brain.</td>
+            <td data-label="">Comes out</td>
+            <td data-label="A chat model">The next token of text.</td>
+            <td data-label="A robot's model">The next small movement of arms, hands and legs.</td>
           </tr>
           <tr>
-            <td data-label="The brain">Learns all the time, from few examples, on about 20 watts.</td>
-            <td data-label="A language model">Trained in advance and then frozen, on more text than a person could read in a thousand lifetimes, in data centres that draw as much power as a town. Running the finished model takes far less, but still much more than 20 watts.</td>
+            <td data-label="">Pace</td>
+            <td data-label="A chat model">You can wait a second for an answer.</td>
+            <td data-label="A robot's model">It must act many times a second, or the robot stumbles.</td>
           </tr>
           <tr>
-            <td data-label="The brain">Lives in a body, with senses, needs and feelings.</td>
-            <td data-label="A language model">Receives text, and sometimes images or sound, and returns text.</td>
+            <td data-label="">Where it runs</td>
+            <td data-label="A chat model">In a data centre.</td>
+            <td data-label="A robot's model">Mostly inside the robot, because a delay could mean a fall.</td>
           </tr>
           <tr>
-            <td data-label="The brain">How it adjusts its connections is only partly understood.</td>
-            <td data-label="A language model">Uses backpropagation, which the brain is not known to use.</td>
+            <td data-label="">Training data</td>
+            <td data-label="A chat model">The text of the internet: trillions of words.</td>
+            <td data-label="A robot's model">Recordings of robots at work: scarce, and each has to be made.</td>
+          </tr>
+          <tr>
+            <td data-label="">A mistake</td>
+            <td data-label="A chat model">A wrong sentence.</td>
+            <td data-label="A robot's model">A dropped glass, or worse.</td>
           </tr>
         </tbody>
       </table>
       <p class="note">
-        Simplified: the figures for the brain are common estimates, and
-        neuroscientists would add many qualifications to every row.
+        Simplified: the nine movements here are written by hand. A real
+        model produces dozens of far smaller movements every second, for
+        many joints at once, from what its cameras show at that instant.
       </p>
-      <details class="extra">
-        <summary><span class="extra-tag">Origins</span> Where does the comparison come from?</summary>
-        <ul class="origins">
-          <li><span>1943</span><span><strong>Warren McCulloch and Walter Pitts</strong> describe a mathematical model of a neuron, the starting point of artificial neural networks.</span></li>
-          <li><span>1958</span><span><strong>Frank Rosenblatt</strong>, a psychologist, builds the perceptron as a model of how the brain might learn.</span></li>
-        </ul>
-      </details>
     </section>
 
-    <section class="step" id="questions" data-title="Open questions">
-      <p class="step-no">Mind · Step 3</p>
-      <h2>Questions still under debate</h2>
+    <section class="step" id="rb-learning" data-title="Learning">
+      <p class="step-no">Robots · Step 3</p>
+      <h2>Where the training data comes from</h2>
       <p>
-        The mechanics on this page are well understood. What they add up to
-        is not. On the following questions, serious researchers disagree,
-        and this page does not take a side.
+        An LLM can read the internet. A robot cannot, because nobody ever
+        wrote down how it feels to fold a towel. The lack of data is the
+        main obstacle in the field, and there are three ways around it.
       </p>
-      <div class="question">
-        <h3>Does it understand, or only predict?</h3>
-        <p>
-          <strong>One view:</strong> it reproduces patterns of words without
-          any grasp of what they refer to, a "stochastic parrot".
-        </p>
-        <p>
-          <strong>Another view:</strong> predicting text this well is only
-          possible with some internal model of the world the text
-          describes, and that is a form of understanding.
-        </p>
-      </div>
-      <div class="question">
-        <h3>Can it reason, or does it imitate reasoning?</h3>
-        <p>
-          <strong>One view:</strong> it recombines reasoning it has seen,
-          and fails when a problem is truly new.
-        </p>
-        <p>
-          <strong>Another view:</strong> it solves problems nobody wrote
-          down before, and human reasoning also leans heavily on familiar
-          patterns.
-        </p>
-      </div>
-      <div class="question">
-        <h3>Could such a system be conscious?</h3>
-        <p>
-          <strong>One view:</strong> no. Consciousness belongs to living
-          bodies with needs and something at stake, and calculation on text
-          has none of that.
-        </p>
-        <p>
-          <strong>Another view:</strong> if consciousness depends on the kind
-          of processing and not on the material, a machine could in
-          principle have it. Nobody knows which is true, and there is no
-          agreed test, so it cannot simply be ruled out.
-        </p>
-      </div>
-      <div class="question">
-        <h3>Will more of the same lead to human-level intelligence?</h3>
-        <p>
-          <strong>One view:</strong> larger models, more data and better
-          harnesses will get to <dfn>AGI</dfn>, artificial general
-          intelligence, within years.
-        </p>
-        <p>
-          <strong>Another view:</strong> something essential is missing,
-          such as learning from experience, a body or real goals, and
-          scaling will not supply it.
-        </p>
-      </div>
-      <div class="question">
-        <h3>Whose values should it follow, and who answers for what it does?</h3>
-        <p>
-          <strong>The difficulty:</strong> training gives a model its
-          character, so somebody chooses it. And when an agent acts, the
-          responsibility is shared between its maker, whoever deployed it
-          and whoever gave it the task, in ways the law has not settled.
-        </p>
-      </div>
-      <details class="extra">
-        <summary><span class="extra-tag">Origins</span> Where do these debates come from?</summary>
-        <ul class="origins">
-          <li><span>1950</span><span><strong>Alan Turing</strong> proposes replacing the question "Can machines think?" with a test: can a machine pass for a person in a written conversation?</span></li>
-          <li><span>1980</span><span><strong>John Searle</strong> argues with his "Chinese room" thought experiment that following rules for symbols is not understanding.</span></li>
-          <li><span>2021</span><span><strong>Emily Bender, Timnit Gebru</strong> and colleagues coin the phrase "stochastic parrots" for language models.</span></li>
-        </ul>
-      </details>
+      <p>
+        The first is <dfn>teleoperation</dfn>: a person steers the robot by
+        remote control, often wearing a headset and gloves, while every
+        picture and movement is recorded. It gives the best data and is
+        slow and expensive. The second is simulation: the robot practises
+        in a virtual world, millions of times, far faster than real time.
+        That works well for walking and balance, less well for handling
+        soft or slippery things. The third is video of people doing
+        things, which exists in vast amounts but does not show what the
+        robot's own motors should do.
+      </p>
+      <p>
+        Most companies combine all three, and start from a model that has
+        already read the internet, so that the robot knows what a towel is
+        before it ever touches one.
+      </p>
+    </section>
+
+    <section class="step" id="rb-makers" data-title="Who">
+      <p class="step-no">Robots · Step 4</p>
+      <h2>The best-known names</h2>
+      <p>
+        Some companies build bodies, some build the models that steer them,
+        and a few do both.
+      </p>
+      <table class="pairs two">
+        <thead>
+          <tr><th>Company</th><th>Known for</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td data-label="Company"><strong>Tesla</strong></td>
+            <td data-label="Known for">Optimus, a humanoid the carmaker builds for its own factories first.</td>
+          </tr>
+          <tr>
+            <td data-label="Company"><strong>Figure</strong></td>
+            <td data-label="Known for">Its Figure humanoids and its own model, Helix; at work in a BMW car plant.</td>
+          </tr>
+          <tr>
+            <td data-label="Company"><strong>Boston Dynamics</strong></td>
+            <td data-label="Known for">Atlas, long famous for acrobatics, now electric and headed for the factories of its owner Hyundai.</td>
+          </tr>
+          <tr>
+            <td data-label="Company"><strong>Agility Robotics</strong></td>
+            <td data-label="Known for">Digit, which moves containers in warehouses, among them Amazon's.</td>
+          </tr>
+          <tr>
+            <td data-label="Company"><strong>1X</strong></td>
+            <td data-label="Known for">NEO, a humanoid sold for the home.</td>
+          </tr>
+          <tr>
+            <td data-label="Company"><strong>Unitree</strong></td>
+            <td data-label="Known for">Low-priced humanoids and four-legged robots from China, widely used in research.</td>
+          </tr>
+          <tr>
+            <td data-label="Company"><strong>Physical Intelligence</strong></td>
+            <td data-label="Known for">Builds only the model, called π ("pi"), meant to steer many kinds of robot.</td>
+          </tr>
+          <tr>
+            <td data-label="Company"><strong>Google DeepMind</strong></td>
+            <td data-label="Known for">Gemini Robotics, a robot version of its Gemini models.</td>
+          </tr>
+          <tr>
+            <td data-label="Company"><strong>NVIDIA</strong></td>
+            <td data-label="Known for">GR00T, an openly available robot model, together with the chips and the simulation software much of the field uses.</td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="note">
+        Listed with the makers of robots first and the makers of models
+        after them; the order within each group is not a ranking.
+      </p>
+    </section>
+
+    <section class="step" id="rb-future" data-title="Outlook">
+      <p class="step-no">Robots · Step 5</p>
+      <h2>What is foreseeable</h2>
+      <p>
+        In the next year or two, expect more of what has just begun: robots
+        doing a handful of well-defined jobs in factories and warehouses,
+        in hundreds and then thousands, and the first home robots in the
+        hands of early buyers, doing simple chores slowly and often with a
+        person helping from afar.
+      </p>
+      <p>
+        Beyond that, forecasts differ by a factor of ten. For 2027, one
+        research firm expects about 10,000 humanoids to be shipped, another
+        more than 100,000. Robots that are useful in an ordinary home, at
+        an ordinary price, are mostly expected around 2030 or later.
+      </p>
+      <p>
+        What holds things back is not the idea but the practice. Hands
+        that match a person's dexterity. Working for a whole shift without
+        a fault. Being safe next to people. Cost. And, above all, data.
+        Language models got good when they had read enough. Robots have
+        only just started reading.
+      </p>
     </section>
 
     <p class="recap">
-      A language model borrows words from the brain, shares a few ideas
-      with it, and leaves the largest questions open.
+      A robot's model is a language model that learned to move: the same
+      idea, with scarcer data, a tighter clock and higher stakes.
     </p>
     </div>
 
@@ -1892,24 +1950,24 @@
           <tr>
             <td data-label="Model"><strong>Claude Opus 5.5</strong>, with the smaller Sonnet 5.5</td>
             <td data-label="From">Anthropic</td>
-            <td data-label="Notable for">Released in September 2026. At or near the top of general and programming rankings.</td>
+            <td data-label="Notable for">Released in September 2026. At or near the top of general rankings; often named for programming.</td>
           </tr>
           <tr>
             <td data-label="Model"><strong>Gemini 4 Argon</strong>, with the cheaper Gemini 3.7 Flash</td>
             <td data-label="From">Google</td>
-            <td data-label="Notable for">Announced on 30 September 2026 as Google's most capable model, with access still limited when this was written. The Flash model is known for results at low cost.</td>
+            <td data-label="Notable for">Announced on 30 September 2026, with access still limited when this was written. At or near the top of general rankings; the Flash model is known for results at low cost.</td>
           </tr>
           <tr>
             <td data-label="Model"><strong>GPT-6 Astra</strong></td>
             <td data-label="From">OpenAI</td>
-            <td data-label="Notable for">Rolled out in phases from September 2026. At or near the top, leading on some knowledge and reasoning tests.</td>
+            <td data-label="Notable for">Rolled out in phases from September 2026. At or near the top of general rankings; often named for knowledge and reasoning tests.</td>
           </tr>
         </tbody>
       </table>
       <p class="note">
-        Listed alphabetically by maker. This guide was written with the
-        help of one of these models, Claude, so treat the order as neutral
-        and check a current leaderboard before choosing.
+        Listed alphabetically by maker; the order is not a ranking. This
+        guide was written with the help of one of these models, Claude, so
+        check a current independent leaderboard before choosing.
       </p>
     </section>
 
@@ -1991,7 +2049,7 @@
           <tr>
             <td data-label="Model"><strong>Ternary Bonsai 2 27B</strong></td>
             <td data-label="From">PrismML</td>
-            <td data-label="Notable for">The same 27B model compressed to weights of −1, 0 and +1: about 6 GB instead of 54.</td>
+            <td data-label="Notable for">An existing 27B model compressed to weights of −1, 0 and +1: about 6 GB instead of 54.</td>
           </tr>
           <tr>
             <td data-label="Model"><strong>Spark X2.5 4B</strong></td>
@@ -2068,7 +2126,7 @@
           <tr>
             <td data-label="Software"><strong>vLLM</strong></td>
             <td data-label="What it is">Serves a model to many users at once, on servers with GPUs.</td>
-            <td data-label="Where it fits in this guide"><a href="#loop">Step 9</a></td>
+            <td data-label="Where it fits in this guide"><a href="#hw-server">Hardware, step 5</a></td>
           </tr>
           <tr>
             <td data-label="Software"><strong>Hugging Face</strong></td>
@@ -2091,8 +2149,9 @@
       <h1 class="one-line">Often asked</h1>
       <p class="lead">
         Questions that come up again and again and are not answered in the
-        steps themselves. Each answer is short and points back to the step
-        that explains the background.
+        steps themselves, including how a model compares with a mind. Each
+        answer is short and points back to the step that explains the
+        background.
       </p>
       <p class="hero-note">
         Click a question to open it.
@@ -2107,9 +2166,9 @@
       <details class="extra faq">
         <summary>Does it learn from my conversations, and is my data used for training?</summary>
         <p>
-          Not while you chat: the weights are frozen, so nothing you type changes the model. But the company running it may store conversations and use them to train a later model. Whether it does depends on the product and your settings. Offers for businesses usually exclude this by default, and consumer apps often let you switch it off. The privacy settings of the product are the place to look.
+          Not while you chat; the memory question further down explains why. But the company running it may store conversations and use them to train a later model. Whether it does depends on the product and your settings. Offers for businesses usually exclude this by default, and consumer apps often let you switch it off. The privacy settings of the product are the place to look.
         </p>
-        <p class="background">Background: <a href="#network">Using, step 5</a> · <a href="#data">Training, step 1</a> · <a href="#memory">Mind, step 1</a></p>
+        <p class="background">Background: <a href="#network">Using, step 5</a> · <a href="#data">Training, step 1</a> · <a href="#memory">FAQ, memory</a></p>
       </details>
       <details class="extra faq">
         <summary>Is it doing anything while I am not typing?</summary>
@@ -2130,7 +2189,7 @@
         <p>
           Mostly not. It cannot inspect its own weights. When you ask how it reached an answer, it writes a plausible account in the same way it writes everything else, and that account may or may not match what happened inside. What it says about itself comes from its training text and its system prompt. Finding out what really happens inside a model is a research field of its own, done from the outside.
         </p>
-        <p class="background">Background: <a href="#prediction">Using, step 7</a> · <a href="#questions">Mind, step 3</a></p>
+        <p class="background">Background: <a href="#prediction">Using, step 7</a> · <a href="#questions">FAQ, under debate</a></p>
       </details>
       <details class="extra faq">
         <summary>Why are models so good at programming, of all things?</summary>
@@ -2152,6 +2211,36 @@
           right and is subtly wrong, so testing stays necessary.
         </p>
         <p class="background">Background: <a href="#data">Training, step 1</a> · <a href="#feedback">Training, step 5</a> · <a href="#chain">Agents, step 3</a> · <a href="#prediction">Using, step 7</a></p>
+      </details>
+      <details class="extra faq" id="vibe-coding">
+        <summary>What is vibe coding, and how does spec-driven development differ?</summary>
+        <p>
+          <dfn>Vibe coding</dfn> is a term coined by the researcher Andrej
+          Karpathy in 2025. You describe in plain language what you want, a
+          coding agent writes the program, you try it out and say what to
+          change, and you never read the code. It is fast, and it lets
+          people build software who never learned to program. Its weakness
+          is the other side of the same coin: nobody has checked what the
+          code actually does, so mistakes, security holes and tangled
+          structure pile up unnoticed. It suits prototypes and tools you
+          can throw away.
+        </p>
+        <p>
+          <dfn>Spec-driven development</dfn>, also called spec coding,
+          turns the order round. First you write down, with the model's
+          help, what the software must do, how it is to be built and how it
+          will be tested. That document is the specification. The agent
+          then works through it task by task, and what it produces is
+          checked against it. This is slower to start and far more
+          dependable for anything that has to last.
+        </p>
+        <p>
+          The difference is where the human attention goes: on the result
+          of each attempt, or on the description before any code exists.
+          Many teams use both, vibes to explore an idea and a specification
+          to build it properly.
+        </p>
+        <p class="background">Background: <a href="#agentic">Agents, step 1</a> · <a href="#harness">Agents, step 2</a> · <a href="#chain">Agents, step 3</a></p>
       </details>
     </section>
 
@@ -2175,7 +2264,7 @@
       <details class="extra faq">
         <summary>What hardware do I need to run a model myself?</summary>
         <p>
-          Above all, enough memory. A rule of thumb: parameters times bits per weight, divided by 8, gives the size in bytes. A model with 8 billion parameters at 4 bits needs about 4 GB, plus some room for the conversation, so it runs on a laptop with 16 GB. One with 27 billion parameters at 4 bits needs about 14 GB and wants 24 to 32 GB. A graphics card, or a computer whose processor and graphics share fast memory, makes it quick; without one it works, slowly.
+          Above all, enough memory: the size of a model is its parameters times the bits per weight, and it needs spare room on top. A graphics card, or a computer whose processor and graphics share fast memory, makes it quick; without one it works, slowly. The Hardware tab lets you try which model fits which machine.
         </p>
         <p class="background">Background: <a href="#hw-compare">Hardware, step 6</a> · <a href="#network">Using, step 5</a> · <a href="#local">Models, 3</a></p>
       </details>
@@ -2184,6 +2273,43 @@
     <section class="step" id="faq-wider" data-title="Wider questions">
       <p class="step-no">Questions · Beyond the technology</p>
       <h2>Wider questions</h2>
+      <details class="extra faq" id="machine-learning">
+        <summary>What is the difference between an LLM and machine learning?</summary>
+        <p>
+          They are not opposites. An LLM is one kind of machine learning,
+          the way a sports car is one kind of car. The terms nest inside
+          each other.
+        </p>
+        <dl class="facts">
+          <dt>Artificial intelligence</dt>
+          <dd>The whole field: getting machines to do things that seem to need intelligence, by any method.</dd>
+          <dt><dfn>Machine learning</dfn></dt>
+          <dd>The part of it in which a program is not given rules but learns them from examples.</dd>
+          <dt><dfn>Deep learning</dfn></dt>
+          <dd>Machine learning with neural networks of many layers.</dd>
+          <dt>LLM</dt>
+          <dd>A very large deep-learning model trained on text.</dd>
+        </dl>
+        <p>
+          What people usually mean by the question is the difference from
+          the machine learning that came before. A classic model is built
+          for one job: a team collects examples with the right answers
+          attached, such as emails marked "spam" or "not spam", and trains a
+          small model that does exactly that and nothing else. An LLM is first trained on enormous amounts of text
+          that nobody had to label, because the next word in the text is
+          itself the right answer, and can then be pointed at almost any
+          task by describing it in a prompt. Nothing has to be retrained to change the task.
+        </p>
+        <p>
+          That generality has a price. An LLM is far larger and costlier to
+          run, its output is free text that can be wrong in fluent ways, and
+          it is harder to say why it answered as it did. Where the task is
+          narrow and the data is a table of numbers, such as forecasting
+          sales or spotting fraud, classic machine learning is often still
+          the cheaper, faster and more accurate choice.
+        </p>
+        <p class="background">Background: <a href="#pretraining">Training, step 2</a> · <a href="#network">Using, step 5</a> · <a href="#decide">Using, the different path</a></p>
+      </details>
       <details class="extra faq">
         <summary>How much energy does one answer use?</summary>
         <p>
@@ -2203,7 +2329,187 @@
         <p>
           Both questions are unsettled and are answered differently from country to country. Courts are still deciding whether training on copyrighted material is permitted and under what conditions. As for the output: in many places text made by a machine alone is not protected by copyright at all, and the terms of the provider say what you may do with it. For anything that matters, this needs proper legal advice.
         </p>
-        <p class="background">Background: <a href="#data">Training, step 1</a> · <a href="#questions">Mind, step 3</a></p>
+        <p class="background">Background: <a href="#data">Training, step 1</a> · <a href="#questions">FAQ, under debate</a></p>
+      </details>
+    </section>
+
+    <section class="step" id="faq-mind" data-title="Mind and machine">
+      <p class="step-no">Questions · Mind and machine</p>
+      <h2>Is it like a mind?</h2>
+      <p>
+        Words like neuron, memory and learning are borrowed from biology.
+        Some of the comparisons help, some mislead.
+      </p>
+      <details class="extra faq" id="memory">
+        <summary>Does a model have a memory like ours?</summary>
+        <p>
+          People keep a few things in mind for the moment and a lifetime of
+          knowledge in the background. A language model has a rough
+          counterpart to each, which is a useful way to remember what it can
+          and cannot do.
+        </p>
+          <table class="pairs">
+            <thead>
+              <tr><th>In people</th><th>In a language model</th><th>Where the comparison breaks</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td data-label="In people"><strong>Short-term memory.</strong> What you are holding in mind right now.</td>
+                <td data-label="In a language model">The context window: everything in the current conversation.</td>
+                <td data-label="Where it breaks">Yours is small and fades. The model's is large and holds the text word for word, although in a very long conversation it does not use every part equally well. It ends abruptly at the limit and is wiped when the conversation ends.</td>
+              </tr>
+              <tr>
+                <td data-label="In people"><strong>Long-term memory.</strong> Knowledge and skills built up over years.</td>
+                <td data-label="In a language model">The weights, shaped during training.</td>
+                <td data-label="Where it breaks">You often sense whether you know something or are guessing, though human memory invents too. A model has at best a weak version of that sense: it cannot look anything up in its weights, and a plausible guess comes out looking exactly like a fact.</td>
+              </tr>
+              <tr>
+                <td data-label="In people"><strong>Notes and diaries.</strong> Things you wrote down to read later.</td>
+                <td data-label="In a language model"><dfn>External memory</dfn>: files, retrieved documents and the "memory" features of chat products, which save text and paste it back into later conversations.</td>
+                <td data-label="Where it breaks">It is reading, not remembering. Whatever the software does not put back into the context window does not exist for the model.</td>
+              </tr>
+              <tr>
+                <td data-label="In people"><strong>Learning from experience.</strong> Today's events become tomorrow's memories, partly during sleep.</td>
+                <td data-label="In a language model">Nothing, until the next training run.</td>
+                <td data-label="Where it breaks">A model in use does not learn from talking to you. Its weights are frozen.</td>
+              </tr>
+            </tbody>
+          </table>
+        <p>
+          The practical upshot: a model does not remember you between
+          conversations. If it seems to, some software saved a note about
+          you and handed it back.
+        </p>
+        <p class="background">Background: <a href="#loop">Using, step 9</a> · <a href="#network">Using, step 5</a> · <a href="#prediction">Using, step 7</a></p>
+      </details>
+      <details class="extra faq" id="brain">
+        <summary>Is a neural network like a brain?</summary>
+        <p>
+          Neural networks were inspired by the brain, and the family
+          resemblance is real: many simple units, connected by links of
+          different strength, with learning as a change in those strengths
+          and knowledge spread across the whole network. Beyond that, the
+          two are very different machines.
+        </p>
+          <table class="pairs two">
+            <thead>
+              <tr><th>The brain</th><th>A language model</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td data-label="The brain">A neuron is a living cell with complex behaviour of its own.</td>
+                <td data-label="A language model">An artificial "neuron" is one tiny calculation inside a layer (step 5 of the first tab): a weighted sum followed by a simple cut-off.</td>
+              </tr>
+              <tr>
+                <td data-label="The brain">About 86 billion neurons with something like 100 trillion connections.</td>
+                <td data-label="A language model">Billions to trillions of weights, which are far simpler than a connection in the brain.</td>
+              </tr>
+              <tr>
+                <td data-label="The brain">Learns all the time, from few examples, on about 20 watts.</td>
+                <td data-label="A language model">Trained in advance and then frozen, on more text than a person could read in a thousand lifetimes, in data centres that draw as much power as a town. Running a large finished model takes far less, but still hundreds of watts or more; only small models run on a phone's few watts.</td>
+              </tr>
+              <tr>
+                <td data-label="The brain">Lives in a body, with senses, needs and feelings.</td>
+                <td data-label="A language model">Receives text, and sometimes images or sound, and returns text.</td>
+              </tr>
+              <tr>
+                <td data-label="The brain">How it adjusts its connections is only partly understood.</td>
+                <td data-label="A language model">Uses backpropagation, which the brain is not known to use.</td>
+              </tr>
+            </tbody>
+          </table>
+        <p class="note">
+          Simplified: the figures for the brain are common estimates, and
+          neuroscientists would add many qualifications to every row.
+        </p>
+        <p class="origins-title">Where the comparison comes from</p>
+        <ul class="origins">
+          <li><span>1943</span><span><strong>Warren McCulloch and Walter Pitts</strong> describe a mathematical model of a neuron, the starting point of artificial neural networks.</span></li>
+          <li><span>1958</span><span><strong>Frank Rosenblatt</strong>, a psychologist, builds the perceptron as a model of how the brain might learn.</span></li>
+        </ul>
+        <p class="background">Background: <a href="#network">Using, step 5</a> · <a href="#descent">Training, step 3</a></p>
+      </details>
+      <h3 id="questions">Still under debate</h3>
+      <p>
+        The mechanics in this guide are well understood. What they add up to
+        is not. On the following questions serious researchers disagree, and
+        this guide does not take a side.
+      </p>
+      <details class="extra faq">
+        <summary>Does it understand, or only predict?</summary>
+        <p>
+          <strong>One view:</strong> it reproduces patterns of words without
+          any grasp of what they refer to, a "stochastic parrot".
+        </p>
+        <p>
+          <strong>Another view:</strong> predicting text this well is only
+          possible with some internal model of the world the text
+          describes, and that is a form of understanding.
+        </p>
+        <p class="background">Background: <a href="#prediction">Using, step 7</a></p>
+      </details>
+      <details class="extra faq">
+        <summary>Can it reason, or does it imitate reasoning?</summary>
+        <p>
+          <strong>One view:</strong> it recombines reasoning it has seen,
+          and fails when a problem is truly new.
+        </p>
+        <p>
+          <strong>Another view:</strong> it solves problems nobody wrote
+          down before, and human reasoning also leans heavily on familiar
+          patterns.
+        </p>
+        <p class="background">Background: <a href="#loop">Using, step 9</a></p>
+      </details>
+      <details class="extra faq">
+        <summary>Could such a system be conscious?</summary>
+        <p>
+          <strong>One view:</strong> no. Consciousness belongs to living
+          bodies with needs and something at stake, and calculation on text
+          has none of that.
+        </p>
+        <p>
+          <strong>Another view:</strong> if consciousness depends on the kind
+          of processing and not on the material, a machine could in
+          principle have it.
+        </p>
+        <p>
+          Nobody knows which is true, and there is no agreed test.
+        </p>
+        <p class="background">Background: <a href="#network">Using, step 5</a></p>
+      </details>
+      <details class="extra faq">
+        <summary>Will more of the same lead to human-level intelligence?</summary>
+        <p>
+          <strong>One view:</strong> larger models, more data and better
+          harnesses will get to <dfn>AGI</dfn>, artificial general
+          intelligence, within years.
+        </p>
+        <p>
+          <strong>Another view:</strong> something essential is missing,
+          such as learning from experience, a body or real goals, and
+          scaling will not supply it.
+        </p>
+        <p class="background">Background: <a href="#pretraining">Training, step 2</a></p>
+      </details>
+      <details class="extra faq">
+        <summary>Whose values should it follow, and who answers for what it does?</summary>
+        <p>
+          <strong>The difficulty:</strong> training gives a model its
+          character, so somebody chooses it. And when an agent acts, the
+          responsibility is shared between its maker, whoever deployed it
+          and whoever gave it the task, in ways the law has not settled.
+        </p>
+        <p class="background">Background: <a href="#feedback">Training, step 5</a> · <a href="#trust">Agents, step 5</a></p>
+      </details>
+      <details class="extra faq">
+        <summary>Where do these debates come from?</summary>
+        <ul class="origins">
+          <li><span>1950</span><span><strong>Alan Turing</strong> proposes replacing the question "Can machines think?" with a test: can a machine pass for a person in a written conversation?</span></li>
+          <li><span>1980</span><span><strong>John Searle</strong> argues with his "Chinese room" thought experiment that following rules for symbols is not understanding.</span></li>
+          <li><span>2021</span><span><strong>Emily Bender, Timnit Gebru</strong> and colleagues coin the phrase "stochastic parrots" for language models.</span></li>
+        </ul>
+        <p class="background">Background: <a href="#view-quotes">Quotes</a></p>
       </details>
     </section>
 
@@ -2213,12 +2519,97 @@
     </p>
     </div>
 
+    <div class="view" id="view-quotes" data-narration="off" hidden>
+    <header class="hero">
+      <p class="eyebrow">Part eight</p>
+      <h1 class="one-line">In their words</h1>
+      <p class="lead">
+        People have argued about thinking machines for almost two hundred
+        years. A few sentences have stuck, and they still frame the debate.
+      </p>
+      <span class="scroll-hint" aria-hidden="true">↓</span>
+    </header>
+
+    <section class="step" id="quotes-think" data-title="Can it think?">
+      <p class="step-no">Quotes · Can a machine think?</p>
+      <h2>Can a machine think?</h2>
+      <figure class="quote">
+        <blockquote>The Analytical Engine has no pretensions whatever to originate anything. It can do whatever we know how to order it to perform.</blockquote>
+        <figcaption><strong>Ada Lovelace</strong>, 1843. From her notes on Charles Babbage's planned computer, a century before one was built. Whether a machine can produce something new is still the question. <a href="#questions">FAQ, under debate</a></figcaption>
+      </figure>
+      <figure class="quote">
+        <blockquote>I propose to consider the question, "Can machines think?"</blockquote>
+        <figcaption><strong>Alan Turing</strong>, 1950. The opening sentence of the paper that proposed what became known as the Turing test.</figcaption>
+      </figure>
+      <figure class="quote">
+        <blockquote>…the question of whether Machines Can Think … is about as relevant as the question of whether Submarines Can Swim.</blockquote>
+        <figcaption><strong>Edsger Dijkstra</strong>, 1984. The computer scientist's way of saying that it matters what a machine can do, not what we call it.</figcaption>
+      </figure>
+    </section>
+
+    <section class="step" id="quotes-hopes" data-title="Expectations">
+      <p class="step-no">Quotes · Great expectations</p>
+      <h2>Great expectations</h2>
+      <figure class="quote">
+        <blockquote>…every aspect of learning or any other feature of intelligence can in principle be so precisely described that a machine can be made to simulate it.</blockquote>
+        <figcaption><strong>John McCarthy, Marvin Minsky, Nathaniel Rochester and Claude Shannon</strong>, 1955. From the proposal for the Dartmouth summer workshop, which also gave the field its name: artificial intelligence. The proposal states this as a conjecture to be tested.</figcaption>
+      </figure>
+      <figure class="quote">
+        <blockquote>Machines will be capable, within twenty years, of doing any work that a man can do.</blockquote>
+        <figcaption><strong>Herbert Simon</strong>, 1965. One of the field's founders. The twenty years passed, and so did several more waves of confident forecasts.</figcaption>
+      </figure>
+      <figure class="quote">
+        <blockquote>Just as electricity transformed almost everything 100 years ago, today I actually have a hard time thinking of an industry that I don't think AI will transform in the next several years.</blockquote>
+        <figcaption><strong>Andrew Ng</strong>, 2017. From the talk remembered by its title, "AI is the new electricity".</figcaption>
+      </figure>
+    </section>
+
+    <section class="step" id="quotes-warnings" data-title="Warnings">
+      <p class="step-no">Quotes · Warnings</p>
+      <h2>Warnings</h2>
+      <figure class="quote">
+        <blockquote>…we had better be quite sure that the purpose put into the machine is the purpose which we really desire and not merely a colorful imitation of it.</blockquote>
+        <figcaption><strong>Norbert Wiener</strong>, 1960. The founder of cybernetics, describing what is now called the alignment problem. <a href="#feedback">Training, step 5</a></figcaption>
+      </figure>
+      <figure class="quote">
+        <blockquote>Thus the first ultraintelligent machine is the last invention that man need ever make, provided that the machine is docile enough to tell us how to keep it under control.</blockquote>
+        <figcaption><strong>I. J. Good</strong>, 1965. A mathematician who had worked with Turing. The first half is quoted often, the condition at the end less so.</figcaption>
+      </figure>
+      <figure class="quote">
+        <blockquote>The AI does not hate you, nor does it love you, but you are made out of atoms which it can use for something else.</blockquote>
+        <figcaption><strong>Eliezer Yudkowsky</strong>, 2008. The argument that a powerful system need not be hostile to be dangerous; indifference to people would be enough.</figcaption>
+      </figure>
+      <figure class="quote">
+        <blockquote>The development of full artificial intelligence could spell the end of the human race.</blockquote>
+        <figcaption><strong>Stephen Hawking</strong>, 2014. In an interview with the BBC.</figcaption>
+      </figure>
+    </section>
+
+    <section class="step" id="quotes-progress" data-title="Progress">
+      <p class="step-no">Quotes · How progress is made</p>
+      <h2>How progress is made</h2>
+      <figure class="quote">
+        <blockquote>The biggest lesson that can be read from 70 years of AI research is that general methods that leverage computation are ultimately the most effective, and by a large margin.</blockquote>
+        <figcaption><strong>Rich Sutton</strong>, 2019. From his essay "The Bitter Lesson": general methods that scale with computing power have beaten clever hand-built rules again and again. Many read large language models as the clearest case; Sutton himself has disputed that. <a href="#pretraining">Training, step 2</a></figcaption>
+      </figure>
+      <figure class="quote">
+        <blockquote>We can only see a short distance ahead, but we can see plenty there that needs to be done.</blockquote>
+        <figcaption><strong>Alan Turing</strong>, 1950. The last sentence of the same paper.</figcaption>
+      </figure>
+    </section>
+
+    <p class="recap">
+      Quotations are given in their original wording; an ellipsis marks
+      where a sentence was shortened.
+    </p>
+    </div>
+
     <section class="glossary" id="glossary">
       <h2>Words you will hear</h2>
       <dl>
         <div><dt>Agent</dt> <dd>A model running in a loop with tools, so it can look things up and take actions over several rounds. <a href="#loop">Step 9</a></dd></div>
         <div><dt>Agentic AI</dt> <dd>Systems in which a model is given a goal and works towards it over many rounds, using tools. <a href="#agentic">Agents, step 1</a></dd></div>
-        <div><dt>AGI</dt> <dd>Artificial general intelligence: a system as capable as a person across most kinds of thinking work. Whether and when it will exist is disputed. <a href="#questions">Mind, step 3</a></dd></div>
+        <div><dt>AGI</dt> <dd>Artificial general intelligence: a system as capable as a person across most kinds of thinking work. Whether and when it will exist is disputed. <a href="#questions">FAQ</a></dd></div>
         <div><dt>Alignment</dt> <dd>Getting a model to reliably behave the way its makers intend. <a href="#feedback">Training, step 5</a></dd></div>
         <div><dt>API</dt> <dd>Application programming interface: the way one program calls another, usually over the network. Made for programmers, not for models. <a href="#mcp">Agents, step 4</a></dd></div>
         <div><dt>Attention</dt> <dd>The part of a layer where each token pulls in information from the tokens before it. <a href="#attention">Step 6</a></dd></div>
@@ -2228,12 +2619,14 @@
         <div><dt>Benchmark</dt> <dd>A fixed set of test questions with known answers, used to score and compare models. <a href="#evaluation">Training, step 6</a></dd></div>
         <div><dt>Classifier</dt> <dd>A model that does not write text but returns a probability for each of a fixed set of answers. <a href="#decide">Different path</a></dd></div>
         <div><dt>CLI</dt> <dd>Command-line interface: starting and controlling programs by typing text commands. <a href="#mcp">Agents, step 4</a></dd></div>
+        <div><dt>Compaction</dt> <dd>Replacing the older part of a long conversation with a summary, to free room in the context window. Details from that part are lost. <a href="#loop">Step 9</a></dd></div>
         <div><dt>Context window</dt> <dd>The maximum number of tokens a model can take in at once. Also used for the text currently in it. <a href="#loop">Step 9</a></dd></div>
         <div><dt>CPU</dt> <dd>Central processing unit: the ordinary processor found in every computer. <a href="#prompt">Step 1</a></dd></div>
         <div><dt>CUDA</dt> <dd>NVIDIA's platform for programming its graphics chips. Most AI software was written for it first, which is a large part of NVIDIA's lead. <a href="#hw-nvidia">Hardware, step 3</a></dd></div>
+        <div><dt>Deep learning</dt> <dd>Machine learning with neural networks of many layers. LLMs are deep-learning models. <a href="#machine-learning">FAQ</a></dd></div>
         <div><dt>Distillation</dt> <dd>Training a small model to imitate a large one. <a href="#adapting">Training, step 7</a></dd></div>
         <div><dt>Embedding</dt> <dd>The vector a token ID is swapped for at the start. Also the name for that lookup. <a href="#embeddings">Step 4</a></dd></div>
-        <div><dt>External memory</dt> <dd>Text saved outside the model, such as files or a product's "memory" feature, and placed back into the context window when needed. The model itself keeps nothing between conversations. <a href="#memory">Mind, step 1</a></dd></div>
+        <div><dt>External memory</dt> <dd>Text saved outside the model, such as files or a product's "memory" feature, and placed back into the context window when needed. The model itself keeps nothing between conversations. <a href="#memory">FAQ</a></dd></div>
         <div><dt>Fine-tuning</dt> <dd>Training an already trained model further on a smaller, chosen set of examples: by its maker to turn a base model into an assistant, or later by others to specialise it. <a href="#posttraining">Training, step 4</a></dd></div>
         <div><dt>Frontier model</dt> <dd>One of the most capable models available at a given time. <a href="#frontier">Models, 1</a></dd></div>
         <div><dt>Generative</dt> <dd>Describes a model that produces new text, token by token. The G in GPT. <a href="#decide">Different path</a></dd></div>
@@ -2242,6 +2635,7 @@
         <div><dt>Gradient descent</dt> <dd>Improving a model by moving its weights in small steps in the direction that lowers the loss. <a href="#descent">Training, step 3</a></dd></div>
         <div><dt>Hallucination</dt> <dd>Fluent, confident output that is wrong. The model scores what is likely, not what is true. <a href="#prediction">Step 7</a></dd></div>
         <div><dt>Harness</dt> <dd>The software around a model that runs the loop: it builds the input, calls the model, carries out tool requests and enforces the rules. <a href="#harness">Agents, step 2</a></dd></div>
+        <div><dt>Humanoid</dt> <dd>A robot with the shape of a person, meant to work in places built for people. <a href="#rb-today">Robots, step 1</a></dd></div>
         <div><dt>Inference</dt> <dd>Using a finished model to produce output. Nothing is learned; the weights stay fixed. <a href="#network">Step 5</a></dd></div>
         <div><dt>Input tokens</dt> <dd>All the tokens a model reads for one answer: system prompt, conversation, documents and tool descriptions. <a href="#loop">Step 9</a></dd></div>
         <div><dt>Knowledge cutoff</dt> <dd>The date after which a model knows nothing, because its training data ends there. <a href="#data">Training, step 1</a></dd></div>
@@ -2250,9 +2644,11 @@
         <div><dt>LLM</dt> <dd>Large language model: a neural network trained on huge amounts of text to predict the next token. <a href="#prompt">Step 1</a></dd></div>
         <div><dt>LoRA</dt> <dd>Low-rank adaptation: a cheap way to fine-tune, in which the original weights stay frozen and only a small add-on is trained. <a href="#adapting">Training, step 7</a></dd></div>
         <div><dt>Loss</dt> <dd>A number for how wrong the model's guesses are. Training tries to make it smaller. <a href="#pretraining">Training, step 2</a></dd></div>
+        <div><dt>Machine learning</dt> <dd>Getting a program to learn rules from examples instead of being given them. LLMs are one kind of machine learning. <a href="#machine-learning">FAQ</a></dd></div>
         <div><dt>MCP</dt> <dd>Model Context Protocol: an open standard for connecting tools and data sources to any model's harness. <a href="#mcp">Agents, step 4</a></dd></div>
-        <div><dt>Memory bandwidth</dt> <dd>How fast a chip can move data in and out of its memory. When a model writes text, this often limits the speed more than calculating power does. <a href="#loop">Step 9</a></dd></div>
+        <div><dt>Memory bandwidth</dt> <dd>How fast a chip can move data in and out of its memory. When a model writes text, this often limits the speed more than calculating power does. Called reading speed in the Hardware tab. <a href="#hw-needs">Hardware, step 1</a></dd></div>
         <div><dt>Mixture of experts</dt> <dd>A model design where each token is sent through only a few of many "expert" blocks. Often shortened to MoE. <a href="#attention">Step 6</a></dd></div>
+        <div><dt>MLX</dt> <dd>Apple's open-source software for running and training models on its own chips, built to make use of their unified memory. The name is not an abbreviation with an official long form. <a href="#software">Models, 5</a></dd></div>
         <div><dt>Multimodal</dt> <dd>Describes a model that takes more than text as input, such as images or sound. <a href="#embeddings">Step 4</a></dd></div>
         <div><dt>Neural Engine</dt> <dd>Apple's name for the NPU in its phones and Macs. <a href="#network">Step 5</a></dd></div>
         <div><dt>Neural network</dt> <dd>The stack of layers that transforms the vectors. This is "the model". <a href="#network">Step 5</a></dd></div>
@@ -2264,6 +2660,7 @@
         <div><dt>Post-training</dt> <dd>Everything done after pre-training to turn a base model into a helpful assistant. <a href="#posttraining">Training, step 4</a></dd></div>
         <div><dt>Pre-training</dt> <dd>The first and largest training phase: guessing the next token over enormous amounts of text. <a href="#pretraining">Training, step 2</a></dd></div>
         <div><dt>Prompt</dt> <dd>The text you give the model. <a href="#prompt">Step 1</a></dd></div>
+        <div><dt>Prompt caching</dt> <dd>Reusing the work already done on the unchanged beginning of an input, so it is processed faster and billed at a fraction of the price. It saves money and time, not room in the context window. <a href="#loop">Step 9</a></dd></div>
         <div><dt>Prompt injection</dt> <dd>Text in a web page, document or tool result, written to look like an instruction, that a model may follow. <a href="#trust">Agents, step 5</a></dd></div>
         <div><dt>QPU</dt> <dd>Quantum processing unit: the chip of a quantum computer. It plays no part in training or running today's language models. <a href="#network">Step 5</a></dd></div>
         <div><dt>Quantization</dt> <dd>Storing each weight with fewer bits to make a model smaller and faster, at a small cost in quality. <a href="#network">Step 5</a></dd></div>
@@ -2272,8 +2669,10 @@
         <div><dt>Reinforcement learning</dt> <dd>Learning from a score for what the model produced, instead of from a correct answer. <a href="#feedback">Training, step 5</a></dd></div>
         <div><dt>RLHF</dt> <dd>Reinforcement learning from human feedback: people judge answers, and the model is trained towards the preferred ones. <a href="#feedback">Training, step 5</a></dd></div>
         <div><dt>Sampling</dt> <dd>Picking the next token by a random draw, weighted by the probabilities. <a href="#sampling">Step 8</a></dd></div>
+        <div><dt>Spec-driven development</dt> <dd>Writing a specification of what software must do before a coding agent builds it, then checking the result against it. Also called spec coding. <a href="#vibe-coding">FAQ</a></dd></div>
         <div><dt>System One model</dt> <dd>TypeSafe AI's name for its model Jev, which returns probabilities over predefined answers and writes no text. <a href="#decide">Different path</a></dd></div>
         <div><dt>System prompt</dt> <dd>Instructions that a chat product places in front of your prompt. You normally do not see them. <a href="#prompt">Step 1</a></dd></div>
+        <div><dt>Teleoperation</dt> <dd>Steering a robot by remote control. Recording it is the main way of collecting training data for robots. <a href="#rb-learning">Robots, step 3</a></dd></div>
         <div><dt>Temperature</dt> <dd>A setting for how random the pick of the next token is. <a href="#sampling">Step 8</a></dd></div>
         <div><dt>Ternary</dt> <dd>Weights limited to the three values −1, 0 and +1: the extreme end of quantization. Also called 1.58-bit. <a href="#network">Step 5</a></dd></div>
         <div><dt>Test-time training</dt> <dd>Briefly training the model on the task in front of it while it answers, then usually discarding the changes. Short: TTT. <a href="#network">Step 5</a></dd></div>
@@ -2287,6 +2686,8 @@
         <div><dt>Transformer</dt> <dd>The layer design used by today's LLMs, built around attention. <a href="#network">Step 5</a></dd></div>
         <div><dt>Unified memory</dt> <dd>One pool of fast memory shared by the processor and the graphics part of a chip, as in Apple's Macs. It lets large models load without a separate graphics card. <a href="#hw-mac">Hardware, step 4</a></dd></div>
         <div><dt>Vector</dt> <dd>A list of numbers that represents a token inside the model. <a href="#embeddings">Step 4</a></dd></div>
+        <div><dt>Vibe coding</dt> <dd>Building software by describing what you want to a coding agent and judging only the result, without reading the code. <a href="#vibe-coding">FAQ</a></dd></div>
+        <div><dt>Vision-language-action model</dt> <dd>A model that takes camera pictures and an instruction and produces robot movements. Built like an LLM and usually started from one. Short: VLA. <a href="#rb-model">Robots, step 2</a></dd></div>
         <div><dt>Vocabulary</dt> <dd>The fixed list of all tokens a model knows. <a href="#ids">Step 3</a></dd></div>
         <div><dt>VRAM</dt> <dd>Video random-access memory: the memory on a graphics card. It decides how large a model the card can hold. <a href="#network">Step 5</a></dd></div>
         <div><dt>Weights</dt> <dd>The learned numbers that decide what each layer does. Fixed after training. <a href="#network">Step 5</a></dd></div>
@@ -2301,6 +2702,7 @@
   <script src="training.js"></script>
   <script src="agents.js"></script>
   <script src="hardware.js"></script>
+  <script src="robots.js"></script>
   <script src="audio/manifest.js"></script>
   <script src="audio.js"></script>
 </body>

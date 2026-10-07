@@ -7,8 +7,9 @@
 const MACHINES = [
   // A phone lets a single app use only about half of its memory.
   { name: 'iPhone 18 Pro', memory: 12, bandwidth: 115, watts: 6, usableShare: 0.5 },
-  { name: 'Laptop without a graphics card', memory: 16, bandwidth: 70, watts: 45 },
-  { name: 'PC with a top graphics card', memory: 24, bandwidth: 1000, watts: 600 },
+  // On an ordinary laptop the system and other programs need a good part of the memory.
+  { name: 'Laptop without a graphics card', memory: 16, bandwidth: 70, watts: 45, usableShare: 0.6 },
+  { name: 'PC with a 24 GB graphics card', memory: 24, bandwidth: 1000, watts: 600 },
   { name: 'Mac with 64 GB of unified memory', memory: 64, bandwidth: 500, watts: 150 },
   { name: 'NVIDIA DGX Spark, 128 GB', memory: 128, bandwidth: 273, watts: 170 },
   { name: 'Mac Studio with M5 Ultra, 512 GB', memory: 512, bandwidth: 1200, watts: 385 },
@@ -47,7 +48,7 @@ function renderMachines() {
   const fitsAnywhere = MACHINES.some(fitsOn);
   const cards = Math.ceil(sizeGb / (DATA_CENTRE_GPU_GB * USABLE_SHARE));
   $('hw-size').textContent = `${count(parameters)} billion parameters at ${bits} bits per weight: ${count(sizeGb)} GB.`
-    + (fitsAnywhere ? '' : ` None of these machines can hold it. It takes a server with about ${cards} data-centre GPUs working together.`);
+    + (fitsAnywhere ? '' : ` None of these machines can hold it. It takes about ${cards} data-centre GPUs working together.`);
 
   $('hw-sort').replaceChildren(...segmentButtons(SORTS, (value) => value === hardware.sort));
   document.querySelectorAll('.machines th').forEach((th) => {

@@ -606,24 +606,50 @@ function renderAgent() {
 // Step 9, optional: input and output tokens
 
 const CHAT_SIZES = { system: 300, question: 30, answer: 200 };
+// Input that was read on the previous turn comes from the cache at this share of the price.
+const CACHED_PRICE = 0.1;
+// Once the earlier turns exceed this many tokens, the harness swaps them for a summary of that size.
+const COMPACT_ABOVE = 2000;
+const SUMMARY_SIZE = 300;
+
+// Adds up a conversation turn by turn, three ways: as it is, with caching, and with compaction.
+function conversationCost(turns) {
+  const { system, question, answer } = CHAT_SIZES;
+  let history = 0;
+  let compacted = 0;
+  const totals = { input: 0, billedWithCache: 0, inputCompacted: 0, output: turns * answer };
+  for (let turn = 1; turn <= turns; turn++) {
+    // Each turn the model reads the system prompt, everything said so far and the new question.
+    const read = system + history + question;
+    totals.input += read;
+    // Only the previous answer and the new question are new; the rest was read last turn.
+    const fresh = turn === 1 ? read : answer + question;
+    totals.billedWithCache += fresh + (read - fresh) * CACHED_PRICE;
+
+    if (compacted > COMPACT_ABOVE) compacted = SUMMARY_SIZE;
+    totals.inputCompacted += system + compacted + question;
+
+    history += question + answer;
+    compacted += question + answer;
+  }
+  return totals;
+}
 
 function renderTokenCost() {
   const turns = state.turns;
-  let input = 0;
-  // On every turn the model reads the system prompt and the whole conversation so far.
-  for (let turn = 1; turn <= turns; turn++) {
-    input += CHAT_SIZES.system + turn * CHAT_SIZES.question + (turn - 1) * CHAT_SIZES.answer;
-  }
-  const output = turns * CHAT_SIZES.answer;
-  const count = (value) => value.toLocaleString('en');
+  const { input, billedWithCache, inputCompacted, output } = conversationCost(turns);
+  const count = (value) => Math.round(value).toLocaleString('en');
 
   $('turns-count').textContent = turns;
   $('io-bars').replaceChildren(
     barRow('Input', 1, count(input), false),
+    barRow('Cached', billedWithCache / input, count(billedWithCache), false),
+    barRow('Compacted', inputCompacted / input, count(inputCompacted), false),
     barRow('Output', output / input, count(output), false),
   );
-  $('io-stat').textContent = `After ${turns} ${turns === 1 ? 'turn' : 'turns'} the model has read `
-    + `${(input / output).toFixed(1)} times as many tokens as it has written.`;
+  $('io-stat').textContent = `After ${turns} ${turns === 1 ? 'turn' : 'turns'} the model has read ${count(input)} tokens `
+    + `and written ${count(output)}. With caching the reading is billed like ${count(billedWithCache)} tokens. `
+    + `With compaction only ${count(inputCompacted)} are read at all.`;
 }
 
 // Resource meters: a step lists its demand as data-load="cpu,gpu,memory", each from 0 to 3.
@@ -880,6 +906,8 @@ function route(hash) {
   if (!target) return;
   const view = target.closest('.view');
   if (view?.hidden) showView(view.id);
+  // A link that points at a folded section opens it.
+  if (target.tagName === 'DETAILS') target.open = true;
   if (target === view) window.scrollTo(0, 0);
   else target.scrollIntoView();
 }

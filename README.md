@@ -21,11 +21,11 @@ dependencies: open `index.html` in a browser.
 
 ## Files
 
-- `index.html`: all the text, in seven tabs (Using, Training, Agents, Hardware, Mind, Models, FAQ) and a glossary
+- `index.html`: all the text, in eight tabs (Using, Training, Agents, Hardware, Robots, Models, FAQ, Quotes) and a glossary
 - `style.css`: the styling, including dark mode and phone layout
 - `tokenizer.js`, `model.js`: the toy tokenizer and toy model behind the demos
 - `app.js`: the demos of the first tab, the tabs, the tooltips and the step dots
-- `network.js`, `training.js`, `agents.js`, `hardware.js`: the neural network drawing and the demos of the other tabs
+- `network.js`, `training.js`, `agents.js`, `hardware.js`, `robots.js`: the neural network drawing and the demos of the other tabs
 - `audio.js`, `audio/`: the narration player and its recordings
 - `tools/generate_voice.py`: regenerates the recordings with Google Cloud Text-to-Speech after the text has changed
 
