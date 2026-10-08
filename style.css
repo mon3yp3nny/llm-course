@@ -1257,6 +1257,9 @@ button.chip:focus-visible {
   text-transform: uppercase;
 }
 
+/* What the technology achieved in the real world stands out from the rest. */
+.event[data-kind="result"] .event-kind { color: var(--accent); }
+
 .event h3 {
   margin: 0 0 4px;
   font-size: 1.15rem;
