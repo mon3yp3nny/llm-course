@@ -474,7 +474,7 @@
         <ul class="origins">
           <li><span>1958</span><span><strong>Frank Rosenblatt</strong> presents the perceptron, an early neural network that learns from examples.</span></li>
           <li><span>1986</span><span><strong>David Rumelhart, Geoffrey Hinton and Ronald Williams</strong> popularise backpropagation, the method still used to train neural networks.</span></li>
-          <li><span>2017</span><span>Eight researchers at <strong>Google</strong> publish "Attention Is All You Need", the paper that introduces the transformer.</span></li>
+          <li><span>2017</span><span>Eight researchers at <strong>Google</strong> publish <a class="source" href="https://arxiv.org/abs/1706.03762" target="_blank" rel="noopener" data-tip-title="Attention Is All You Need (2017)" data-tip="Until then, language models read a sentence one word after another. This paper drops that and relies on attention alone, so all words are processed at once. Such a network, the transformer, trains far faster on far more text. Click to open the original paper.">"Attention Is All You Need"</a>, the paper that introduces the transformer.</span></li>
           <li><span>2018</span><span><strong>OpenAI</strong> releases the first <strong>GPT</strong>.</span></li>
         </ul>
       </details>
@@ -2091,6 +2091,11 @@
             <td data-label="Notable for">At the top of at least one open-weight ranking each this autumn.</td>
           </tr>
           <tr>
+            <td data-label="Model"><strong>Mistral Large 4</strong>, nicknamed "Le Chonk"</td>
+            <td data-label="From">Mistral AI, France</td>
+            <td data-label="Notable for">Announced in early October with the weights promised for the end of the month. One trillion parameters as a mixture of experts, of which 49 billion work on each token. By the company's own figures the best open-weight model from Europe or the United States, and trained in its own European data centres.</td>
+          </tr>
+          <tr>
             <td data-label="Model"><strong>Llama 4 Scout</strong></td>
             <td data-label="From">Meta</td>
             <td data-label="Notable for">From 2025, and still notable for an extremely large context window, at the price of serious hardware.</td>
@@ -2101,6 +2106,30 @@
         "Open" covers different licences. Some allow any use; others
         restrict commercial use. The licence, not the download button,
         decides what you may do.
+      </p>
+      <h3>Why Europe wants a model of its own</h3>
+      <p>
+        Nearly every other model in this tab comes from the United States
+        or China. If you use one through its maker's service, your prompts
+        are processed on that company's computers and fall under the law
+        of its country. The wish to depend on neither is called
+        <dfn>sovereign AI</dfn>: a model that is built at home, runs in
+        data centres at home, and stays under your own law.
+      </p>
+      <p>
+        Mistral AI in Paris is Europe's main answer. It trains its models
+        in its own data centres near Paris, is building another in
+        Sweden, and offers a region in which data stays under the law of
+        the European Union. Because it also publishes weights, a
+        government, a hospital or a bank can instead run the model
+        entirely on its own machines.
+      </p>
+      <p class="note">
+        Open weights give much of this control whoever made the model: a
+        downloaded model sends nothing anywhere. What sovereignty adds is
+        that the model keeps being developed, and can be served at scale,
+        without depending on another country. One dependence remains:
+        the chips are still designed in the United States.
       </p>
     </section>
 
@@ -2174,8 +2203,74 @@
       </table>
     </section>
 
-    <section class="step" id="software" data-title="Software">
+    <section class="step" id="media" data-title="Pictures and sound">
       <p class="step-no">Models · 5</p>
+      <h2>Pictures, video, music and voice</h2>
+      <p>
+        The models so far write text. Others are built for one kind of
+        output: a picture, a video clip, a song, a voice. They are judged
+        by people comparing results without knowing which model made
+        them, and the order changes every few weeks.
+      </p>
+      <table class="pairs">
+        <thead>
+          <tr><th>For</th><th>Names you will hear</th><th>Notable for</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td data-label="For">Pictures</td>
+            <td data-label="Names you will hear"><strong>GPT Image 2.5</strong> (OpenAI), <strong>Nano Banana 2.1</strong> (Google); to download: <strong>Qwen-Image-2.1</strong> (Alibaba), <strong>FLUX.2</strong> (Black Forest Labs)</td>
+            <td data-label="Notable for">GPT Image 2.5 leads the rankings by blind vote this autumn. Readable writing inside a picture, long a weakness, now mostly works.</td>
+          </tr>
+          <tr>
+            <td data-label="For">Video</td>
+            <td data-label="Names you will hear"><strong>Wan 3.0</strong> (Alibaba), <strong>Seedance 2.5</strong> (ByteDance), <strong>Veo 3.1</strong> (Google), <strong>Kling</strong> (Kuaishou); to download: <strong>LTX-2.5</strong>, <strong>HunyuanVideo</strong></td>
+            <td data-label="Notable for">Clips of some seconds from a sentence or a starting picture, the best with matching sound. Wan and Seedance top the rankings at the moment; which is "best" differs by the job.</td>
+          </tr>
+          <tr>
+            <td data-label="For">Music</td>
+            <td data-label="Names you will hear"><strong>Suno v6</strong>, <strong>ElevenLabs Music v2.5</strong>, <strong>Lyria 3.5</strong> (Google)</td>
+            <td data-label="Notable for">Whole songs with singing from a description. Suno is rated highest for finished songs. After disputes with the music industry, the newest versions are trained on licensed music.</td>
+          </tr>
+          <tr>
+            <td data-label="For">Speaking</td>
+            <td data-label="Names you will hear"><strong>ElevenLabs v3</strong>, <strong>Qwen3-TTS</strong> (Alibaba), <strong>Chirp 3 HD</strong> (Google)</td>
+            <td data-label="Notable for">Text read aloud in a natural voice; many can copy a voice from a short sample. The narration of this guide was made with Chirp 3 HD.</td>
+          </tr>
+          <tr>
+            <td data-label="For">Listening</td>
+            <td data-label="Names you will hear"><strong>Whisper</strong> (OpenAI, open weights)</td>
+            <td data-label="Notable for">Turns speech into text in about a hundred languages. Released in 2022 and still the base of much dictation and subtitling software.</td>
+          </tr>
+        </tbody>
+      </table>
+      <h3>How they differ from an LLM</h3>
+      <p>
+        Most picture and video generators are <dfn>diffusion models</dfn>.
+        They do not write their output piece by piece. They start from
+        pure noise, like the snow on an old television, and remove a
+        little of it in each of some dozens of steps, steered by your
+        description, until a picture remains. In training they learned
+        the reverse: real pictures had noise added, and the model had to
+        guess what was underneath.
+      </p>
+      <p>
+        The description itself is read the way this guide explains: it is
+        cut into tokens and turned into vectors, often by a language model
+        built in for that purpose.
+      </p>
+      <p class="note">
+        Simplified: the border is not sharp. Some of the newest picture
+        models are part of an LLM and do write a picture piece by piece,
+        much like text, and music and speech models use both methods.
+        These models can also imitate real people, voices and artists,
+        which is why rights and fakes are argued over far more here than
+        with text.
+      </p>
+    </section>
+
+    <section class="step" id="software" data-title="Software">
+      <p class="step-no">Models · 6</p>
       <h2>The software around the models</h2>
       <p>
         A model is a file of weights. Almost everything people actually use
@@ -2451,7 +2546,7 @@
           <div>
             <span class="event-kind">Invention</span>
             <h3>The transformer</h3>
-            <p>Eight researchers at Google publish "Attention Is All You Need". Every large language model since is built on it. <a href="#network">Using, step 5</a></p>
+            <p>Eight researchers at Google publish <a class="source" href="https://arxiv.org/abs/1706.03762" target="_blank" rel="noopener" data-tip-title="Attention Is All You Need (2017)" data-tip="Until then, language models read a sentence one word after another. This paper drops that and relies on attention alone, so all words are processed at once. Such a network, the transformer, trains far faster on far more text. Click to open the original paper.">"Attention Is All You Need"</a>. Every large language model since is built on it. <a href="#network">Using, step 5</a></p>
           </div>
         </li>
         <li class="event" data-year="2017" data-kind="invention">
@@ -2524,7 +2619,7 @@
           <div>
             <span class="event-kind">Result</span>
             <h3>A model in the programmer's editor</h3>
-            <p>GitHub Copilot starts to suggest the next lines of code as a programmer types. Programming becomes the first profession in which working alongside a model is routine. <a href="#software">Models, 5</a></p>
+            <p>GitHub Copilot starts to suggest the next lines of code as a programmer types. Programming becomes the first profession in which working alongside a model is routine. <a href="#software">Models, 6</a></p>
           </div>
         </li>
         <li class="event" data-year="2021" data-kind="thought">
@@ -2546,6 +2641,14 @@
         A chat window puts the technology in front of everyone, and the pace changes. Models learn to reason step by step, to use tools, and to run on a laptop.
       </p>
       <ol class="events">
+        <li class="event" data-year="2022" data-kind="release">
+          <span class="event-year">2022</span>
+          <div>
+            <span class="event-kind">Release</span>
+            <h3>Pictures from a sentence</h3>
+            <p>Within a few months DALL-E 2, Midjourney and Stable Diffusion let anyone turn a description into a picture. Stable Diffusion is free to download and runs on a home computer. Months before ChatGPT, this is the first time the wider public sees what the new models can do. <a href="#media">Models, 5</a></p>
+          </div>
+        </li>
         <li class="event" data-year="2022" data-kind="invention">
           <span class="event-year">2022</span>
           <div>
@@ -2723,6 +2826,14 @@
             <span class="event-kind">Release</span>
             <h3>Jev and Ternary Bonsai 2</h3>
             <p>Also in September: a model that returns decisions instead of text, and a 27-billion-parameter model squeezed into 6 GB. <a href="#unusual">Models, 4</a></p>
+          </div>
+        </li>
+        <li class="event" data-year="2026" data-kind="release">
+          <span class="event-year">2026</span>
+          <div>
+            <span class="event-kind">Release</span>
+            <h3>A European model with a trillion parameters</h3>
+            <p>In October Mistral AI of France announces Mistral Large 4, trained in its own European data centres and to be published as open weights. It is Europe's strongest claim so far to models that depend on neither the United States nor China. <a href="#openweights">Models, 2</a></p>
           </div>
         </li>
       </ol>
@@ -3213,6 +3324,7 @@
         <div><dt>CPU</dt> <dd>Central processing unit: the ordinary processor found in every computer. <a href="#prompt">Step 1</a></dd></div>
         <div><dt>CUDA</dt> <dd>NVIDIA's platform for programming its graphics chips. Most AI software was written for it first, which is a large part of NVIDIA's lead. <a href="#hw-nvidia">Hardware, step 3</a></dd></div>
         <div><dt>Deep learning</dt> <dd>Machine learning with neural networks of many layers. LLMs are deep-learning models. <a href="#machine-learning">FAQ</a></dd></div>
+        <div><dt>Diffusion model</dt> <dd>A model that makes a picture, video or sound by starting from random noise and removing it step by step, guided by a description. Most picture and video generators work this way; LLMs do not. <a href="#media">Models, 5</a></dd></div>
         <div><dt>Distillation</dt> <dd>Training a small model to imitate a large one. <a href="#adapting">Training, step 7</a></dd></div>
         <div><dt>Embedding</dt> <dd>The vector a token ID is swapped for at the start. Also the name for that lookup. <a href="#embeddings">Step 4</a></dd></div>
         <div><dt>External memory</dt> <dd>Text saved outside the model, such as files or a product's "memory" feature, and placed back into the context window when needed. The model itself keeps nothing between conversations. <a href="#memory">FAQ</a></dd></div>
@@ -3237,7 +3349,7 @@
         <div><dt>MCP</dt> <dd>Model Context Protocol: an open standard for connecting tools and data sources to any model's harness. <a href="#mcp">Agents, step 4</a></dd></div>
         <div><dt>Memory bandwidth</dt> <dd>How fast a chip can move data in and out of its memory. When a model writes text, this often limits the speed more than calculating power does. Called reading speed in the Hardware tab. <a href="#hw-needs">Hardware, step 1</a></dd></div>
         <div><dt>Mixture of experts</dt> <dd>A model design where each token is sent through only a few of many "expert" blocks. Often shortened to MoE. <a href="#attention">Step 6</a></dd></div>
-        <div><dt>MLX</dt> <dd>Apple's open-source software for running and training models on its own chips, built to make use of their unified memory. The name is not an abbreviation with an official long form. <a href="#software">Models, 5</a></dd></div>
+        <div><dt>MLX</dt> <dd>Apple's open-source software for running and training models on its own chips, built to make use of their unified memory. The name is not an abbreviation with an official long form. <a href="#software">Models, 6</a></dd></div>
         <div><dt>Multimodal</dt> <dd>Describes a model that takes more than text as input, such as images or sound. <a href="#embeddings">Step 4</a></dd></div>
         <div><dt>Neural Engine</dt> <dd>Apple's name for the NPU in its phones and Macs. <a href="#network">Step 5</a></dd></div>
         <div><dt>Neural network</dt> <dd>The stack of layers that transforms the vectors. This is "the model". <a href="#network">Step 5</a></dd></div>
@@ -3258,6 +3370,7 @@
         <div><dt>Reinforcement learning</dt> <dd>Learning from a score for what the model produced, instead of from a correct answer. <a href="#feedback">Training, step 5</a></dd></div>
         <div><dt>RLHF</dt> <dd>Reinforcement learning from human feedback: people judge answers, and the model is trained towards the preferred ones. <a href="#feedback">Training, step 5</a></dd></div>
         <div><dt>Sampling</dt> <dd>Picking the next token by a random draw, weighted by the probabilities. <a href="#sampling">Step 8</a></dd></div>
+        <div><dt>Sovereign AI</dt> <dd>Models that a country or region builds and runs itself, in its own data centres and under its own law, so as not to depend on companies abroad. In Europe mostly associated with Mistral AI. <a href="#openweights">Models, 2</a></dd></div>
         <div><dt>Spec-driven development</dt> <dd>Writing a specification of what software must do before a coding agent builds it, then checking the result against it. Also called spec coding. <a href="#vibe-coding">FAQ</a></dd></div>
         <div><dt>System One model</dt> <dd>TypeSafe AI's name for its model Jev, which returns probabilities over predefined answers and writes no text. <a href="#decide">Different path</a></dd></div>
         <div><dt>System prompt</dt> <dd>Instructions that a chat product places in front of your prompt. You normally do not see them. <a href="#prompt">Step 1</a></dd></div>

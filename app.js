@@ -732,6 +732,8 @@ function addTermTooltips() {
     el.dataset.term = key;
     el.setAttribute('aria-describedby', 'tooltip');
   };
+  // Links to a source carry their own summary in data-tip.
+  document.querySelectorAll('a[data-tip]').forEach((el) => el.setAttribute('aria-describedby', 'tooltip'));
   // A dfn can name its glossary entry with data-term when its text differs.
   document.querySelectorAll('.step dfn, .alt-path dfn').forEach((dfn) => {
     const key = termKey(dfn.dataset.term ?? dfn.textContent);
@@ -742,7 +744,7 @@ function addTermTooltips() {
     const seen = new Set();
     const walker = document.createTreeWalker(section, NodeFilter.SHOW_TEXT, {
       acceptNode: ({ parentElement }) => (
-        parentElement.closest('p, li, td') && !parentElement.closest('.demo, .step-no, .origins-title, .meter')
+        parentElement.closest('p, li, td') && !parentElement.closest('.demo, .step-no, .origins-title, .meter, [data-tip]')
           ? NodeFilter.FILTER_ACCEPT
           : NodeFilter.FILTER_REJECT
       ),
