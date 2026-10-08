@@ -19,6 +19,7 @@
     <a href="#view-hardware">Hardware</a>
     <a href="#view-robots">Robots</a>
     <a href="#view-models">Models</a>
+    <a href="#view-timeline">Timeline</a>
     <a href="#view-faq">FAQ</a>
     <a href="#view-quotes">Quotes</a>
   </nav>
@@ -2225,6 +2226,433 @@
     </p>
     </div>
 
+    <div class="view" id="view-timeline" data-narration="off" hidden>
+    <header class="hero">
+      <h1 class="one-line">Scrolling through time</h1>
+      <p class="lead">
+        The ideas in this guide took almost two centuries to arrive, and
+        most of the names you hear today are less than ten years old.
+        Scroll down to travel from 1843 to the present.
+      </p>
+      <span class="scroll-hint" aria-hidden="true">↓</span>
+    </header>
+
+    <div class="time-bar">
+      <strong class="time-year" id="time-year"></strong>
+      <div class="segments" id="time-filter"></div>
+      <div class="time-track"><span id="time-progress"></span></div>
+    </div>
+
+    <section class="step era" id="tl-foundations" data-title="Foundations">
+      <p class="step-no">Timeline · 1843 to 1956</p>
+      <h2>Ideas before the machines</h2>
+      <p>
+        Long before there was a computer that could learn, people argued about whether a machine could think, and worked out the mathematics it would need.
+      </p>
+      <ol class="events">
+        <li class="event" data-year="1843" data-kind="thought">
+          <span class="event-year">1843</span>
+          <div>
+            <span class="event-kind">Thought</span>
+            <h3>A machine cannot originate anything</h3>
+            <p>Ada Lovelace, writing about a computer that was never finished, argues that it can only do what it is told. The objection is still raised today. <a href="#view-quotes">Quotes</a></p>
+          </div>
+        </li>
+        <li class="event" data-year="1943" data-kind="invention">
+          <span class="event-year">1943</span>
+          <div>
+            <span class="event-kind">Invention</span>
+            <h3>The first model of a neuron</h3>
+            <p>Warren McCulloch and Walter Pitts describe a nerve cell as a small piece of mathematics. Every neural network descends from it. <a href="#brain">FAQ, brain</a></p>
+          </div>
+        </li>
+        <li class="event" data-year="1948" data-kind="invention">
+          <span class="event-year">1948</span>
+          <div>
+            <span class="event-kind">Invention</span>
+            <h3>Predicting the next letter</h3>
+            <p>Claude Shannon produces English-like text by choosing each next letter or word according to how often it follows the ones before. <a href="#prediction">Using, step 7</a></p>
+          </div>
+        </li>
+        <li class="event" data-year="1950" data-kind="thought">
+          <span class="event-year">1950</span>
+          <div>
+            <span class="event-kind">Thought</span>
+            <h3>Can machines think?</h3>
+            <p>Alan Turing proposes a test in place of the question: can a machine pass for a person in a written conversation? <a href="#questions">FAQ, under debate</a></p>
+          </div>
+        </li>
+        <li class="event" data-year="1956" data-kind="thought">
+          <span class="event-year">1956</span>
+          <div>
+            <span class="event-kind">Thought</span>
+            <h3>The field gets its name</h3>
+            <p>A summer workshop at Dartmouth College sets out to describe intelligence so precisely that a machine can simulate it, and calls the project "artificial intelligence". <a href="#view-quotes">Quotes</a></p>
+          </div>
+        </li>
+      </ol>
+    </section>
+
+    <section class="step era" id="tl-first-steps" data-title="First steps">
+      <p class="step-no">Timeline · 1958 to 1999</p>
+      <h2>First steps and long winters</h2>
+      <p>
+        Early successes raised hopes that the machines of the time could not meet. Twice the money and the interest dried up. The methods that matter today were invented in these decades, mostly unnoticed.
+      </p>
+      <ol class="events">
+        <li class="event" data-year="1958" data-kind="invention">
+          <span class="event-year">1958</span>
+          <div>
+            <span class="event-kind">Invention</span>
+            <h3>The perceptron</h3>
+            <p>Frank Rosenblatt presents a machine that learns from examples, the first neural network to do so. <a href="#network">Using, step 5</a></p>
+          </div>
+        </li>
+        <li class="event" data-year="1965" data-kind="thought">
+          <span class="event-year">1965</span>
+          <div>
+            <span class="event-kind">Thought</span>
+            <h3>Twenty years, at most</h3>
+            <p>Herbert Simon predicts that machines will do any work a person can within twenty years. In the same year I. J. Good describes a machine clever enough to improve itself. <a href="#view-quotes">Quotes</a></p>
+          </div>
+        </li>
+        <li class="event" data-year="1966" data-kind="release">
+          <span class="event-year">1966</span>
+          <div>
+            <span class="event-kind">Release</span>
+            <h3>ELIZA, the first chatbot</h3>
+            <p>Joseph Weizenbaum's program at MIT answers by rearranging what the user typed. People confide in it all the same, which alarms its author.</p>
+          </div>
+        </li>
+        <li class="event" data-year="1980" data-kind="thought">
+          <span class="event-year">1980</span>
+          <div>
+            <span class="event-kind">Thought</span>
+            <h3>The Chinese room</h3>
+            <p>John Searle argues that following rules for symbols, however well, is not the same as understanding them. <a href="#questions">FAQ, under debate</a></p>
+          </div>
+        </li>
+        <li class="event" data-year="1986" data-kind="invention">
+          <span class="event-year">1986</span>
+          <div>
+            <span class="event-kind">Invention</span>
+            <h3>Backpropagation</h3>
+            <p>David Rumelhart, Geoffrey Hinton and Ronald Williams popularise the method that works out how to adjust every weight. It is still how networks are trained. <a href="#descent">Training, step 3</a></p>
+          </div>
+        </li>
+        <li class="event" data-year="1991" data-kind="invention">
+          <span class="event-year">1991</span>
+          <div>
+            <span class="event-kind">Invention</span>
+            <h3>Mixtures of experts</h3>
+            <p>A network made of several specialists and a router that chooses among them. Thirty years later the largest models are built this way. <a href="#attention">Using, step 6</a></p>
+          </div>
+        </li>
+        <li class="event" data-year="1994" data-kind="invention">
+          <span class="event-year">1994</span>
+          <div>
+            <span class="event-kind">Invention</span>
+            <h3>Byte pair encoding</h3>
+            <p>Philip Gage publishes a way to compress data by merging frequent pairs of characters. It later becomes the standard way to cut text into tokens. <a href="#tokens">Using, step 2</a></p>
+          </div>
+        </li>
+        <li class="event" data-year="1997" data-kind="release">
+          <span class="event-year">1997</span>
+          <div>
+            <span class="event-kind">Release</span>
+            <h3>Deep Blue beats the world chess champion</h3>
+            <p>IBM's machine defeats Garry Kasparov. It does so by searching through moves at enormous speed, not by learning, which is why it led nowhere near language.</p>
+          </div>
+        </li>
+      </ol>
+    </section>
+
+    <section class="step era" id="tl-deep-learning" data-title="Deep learning">
+      <p class="step-no">Timeline · 2003 to 2016</p>
+      <h2>Deep learning arrives</h2>
+      <p>
+        More data, faster graphics chips and a few stubborn researchers turn neural networks from a curiosity into the method that wins everything.
+      </p>
+      <ol class="events">
+        <li class="event" data-year="2003" data-kind="invention">
+          <span class="event-year">2003</span>
+          <div>
+            <span class="event-kind">Invention</span>
+            <h3>A neural network that models language</h3>
+            <p>Yoshua Bengio and colleagues train a network that learns a vector for every word and predicts the next one. <a href="#embeddings">Using, step 4</a></p>
+          </div>
+        </li>
+        <li class="event" data-year="2012" data-kind="release">
+          <span class="event-year">2012</span>
+          <div>
+            <span class="event-kind">Release</span>
+            <h3>AlexNet</h3>
+            <p>A deep network trained on two graphics cards wins the leading image-recognition contest by a wide margin. The deep-learning boom, and the demand for GPUs, begin here. <a href="#hw-nvidia">Hardware, step 3</a></p>
+          </div>
+        </li>
+        <li class="event" data-year="2013" data-kind="release">
+          <span class="event-year">2013</span>
+          <div>
+            <span class="event-kind">Release</span>
+            <h3>word2vec</h3>
+            <p>Google releases a fast way to learn word vectors, and "king − man + woman ≈ queen" becomes famous. <a href="#embeddings">Using, step 4</a></p>
+          </div>
+        </li>
+        <li class="event" data-year="2014" data-kind="invention">
+          <span class="event-year">2014</span>
+          <div>
+            <span class="event-kind">Invention</span>
+            <h3>Attention</h3>
+            <p>Dzmitry Bahdanau, Kyunghyun Cho and Yoshua Bengio let a translation model look back at the words that matter for the one it is writing. <a href="#attention">Using, step 6</a></p>
+          </div>
+        </li>
+        <li class="event" data-year="2015" data-kind="invention">
+          <span class="event-year">2015</span>
+          <div>
+            <span class="event-kind">Invention</span>
+            <h3>Distillation</h3>
+            <p>Geoffrey Hinton and colleagues show how a small network can learn from a large one. <a href="#adapting">Training, step 7</a></p>
+          </div>
+        </li>
+        <li class="event" data-year="2016" data-kind="release">
+          <span class="event-year">2016</span>
+          <div>
+            <span class="event-kind">Release</span>
+            <h3>AlphaGo beats Lee Sedol</h3>
+            <p>DeepMind's program defeats one of the best Go players in the world, a decade earlier than most experts expected. This time the machine had learned.</p>
+          </div>
+        </li>
+      </ol>
+    </section>
+
+    <section class="step era" id="tl-transformer" data-title="The transformer">
+      <p class="step-no">Timeline · 2017 to 2021</p>
+      <h2>The transformer years</h2>
+      <p>
+        One paper replaces the machinery of language models with attention alone. Within four years almost every idea in this guide exists, though few people outside research have noticed.
+      </p>
+      <ol class="events">
+        <li class="event" data-year="2017" data-kind="invention">
+          <span class="event-year">2017</span>
+          <div>
+            <span class="event-kind">Invention</span>
+            <h3>The transformer</h3>
+            <p>Eight researchers at Google publish "Attention Is All You Need". Every large language model since is built on it. <a href="#network">Using, step 5</a></p>
+          </div>
+        </li>
+        <li class="event" data-year="2017" data-kind="invention">
+          <span class="event-year">2017</span>
+          <div>
+            <span class="event-kind">Invention</span>
+            <h3>Learning from human preferences</h3>
+            <p>Researchers at OpenAI and DeepMind show that a system can learn a task from people comparing pairs of its attempts. <a href="#feedback">Training, step 5</a></p>
+          </div>
+        </li>
+        <li class="event" data-year="2018" data-kind="release">
+          <span class="event-year">2018</span>
+          <div>
+            <span class="event-kind">Release</span>
+            <h3>The first GPT, and BERT</h3>
+            <p>OpenAI shows the recipe of pre-training on plain text and adapting afterwards. Google's BERT applies the transformer to understanding text. <a href="#pretraining">Training, step 2</a></p>
+          </div>
+        </li>
+        <li class="event" data-year="2019" data-kind="release">
+          <span class="event-year">2019</span>
+          <div>
+            <span class="event-kind">Release</span>
+            <h3>GPT-2</h3>
+            <p>A model that writes whole coherent paragraphs. OpenAI releases its weights in stages, out of concern about misuse. <a href="#loop">Using, step 9</a></p>
+          </div>
+        </li>
+        <li class="event" data-year="2019" data-kind="thought">
+          <span class="event-year">2019</span>
+          <div>
+            <span class="event-kind">Thought</span>
+            <h3>The Bitter Lesson</h3>
+            <p>Rich Sutton argues that general methods which scale with computing power beat clever hand-built knowledge, again and again. <a href="#view-quotes">Quotes</a></p>
+          </div>
+        </li>
+        <li class="event" data-year="2020" data-kind="release">
+          <span class="event-year">2020</span>
+          <div>
+            <span class="event-kind">Release</span>
+            <h3>GPT-3</h3>
+            <p>A hundred times larger than its predecessor, and able to do tasks it was never trained for when shown a few examples in the prompt. <a href="#prompt">Using, step 1</a></p>
+          </div>
+        </li>
+        <li class="event" data-year="2020" data-kind="invention">
+          <span class="event-year">2020</span>
+          <div>
+            <span class="event-kind">Invention</span>
+            <h3>Retrieval and image patches</h3>
+            <p>Two ideas of one year: looking text up and placing it in front of the prompt, and cutting images into patches that a transformer reads like words. <a href="#prediction">Using, step 7</a></p>
+          </div>
+        </li>
+        <li class="event" data-year="2021" data-kind="invention">
+          <span class="event-year">2021</span>
+          <div>
+            <span class="event-kind">Invention</span>
+            <h3>LoRA</h3>
+            <p>Researchers at Microsoft find a way to adapt a model by training only a small add-on. <a href="#adapting">Training, step 7</a></p>
+          </div>
+        </li>
+        <li class="event" data-year="2021" data-kind="thought">
+          <span class="event-year">2021</span>
+          <div>
+            <span class="event-kind">Thought</span>
+            <h3>Stochastic parrots</h3>
+            <p>Emily Bender, Timnit Gebru and colleagues warn that language models reproduce patterns of words without understanding them. <a href="#questions">FAQ, under debate</a></p>
+          </div>
+        </li>
+      </ol>
+    </section>
+
+    <section class="step era" id="tl-chat" data-title="The chat era">
+      <p class="step-no">Timeline · 2022 to 2024</p>
+      <h2>The chat era</h2>
+      <p>
+        A chat window puts the technology in front of everyone, and the pace changes. Models learn to reason step by step, to use tools, and to run on a laptop.
+      </p>
+      <ol class="events">
+        <li class="event" data-year="2022" data-kind="invention">
+          <span class="event-year">2022</span>
+          <div>
+            <span class="event-kind">Invention</span>
+            <h3>Thinking in steps, acting with tools</h3>
+            <p>Two papers show that a model does better when it writes out its reasoning, and better still when it can alternate between reasoning and using tools. <a href="#loop">Using, step 9</a></p>
+          </div>
+        </li>
+        <li class="event" data-year="2022" data-kind="release">
+          <span class="event-year">2022</span>
+          <div>
+            <span class="event-kind">Release</span>
+            <h3>ChatGPT</h3>
+            <p>On 30 November OpenAI puts a model behind a chat window. It reaches a hundred million users in two months. <a href="#loop">Using, step 9</a></p>
+          </div>
+        </li>
+        <li class="event" data-year="2023" data-kind="release">
+          <span class="event-year">2023</span>
+          <div>
+            <span class="event-kind">Release</span>
+            <h3>GPT-4</h3>
+            <p>In March the first model that many people find useful for serious work. Later in the year it accepts images as well. <a href="#embeddings">Using, step 4</a></p>
+          </div>
+        </li>
+        <li class="event" data-year="2023" data-kind="release">
+          <span class="event-year">2023</span>
+          <div>
+            <span class="event-kind">Release</span>
+            <h3>Llama and llama.cpp</h3>
+            <p>Meta releases model weights, and within weeks a community has them running, shrunk to 4 bits, on ordinary laptops. <a href="#network">Using, step 5</a></p>
+          </div>
+        </li>
+        <li class="event" data-year="2023" data-kind="invention">
+          <span class="event-year">2023</span>
+          <div>
+            <span class="event-kind">Invention</span>
+            <h3>Function calling</h3>
+            <p>OpenAI gives models a fixed format for requesting a tool, which other providers soon offer too. <a href="#mcp">Agents, step 4</a></p>
+          </div>
+        </li>
+        <li class="event" data-year="2023" data-kind="release">
+          <span class="event-year">2023</span>
+          <div>
+            <span class="event-kind">Release</span>
+            <h3>RT-2 and Mixtral</h3>
+            <p>Google DeepMind steers a robot with a language model that outputs movements as tokens. Mistral releases an open model built as a mixture of experts. <a href="#rb-model">Robots, step 2</a></p>
+          </div>
+        </li>
+        <li class="event" data-year="2024" data-kind="invention">
+          <span class="event-year">2024</span>
+          <div>
+            <span class="event-kind">Invention</span>
+            <h3>BitNet b1.58</h3>
+            <p>Microsoft Research trains a model whose every weight is −1, 0 or +1. <a href="#network">Using, step 5</a></p>
+          </div>
+        </li>
+        <li class="event" data-year="2024" data-kind="release">
+          <span class="event-year">2024</span>
+          <div>
+            <span class="event-kind">Release</span>
+            <h3>o1, a reasoning model</h3>
+            <p>In September OpenAI releases a model trained to think before every answer. <a href="#loop">Using, step 9</a></p>
+          </div>
+        </li>
+        <li class="event" data-year="2024" data-kind="release">
+          <span class="event-year">2024</span>
+          <div>
+            <span class="event-kind">Release</span>
+            <h3>The Model Context Protocol</h3>
+            <p>In November Anthropic publishes an open standard for connecting models to tools. Within a year the other major providers have adopted it. <a href="#mcp">Agents, step 4</a></p>
+          </div>
+        </li>
+      </ol>
+    </section>
+
+    <section class="step era" id="tl-now" data-title="Now">
+      <p class="step-no">Timeline · 2025 to 2026</p>
+      <h2>Now</h2>
+      <p>
+        Models become agents that work for hours, the largest ones pass a trillion parameters, and the first robots steered by language models leave the laboratory. This last stretch is the one most likely to look different in a year.
+      </p>
+      <ol class="events">
+        <li class="event" data-year="2025" data-kind="thought">
+          <span class="event-year">2025</span>
+          <div>
+            <span class="event-kind">Thought</span>
+            <h3>Vibe coding</h3>
+            <p>In February Andrej Karpathy gives a name to building software by describing it to an agent and never reading the code. <a href="#vibe-coding">FAQ</a></p>
+          </div>
+        </li>
+        <li class="event" data-year="2025" data-kind="release">
+          <span class="event-year">2025</span>
+          <div>
+            <span class="event-kind">Release</span>
+            <h3>A humanoid for the home</h3>
+            <p>In October 1X opens orders for NEO, a robot for household chores, at the price of a small car. <a href="#rb-today">Robots, step 1</a></p>
+          </div>
+        </li>
+        <li class="event" data-year="2026" data-kind="release">
+          <span class="event-year">2026</span>
+          <div>
+            <span class="event-kind">Release</span>
+            <h3>Kimi K3</h3>
+            <p>In July Moonshot AI publishes the weights of a model with 2.8 trillion parameters, the largest anyone can download. <a href="#openweights">Models, 2</a></p>
+          </div>
+        </li>
+        <li class="event" data-year="2026" data-kind="release">
+          <span class="event-year">2026</span>
+          <div>
+            <span class="event-kind">Release</span>
+            <h3>A desktop with 512 GB for models</h3>
+            <p>In August Apple's Mac Studio with the M5 Ultra chip puts memory for very large models on a desk. <a href="#hw-mac">Hardware, step 4</a></p>
+          </div>
+        </li>
+        <li class="event" data-year="2026" data-kind="release">
+          <span class="event-year">2026</span>
+          <div>
+            <span class="event-kind">Release</span>
+            <h3>GPT-6 Astra, Claude Opus 5.5, Gemini 4 Argon</h3>
+            <p>Within four weeks of September the three leading companies each release a new top model. <a href="#frontier">Models, 1</a></p>
+          </div>
+        </li>
+        <li class="event" data-year="2026" data-kind="release">
+          <span class="event-year">2026</span>
+          <div>
+            <span class="event-kind">Release</span>
+            <h3>Jev and Ternary Bonsai 2</h3>
+            <p>Also in September: a model that returns decisions instead of text, and a 27-billion-parameter model squeezed into 6 GB. <a href="#unusual">Models, 4</a></p>
+          </div>
+        </li>
+      </ol>
+    </section>
+
+    <p class="recap">
+      A selection, not a complete history. The dates and names are those
+      used in the other tabs, where each idea is explained.
+    </p>
+    </div>
+
     <div class="view" id="view-faq" data-narration="off" hidden>
     <header class="hero">
       <h1 class="one-line">Often asked</h1>
@@ -2783,6 +3211,7 @@
   <script src="agents.js"></script>
   <script src="hardware.js"></script>
   <script src="robots.js"></script>
+  <script src="timeline.js"></script>
   <script src="audio/manifest.js"></script>
   <script src="audio.js"></script>
 </body>
