@@ -25,6 +25,7 @@ dependencies: open `index.html` in a browser.
 - `style.css`: the styling, including dark mode and phone layout
 - `tokenizer.js`, `model.js`: the toy tokenizer and toy model behind the demos
 - `app.js`: the demos of the first tab, the tabs, the tooltips and the step dots
+- `search.js`: the search over the whole page
 - `network.js`, `training.js`, `agents.js`, `hardware.js`, `robots.js`, `timeline.js`: the neural network drawing and the demos of the other tabs
 - `audio.js`, `audio/`: the narration player and its recordings
 - `tools/generate_voice.py`: regenerates the recordings with Google Cloud Text-to-Speech after the text has changed

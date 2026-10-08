@@ -23,6 +23,9 @@
     <a href="#view-faq">FAQ</a>
     <a href="#view-quotes">Quotes</a>
   </nav>
+  <button type="button" class="search-open" id="search-open" aria-label="Search this guide" title="Search ( / )">
+    <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5"/><line x1="12.7" y1="12.7" x2="17" y2="17"/></svg>
+  </button>
   <nav class="rail" aria-label="Steps"></nav>
 
   <main>
@@ -3397,6 +3400,15 @@
     </section>
   </main>
 
+  <dialog class="search" id="search" aria-label="Search this guide">
+    <form id="search-form" role="search">
+      <input type="search" id="search-input" placeholder="Search the whole guide" autocomplete="off" aria-label="Search the whole guide">
+      <button type="button" class="search-close" id="search-close">Close</button>
+    </form>
+    <p class="search-status" id="search-status" aria-live="polite"></p>
+    <ol class="search-results" id="search-results"></ol>
+  </dialog>
+
   <script src="tokenizer.js"></script>
   <script src="model.js"></script>
   <script src="network.js"></script>
@@ -3406,6 +3418,7 @@
   <script src="hardware.js"></script>
   <script src="robots.js"></script>
   <script src="timeline.js"></script>
+  <script src="search.js"></script>
   <script src="audio/manifest.js"></script>
   <script src="audio.js"></script>
 </body>

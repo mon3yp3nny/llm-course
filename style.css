@@ -148,6 +148,151 @@ main {
   .tabs a { padding: 6px 8px; font-size: 0.72rem; }
 }
 
+/* Search: a round button in the corner opens a box over the page. */
+.search-open {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  z-index: 5;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  background: var(--surface);
+  color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.search-open:hover,
+.search-open:focus-visible { color: var(--accent); border-color: var(--accent); }
+
+.search-open svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.search {
+  width: min(600px, calc(100vw - 24px));
+  max-height: min(70vh, 640px);
+  margin-top: 64px;
+  padding: 14px;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+}
+
+.search[open] { display: flex; flex-direction: column; }
+
+.search::backdrop { background: rgb(0 0 0 / 0.35); }
+
+.search form { display: flex; gap: 8px; }
+
+.search input {
+  flex: 1;
+  min-width: 0;
+  padding: 9px 12px;
+  background: var(--bg);
+  color: inherit;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  /* 16px keeps a phone from zooming in when the field is tapped. */
+  font: inherit;
+  font-size: 1rem;
+}
+
+.search input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+.search-close {
+  padding: 0 12px;
+  background: none;
+  color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font: inherit;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.search-status {
+  margin: 10px 2px 6px;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.search-results {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  overflow-y: auto;
+}
+
+.search-results button {
+  display: block;
+  width: 100%;
+  padding: 9px 10px;
+  background: none;
+  color: inherit;
+  border: 0;
+  border-radius: 8px;
+  font: inherit;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  text-align: left;
+  cursor: pointer;
+}
+
+.search-results button:hover,
+.search-results button:focus-visible {
+  background: var(--bg);
+  outline: none;
+}
+
+.search-place {
+  display: block;
+  color: var(--accent);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.search-text {
+  display: block;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.search mark {
+  background: color-mix(in srgb, var(--accent) 22%, transparent);
+  color: inherit;
+  border-radius: 2px;
+}
+
+/* The place a search result led to lights up briefly. */
+.search-hit {
+  border-radius: 6px;
+  outline: 2px solid var(--accent);
+  outline-offset: 8px;
+}
+
+@media (max-width: 520px) {
+  /* The tabs make room for the search button beside them. */
+  .tabs {
+    left: 8px;
+    transform: none;
+    max-width: calc(100vw - 60px);
+  }
+  .search-open { right: 8px; }
+}
+
 /* Hero */
 .hero {
   min-height: 100vh;
