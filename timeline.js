@@ -1,37 +1,36 @@
 // Timeline tab: the year in the bar follows the event in the middle of the
-// screen, and the buttons filter by kind. Uses $ from app.js.
+// screen, and the line of time is coloured up to that event. Uses $ from app.js.
 
-const TIME_KINDS = [
-  { label: 'Everything', value: 'all' },
-  { label: 'Thoughts', value: 'thought' },
-  { label: 'Inventions', value: 'invention' },
-  { label: 'Releases', value: 'release' },
-];
+// How far below an event's top edge its dot sits, so the coloured line ends on the dot.
+const EVENT_DOT_OFFSET = 13;
 
-const timeline = { kind: 'all', events: [...document.querySelectorAll('#view-timeline .event')] };
+const timeline = {
+  events: [...document.querySelectorAll('#view-timeline .event')],
+  eras: [...document.querySelectorAll('#view-timeline .era')],
+};
 
-function renderTimeFilter() {
-  $('time-filter').replaceChildren(...TIME_KINDS.map(({ label, value }) => {
-    const el = document.createElement('button');
-    el.type = 'button';
-    el.dataset.value = value;
-    el.textContent = label;
-    el.classList.toggle('selected', value === timeline.kind);
-    el.setAttribute('aria-pressed', value === timeline.kind);
-    return el;
-  }));
-  for (const event of timeline.events) {
-    event.hidden = timeline.kind !== 'all' && event.dataset.kind !== timeline.kind;
-  }
-}
-
-// Marks one event as the present moment and moves the bar to its year.
+// Marks one event as the present moment: the bar shows its year and era, and
+// everything before it counts as passed.
 function setCurrentEvent(current) {
-  for (const event of timeline.events) event.classList.toggle('now', event === current);
+  const position = timeline.events.indexOf(current);
+  timeline.events.forEach((event, i) => {
+    event.classList.toggle('now', i === position);
+    event.classList.toggle('passed', i < position);
+  });
+
+  const currentEra = current.closest('.era');
+  const eraPosition = timeline.eras.indexOf(currentEra);
+  timeline.eras.forEach((era, i) => {
+    era.classList.toggle('reached', i <= eraPosition);
+    // Earlier eras are coloured in full, the current one down to the current event.
+    let passed = '0px';
+    if (i < eraPosition) passed = '100%';
+    if (i === eraPosition) passed = `${current.offsetTop + EVENT_DOT_OFFSET}px`;
+    era.style.setProperty('--passed', passed);
+  });
+
   $('time-year').textContent = current.dataset.year;
-  const shown = timeline.events.filter((event) => !event.hidden);
-  const position = shown.indexOf(current) / Math.max(shown.length - 1, 1);
-  $('time-progress').style.width = `${Math.max(position, 0) * 100}%`;
+  $('time-era').textContent = currentEra.dataset.title;
 }
 
 // An event becomes the present when it crosses a band just above the middle of the screen.
@@ -52,14 +51,4 @@ for (const event of timeline.events) {
   eventRevealObserver.observe(event);
 }
 
-$('time-filter').addEventListener('click', (event) => {
-  const value = event.target.closest('button')?.dataset.value;
-  if (value === undefined) return;
-  timeline.kind = value;
-  renderTimeFilter();
-  const first = timeline.events.find((item) => !item.hidden);
-  if (first) setCurrentEvent(first);
-});
-
-renderTimeFilter();
 setCurrentEvent(timeline.events[0]);

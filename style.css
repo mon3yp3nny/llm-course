@@ -1106,46 +1106,95 @@ button.chip:focus-visible {
 .scene .arm { stroke: var(--accent); stroke-width: 4; stroke-linecap: round; }
 .scene text { fill: var(--muted); font-size: 12px; }
 
-/* Timeline */
+/* Timeline: one vertical line runs through all eras, with a dot for every
+   event. The part already scrolled past is drawn in the accent colour. */
+#view-timeline {
+  --time-column: 58px;
+  --time-gap: 34px;
+  --time-line: calc(var(--time-column) + 15px);
+}
+
 .time-bar {
   position: sticky;
   top: 56px;
   z-index: 4;
-  display: grid;
-  grid-template-columns: auto 1fr;
-  align-items: center;
-  gap: 8px 16px;
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
   padding: 10px 0;
   background: var(--bg);
+  border-bottom: 1px solid var(--border);
 }
 
 .time-year {
-  min-width: 2.6em;
   font-size: 2rem;
   line-height: 1;
   letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
 }
 
-.time-bar .segments button { padding: 7px 0; }
-
-.time-track {
-  grid-column: 1 / -1;
-  height: 3px;
-  background: var(--border);
-  border-radius: 2px;
+.time-era {
+  color: var(--muted);
+  font-size: 0.9rem;
 }
 
-.time-track span {
-  display: block;
-  height: 100%;
+.step.era {
+  position: relative;
+  justify-content: flex-start;
+  padding: 8vh 0;
+}
+
+/* The line, and over it the part that has been passed. */
+.step.era::before,
+.step.era::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: var(--time-line);
+  width: 2px;
+}
+
+.step.era::before {
+  bottom: 0;
+  background: var(--border);
+}
+
+.step.era::after {
+  height: var(--passed, 0);
   background: var(--accent);
-  border-radius: 2px;
-  transition: width 0.3s;
+}
+
+.era > .step-no,
+.era > h2,
+.era > p {
+  margin-left: calc(var(--time-column) + var(--time-gap));
+}
+
+/* An era starts with a larger dot on the line. */
+.era > h2 { position: relative; }
+
+.era > h2::before {
+  content: "";
+  position: absolute;
+  top: 0.35em;
+  /* Centred on the 2px line. */
+  left: calc(var(--time-line) - var(--time-column) - var(--time-gap) - 8px);
+  z-index: 1;
+  box-sizing: border-box;
+  width: 18px;
+  height: 18px;
+  background: var(--bg);
+  border: 3px solid var(--muted);
+  border-radius: 50%;
+}
+
+.era.reached > h2::before {
+  background: var(--accent);
+  border-color: var(--accent);
 }
 
 .events {
-  margin: 8px 0 0;
+  margin: 12px 0 0;
   padding: 0;
   list-style: none;
 }
@@ -1153,50 +1202,44 @@ button.chip:focus-visible {
 .event {
   position: relative;
   display: grid;
-  grid-template-columns: 3.2em 1fr;
-  gap: 30px;
+  grid-template-columns: var(--time-column) 1fr;
+  gap: var(--time-gap);
   padding: 0 0 36px;
   opacity: 0;
   transform: translateY(16px);
   transition: opacity 0.5s, transform 0.5s;
 }
 
-.event[hidden] { display: none; }
-
 .event.seen {
-  opacity: 0.55;
+  opacity: 0.6;
   transform: none;
 }
 
 .event.now { opacity: 1; }
 
-/* The line of time, and a dot for each event on it. */
-.event::before {
-  content: "";
-  position: absolute;
-  top: 6px;
-  bottom: -6px;
-  left: calc(3.2em + 10px);
-  width: 1px;
-  background: var(--border);
-}
-
+/* The dot of an event: hollow ahead, filled once passed, larger at the present. */
 .event::after {
   content: "";
   position: absolute;
-  top: 6px;
-  left: calc(3.2em + 5px);
-  width: 11px;
-  height: 11px;
+  top: 7px;
+  left: calc(var(--time-line) - 6px);
+  z-index: 1;
+  box-sizing: border-box;
+  width: 14px;
+  height: 14px;
   background: var(--bg);
   border: 2px solid var(--muted);
   border-radius: 50%;
+  transition: transform 0.2s;
 }
 
+.event.passed::after,
 .event.now::after {
   background: var(--accent);
   border-color: var(--accent);
 }
+
+.event.now::after { transform: scale(1.5); }
 
 .event-year {
   color: var(--muted);
@@ -1221,18 +1264,19 @@ button.chip:focus-visible {
 }
 
 .step .event p {
-  margin: 0;
+  margin: 0 0 8px;
   font-size: 0.95rem;
 }
 
 @media (max-width: 520px) {
-  .time-bar { top: 50px; grid-template-columns: 1fr; }
+  #view-timeline { --time-column: 40px; --time-gap: 30px; }
+  .time-bar { top: 50px; }
   .time-year { font-size: 1.6rem; }
-  .time-bar .segments button { font-size: 0.68rem; }
+  .event-year { font-size: 0.75rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .event { opacity: 0.55; transform: none; transition: none; }
+  .event { opacity: 0.6; transform: none; transition: none; }
   .event.now { opacity: 1; }
 }
 

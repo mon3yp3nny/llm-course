@@ -2239,8 +2239,7 @@
 
     <div class="time-bar">
       <strong class="time-year" id="time-year"></strong>
-      <div class="segments" id="time-filter"></div>
-      <div class="time-track"><span id="time-progress"></span></div>
+      <span class="time-era" id="time-era"></span>
     </div>
 
     <section class="step era" id="tl-foundations" data-title="Foundations">
@@ -2255,7 +2254,8 @@
           <div>
             <span class="event-kind">Thought</span>
             <h3>A machine cannot originate anything</h3>
-            <p>Ada Lovelace, writing about a computer that was never finished, argues that it can only do what it is told. The objection is still raised today. <a href="#view-quotes">Quotes</a></p>
+            <p>Ada Lovelace translated a paper about Charles Babbage's planned computer and added notes three times as long as the paper itself. She saw further than its inventor: the machine could work on any symbols, not only numbers, and might one day compose music. Yet she insisted that it could only do what it was told.</p>
+            <p>A century later Alan Turing called this "Lady Lovelace's objection" and answered that machines surprise their makers all the time. Whether a model can create something new, or only recombine what it was given, is still argued about today. <a href="#view-quotes">Her words</a></p>
           </div>
         </li>
         <li class="event" data-year="1943" data-kind="invention">
@@ -2279,7 +2279,8 @@
           <div>
             <span class="event-kind">Thought</span>
             <h3>Can machines think?</h3>
-            <p>Alan Turing proposes a test in place of the question: can a machine pass for a person in a written conversation? <a href="#questions">FAQ, under debate</a></p>
+            <p>Alan Turing found the question too vague to answer, so he replaced it with a game. A judge exchanges written messages with a person and a machine, without knowing which is which. If the judge cannot tell them apart, why deny that the machine thinks?</p>
+            <p>He predicted that by the year 2000 a machine would fool an average judge about a third of the time after five minutes. He was a few decades early, but today's chat models can pass versions of his test, and the debate has moved on to whether passing it proves anything. <a href="#questions">FAQ, under debate</a></p>
           </div>
         </li>
         <li class="event" data-year="1956" data-kind="thought">
@@ -2287,7 +2288,8 @@
           <div>
             <span class="event-kind">Thought</span>
             <h3>The field gets its name</h3>
-            <p>A summer workshop at Dartmouth College sets out to describe intelligence so precisely that a machine can simulate it, and calls the project "artificial intelligence". <a href="#view-quotes">Quotes</a></p>
+            <p>Four researchers, among them John McCarthy and Claude Shannon, invited a handful of colleagues to Dartmouth College for the summer. Their proposal expected that a small group could make "a significant advance" on machine intelligence in two months.</p>
+            <p>They did not, but the name they had chosen for the project stuck: artificial intelligence. So did the habit of announcing that the breakthrough was only a few years away. <a href="#view-quotes">Their words</a></p>
           </div>
         </li>
       </ol>
@@ -2313,7 +2315,8 @@
           <div>
             <span class="event-kind">Thought</span>
             <h3>Twenty years, at most</h3>
-            <p>Herbert Simon predicts that machines will do any work a person can within twenty years. In the same year I. J. Good describes a machine clever enough to improve itself. <a href="#view-quotes">Quotes</a></p>
+            <p>Herbert Simon, who later won a Nobel prize, predicted that machines would be able to do any work a person can within twenty years. Forecasts like his raised expectations that the computers of the time could not meet, and in the 1970s the funding collapsed. People later called these periods AI winters.</p>
+            <p>In the same year I. J. Good, who had worked alongside Turing during the war, described the idea that still drives the debate about risk: a machine clever enough to design a better machine, which designs a better one again, until people are left far behind. <a href="#view-quotes">Their words</a></p>
           </div>
         </li>
         <li class="event" data-year="1966" data-kind="release">
@@ -2329,7 +2332,8 @@
           <div>
             <span class="event-kind">Thought</span>
             <h3>The Chinese room</h3>
-            <p>John Searle argues that following rules for symbols, however well, is not the same as understanding them. <a href="#questions">FAQ, under debate</a></p>
+            <p>John Searle asks you to picture a person shut in a room with a rulebook. Questions in Chinese are passed in, the person follows the rules to assemble answers and passes them out. From outside it looks as if someone in the room understands Chinese. The person inside understands nothing.</p>
+            <p>His conclusion: following rules for symbols, however well, is not understanding. The best-known reply is that the room as a whole, person and rulebook together, does understand. The argument was aimed at the programs of 1980 and is now applied, almost unchanged, to language models. <a href="#questions">FAQ, under debate</a></p>
           </div>
         </li>
         <li class="event" data-year="1986" data-kind="invention">
@@ -2469,7 +2473,8 @@
           <div>
             <span class="event-kind">Thought</span>
             <h3>The Bitter Lesson</h3>
-            <p>Rich Sutton argues that general methods which scale with computing power beat clever hand-built knowledge, again and again. <a href="#view-quotes">Quotes</a></p>
+            <p>Rich Sutton looks back on seventy years of the field and sees one pattern. In chess, in Go, in speech and in vision, researchers first built in their own knowledge of the subject. Each time they were overtaken by simpler methods that just used more computing power to search and to learn.</p>
+            <p>The lesson is bitter because it says that cleverness matters less than scale. Many see large language models as its clearest confirmation, though Sutton himself has disputed that reading. <a href="#view-quotes">His words</a></p>
           </div>
         </li>
         <li class="event" data-year="2020" data-kind="release">
@@ -2501,7 +2506,8 @@
           <div>
             <span class="event-kind">Thought</span>
             <h3>Stochastic parrots</h3>
-            <p>Emily Bender, Timnit Gebru and colleagues warn that language models reproduce patterns of words without understanding them. <a href="#questions">FAQ, under debate</a></p>
+            <p>A paper by Emily Bender, Timnit Gebru and colleagues argues that a language model stitches together words it has seen, according to how likely they are, without any reference to meaning. It also warns about the energy such models consume, the prejudices they absorb from their training text, and the human tendency to mistake fluent language for understanding.</p>
+            <p>The paper became famous before it appeared: Google forced Gebru out in a dispute over it. Its title gave the sceptical side of the debate its name. <a href="#questions">FAQ, under debate</a></p>
           </div>
         </li>
       </ol>
@@ -2601,7 +2607,8 @@
           <div>
             <span class="event-kind">Thought</span>
             <h3>Vibe coding</h3>
-            <p>In February Andrej Karpathy gives a name to building software by describing it to an agent and never reading the code. <a href="#vibe-coding">FAQ</a></p>
+            <p>Andrej Karpathy, one of the founders of OpenAI, describes half in jest how he now builds small programs: he tells an agent what he wants, accepts whatever it writes, pastes any error message back, and never reads the code.</p>
+            <p>The phrase spread within weeks and was named word of the year by a British dictionary. It also set off the counter-movement of writing a careful specification first. <a href="#vibe-coding">FAQ</a></p>
           </div>
         </li>
         <li class="event" data-year="2025" data-kind="release">
