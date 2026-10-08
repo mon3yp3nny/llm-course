@@ -652,10 +652,11 @@ function renderTokenCost() {
     + `With compaction only ${count(inputCompacted)} are read at all.`;
 }
 
-// Resource meters: a step lists its demand as data-load="cpu,gpu,memory", each from 0 to 3.
+// Resource meters: a step lists its demand as data-load="cpu,gpu,memory", each from 0 to 3,
+// and the reason for each level as data-cpu, data-gpu and data-memory, shown in a tooltip.
 
 const LOAD_NAMES = ['CPU', 'GPU', 'Memory'];
-const LOAD_WORDS = ['none', 'low', 'medium', 'high'];
+const LOAD_WORDS = ['hardly used', 'low', 'medium', 'high'];
 const LOAD_MAX = 3;
 
 function buildLoadMeters() {
@@ -666,7 +667,10 @@ function buildLoadMeters() {
     const meters = el.dataset.load.split(',').map((level, i) => {
       const meter = document.createElement('span');
       meter.className = 'meter';
-      meter.title = `${LOAD_NAMES[i]}: ${LOAD_WORDS[level]}`;
+      meter.tabIndex = 0;
+      meter.dataset.tipTitle = `${LOAD_NAMES[i]}: ${LOAD_WORDS[level]}`;
+      meter.dataset.tip = el.dataset[LOAD_NAMES[i].toLowerCase()];
+      meter.setAttribute('aria-describedby', 'tooltip');
       meter.append(LOAD_NAMES[i]);
       for (let pip = 1; pip <= LOAD_MAX; pip++) {
         const dot = document.createElement('i');
@@ -738,7 +742,7 @@ function addTermTooltips() {
     const seen = new Set();
     const walker = document.createTreeWalker(section, NodeFilter.SHOW_TEXT, {
       acceptNode: ({ parentElement }) => (
-        parentElement.closest('p, li, td') && !parentElement.closest('.demo, .step-no, .origins-title')
+        parentElement.closest('p, li, td') && !parentElement.closest('.demo, .step-no, .origins-title, .meter')
           ? NodeFilter.FILTER_ACCEPT
           : NodeFilter.FILTER_REJECT
       ),
@@ -779,7 +783,10 @@ function addTermTooltips() {
   document.body.append(tooltip);
 
   const show = (target) => {
-    const { term, definition } = entries.get(target.dataset.term);
+    // A glossary term looks its text up; anything else carries its own in data-tip.
+    const { term, definition } = target.dataset.tip
+      ? { term: target.dataset.tipTitle, definition: target.dataset.tip }
+      : entries.get(target.dataset.term);
     const name = document.createElement('strong');
     name.textContent = term;
     tooltip.replaceChildren(name, definition);
@@ -795,11 +802,11 @@ function addTermTooltips() {
   };
   const hide = () => { tooltip.hidden = true; };
   const onEnter = (event) => {
-    const target = event.target.closest?.('[data-term]');
+    const target = event.target.closest?.('[data-term], [data-tip]');
     if (target) show(target);
   };
   const onLeave = (event) => {
-    if (event.target.closest?.('[data-term]')) hide();
+    if (event.target.closest?.('[data-term], [data-tip]')) hide();
   };
 
   document.addEventListener('mouseover', onEnter);

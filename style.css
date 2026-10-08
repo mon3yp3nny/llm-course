@@ -856,6 +856,15 @@ button.chip:focus-visible {
   border-radius: 50%;
 }
 
+/* Each meter explains its level in a tooltip. */
+.meter { cursor: help; }
+
+.meter:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
 .meter i:first-of-type { margin-left: 2px; }
 .meter i.on { background: var(--accent); }
 .load-note { flex-basis: 100%; }

@@ -96,7 +96,10 @@
     <section class="step" id="tokens" data-title="Tokens">
       <p class="step-no">Step 2</p>
       <h2>The text is cut into tokens</h2>
-      <p class="load" data-load="1,0,0">Simple text processing. Any processor does it in an instant.</p>
+      <p class="load" data-load="1,0,0"
+         data-cpu="Cutting text into tokens is a lookup in a list of known pieces. Any processor does it in a fraction of a second."
+         data-gpu="Not needed. Nothing is calculated in bulk yet."
+         data-memory="Only the list of known tokens is needed, a few megabytes.">Simple text processing. Any processor does it in an instant.</p>
       <p>
         A model cannot read letters or words directly. It works with
         <dfn>tokens</dfn>: common chunks of text. Short, frequent words are
@@ -130,7 +133,10 @@
     <section class="step" id="ids" data-title="Token IDs">
       <p class="step-no">Step 3</p>
       <h2>Each token becomes a number</h2>
-      <p class="load" data-load="1,0,0">A lookup in a list.</p>
+      <p class="load" data-load="1,0,0"
+         data-cpu="Replacing each token by its number is a simple lookup."
+         data-gpu="Not needed."
+         data-memory="Negligible: the same list as in the step before.">A lookup in a list.</p>
       <p>
         The model has a fixed <dfn>vocabulary</dfn>, a list of every token it knows,
         often 50,000 to 200,000 entries. Each token is replaced by its
@@ -150,7 +156,10 @@
     <section class="step" id="embeddings" data-title="Embeddings">
       <p class="step-no">Step 4</p>
       <h2>Numbers become meaning</h2>
-      <p class="load" data-load="0,1,1">Another lookup. The table is large, but small next to the layers that follow.</p>
+      <p class="load" data-load="0,1,1"
+         data-cpu="Hardly involved. The lookup happens on the graphics chip, where the table is kept."
+         data-gpu="Light work: one row is fetched from the table for each token. No arithmetic yet."
+         data-memory="The table holds one vector for every token of the vocabulary. Large in itself, but under one percent of a big model.">Another lookup. The table is large, but small next to the layers that follow.</p>
       <p>
         An ID on its own says nothing: token 4,012 is not "close to" token
         4,013. So each ID is looked up in a big table and swapped for a list
@@ -239,7 +248,10 @@
     <section class="step" id="network" data-title="Neural network">
       <p class="step-no">Step 5</p>
       <h2>The vectors enter the neural network</h2>
-      <p class="load" data-load="0,3,3">The heavy part. All the weights must be loaded into GPU memory, and every layer means billions of multiplications.</p>
+      <p class="load" data-load="0,3,3"
+         data-cpu="The processor only hands over the job. The arithmetic is done elsewhere."
+         data-gpu="Every layer multiplies every vector by tables of weights: billions of multiplications per token, which only a chip built for doing many at once gets through quickly."
+         data-memory="All the weights must be loaded at once, close to the chip. For a large model that is tens or hundreds of gigabytes.">The heavy part. All the weights must be loaded into GPU memory, and every layer means billions of multiplications.</p>
       <p>
         This is the part people mean when they say "the model". The
         <dfn>neural network</dfn> is a long stack of <dfn>layers</dfn>. The
@@ -470,7 +482,10 @@
     <section class="step" id="attention" data-title="Attention">
       <p class="step-no">Step 6</p>
       <h2>Tokens look at each other</h2>
-      <p class="load" data-load="0,3,2">Every token is compared with every earlier one, so the work grows quickly as the text gets longer.</p>
+      <p class="load" data-load="0,3,2"
+         data-cpu="Not involved in the arithmetic."
+         data-gpu="Every token is compared with every earlier token, in every layer. Twice the text means about four times the comparisons."
+         data-memory="Its weights are a smaller share of the model, but results for every token have to be kept, and they grow with the length of the text.">Every token is compared with every earlier one, so the work grows quickly as the text gets longer.</p>
       <p>
         A token on its own is ambiguous: "mat" means something different after
         "sat on the" than after "yoga". So what happens inside a layer? The
@@ -562,7 +577,10 @@
     <section class="step" id="prediction" data-title="Prediction">
       <p class="step-no">Step 7</p>
       <h2>A score for every possible next token</h2>
-      <p class="load" data-load="0,1,1">One more comparison, against the whole vocabulary. Small next to the layers.</p>
+      <p class="load" data-load="0,1,1"
+         data-cpu="Not involved in the arithmetic."
+         data-gpu="One comparison of the final vector with every token of the vocabulary. Small next to the layers before it."
+         data-memory="One more table the size of the embedding table; often it is the very same one.">One more comparison, against the whole vocabulary. Small next to the layers.</p>
       <p>
         After all the layers, the vector of the <em>last</em> token holds the
         model's summary of the whole prompt. It is compared against every
@@ -633,7 +651,10 @@
     <section class="step" id="sampling" data-title="Sampling">
       <p class="step-no">Step 8</p>
       <h2>One token is picked</h2>
-      <p class="load" data-load="1,0,0">Drawing one random number. Practically free.</p>
+      <p class="load" data-load="1,0,0"
+         data-cpu="Drawing one random number and picking a token from a list. Trivial for any processor."
+         data-gpu="Not needed: there is nothing to calculate in bulk."
+         data-memory="Only the list of probabilities, well under a megabyte.">Drawing one random number. Practically free.</p>
       <p>
         The software running the model does not simply take the top token. It holds a lottery:
         a token with 42% holds 42 of 100 tickets, and one ticket is drawn.
@@ -675,7 +696,10 @@
     <section class="step" id="loop" data-title="Loop">
       <p class="step-no">Step 9</p>
       <h2>Repeat until done</h2>
-      <p class="load" data-load="1,3,3">Everything again for every new token. Results for earlier tokens are kept in memory so they need not be recomputed, and that store grows with the text. For each new token the chip reads through all the weights, so how fast it can pull data out of memory, the memory bandwidth, often limits the speed more than raw calculating power.</p>
+      <p class="load" data-load="1,3,3"
+         data-cpu="The processor runs the loop itself: it appends the token, checks whether to stop and starts the next round. Light work, but constant."
+         data-gpu="The whole network runs again for every token written. A long answer means thousands of passes."
+         data-memory="The weights stay loaded, and the results for all earlier tokens are kept on top so that they need not be recomputed. That store grows with every token.">Everything again for every new token. Results for earlier tokens are kept in memory so they need not be recomputed, and that store grows with the text. For each new token the chip reads through all the weights, so how fast it can pull data out of memory, the memory bandwidth, often limits the speed more than raw calculating power.</p>
       <p>
         One token is not an answer. The picked token is glued to the end of
         the input, and everything runs again: tokens, vectors, attention,
@@ -916,7 +940,10 @@
     <section class="step" id="data" data-title="Data">
       <p class="step-no">Training · Step 1</p>
       <h2>It starts with text, a lot of it</h2>
-      <p class="load" data-load="3,0,1">Collecting, cleaning and tokenising is ordinary computing, but at the scale of a large part of the internet. What it needs most is storage.</p>
+      <p class="load" data-load="3,0,1"
+         data-cpu="Downloading, cleaning, removing duplicates and tokenising trillions of words is ordinary computing, spread over thousands of processors."
+         data-gpu="Not needed: nothing is learned yet."
+         data-memory="Little working memory per machine. What this step needs is disk space, in vast amounts.">Collecting, cleaning and tokenising is ordinary computing, but at the scale of a large part of the internet. What it needs most is storage.</p>
       <p>
         Before any learning, someone has to collect text: web pages, books,
         articles, program code, conversations. The
@@ -940,7 +967,10 @@
     <section class="step" id="pretraining" data-title="Pre-training">
       <p class="step-no">Training · Step 2</p>
       <h2>Learning by guessing the next token</h2>
-      <p class="load" data-load="1,3,3">The most expensive step of all: thousands of GPUs for weeks or months.</p>
+      <p class="load" data-load="1,3,3"
+         data-cpu="Processors feed the text to the graphics chips and coordinate the cluster. Supporting work."
+         data-gpu="The network runs over trillions of tokens, forwards and backwards. Nothing in the field demands more calculation."
+         data-memory="The weights, the results of every layer and a nudge for every weight are all held at once: several times what running the model needs.">The most expensive step of all: thousands of GPUs for weeks or months.</p>
       <p>
         The first and by far the largest phase is <dfn>pre-training</dfn>.
         The exercise is always the same: take a piece of real text, hide
@@ -1001,7 +1031,10 @@
     <section class="step" id="descent" data-title="Gradient descent">
       <p class="step-no">Training · Step 3</p>
       <h2>How the weights are nudged</h2>
-      <p class="load" data-load="0,3,3">Training needs more memory than use: the intermediate results of every layer are kept to work backwards from, plus a nudge for every single weight.</p>
+      <p class="load" data-load="0,3,3"
+         data-cpu="Not involved in the arithmetic."
+         data-gpu="Backpropagation goes through every layer a second time, in reverse, to work out the nudge for each weight."
+         data-memory="The results of every layer are kept to work backwards from, plus a nudge for every single weight.">Training needs more memory than use: the intermediate results of every layer are kept to work backwards from, plus a nudge for every single weight.</p>
       <p>
         A real model keeps no tally of what followed what. It starts with random weights and guesses
         nonsense. After each guess, a method called
@@ -1046,7 +1079,10 @@
     <section class="step" id="posttraining" data-title="Post-training">
       <p class="step-no">Training · Step 4</p>
       <h2>From text machine to assistant</h2>
-      <p class="load" data-load="0,2,3">The same machinery on far less data: days, not months. The whole model still has to be loaded.</p>
+      <p class="load" data-load="0,2,3"
+         data-cpu="Not involved in the arithmetic."
+         data-gpu="The same calculation as pre-training on a tiny fraction of the data: days on a modest cluster instead of months on a huge one."
+         data-memory="Unchanged: the whole model and the bookkeeping of training still have to be loaded.">The same machinery on far less data: days, not months. The whole model still has to be loaded.</p>
       <p>
         A base model does not answer questions. It continues text, and a
         question is often continued with more questions. Everything that
@@ -1077,7 +1113,10 @@
     <section class="step" id="feedback" data-title="Feedback">
       <p class="step-no">Training · Step 5</p>
       <h2>Learning from preferences</h2>
-      <p class="load" data-load="1,2,3">Plus the scarcest resource in this step: the time of the people who judge the answers.</p>
+      <p class="load" data-load="1,2,3"
+         data-cpu="Some ordinary computing to collect and organise the judgements."
+         data-gpu="The model has to write many answers to be judged, and is then trained on the verdicts. Moderate next to pre-training."
+         data-memory="The whole model is loaded for training, and often a second model that scores the answers.">Plus the scarcest resource in this step: the time of the people who judge the answers.</p>
       <p>
         Good answers are hard to write down in advance, but easy to
         recognise. So the next part of post-training works with judgements:
@@ -1121,7 +1160,10 @@
     <section class="step" id="evaluation" data-title="Evaluation">
       <p class="step-no">Training · Step 6</p>
       <h2>Testing before release</h2>
-      <p class="load" data-load="1,2,3">Running the finished model on thousands of test questions. No learning, but the whole model has to be loaded.</p>
+      <p class="load" data-load="1,2,3"
+         data-cpu="Ordinary computing to run the tests and compare the answers with the solutions."
+         data-gpu="The model answers thousands of test questions. Nothing is learned, so it is far less work than training."
+         data-memory="The whole model has to be loaded, as for any use.">Running the finished model on thousands of test questions. No learning, but the whole model has to be loaded.</p>
       <p>
         How do you know whether training worked? The loss only says how well
         the model predicts text. So models are also tested on tasks. A
@@ -1157,7 +1199,10 @@
     <section class="step" id="adapting" data-title="After release">
       <p class="step-no">Training · Step 7</p>
       <h2>Adapting a finished model</h2>
-      <p class="load" data-load="0,1,2">LoRA trains only a small add-on, so one graphics card can be enough, though the whole frozen model must still be loaded. Distillation is a larger job.</p>
+      <p class="load" data-load="0,1,2"
+         data-cpu="Not involved in the arithmetic."
+         data-gpu="LoRA trains only a small add-on, a fraction of the work of full training. Distillation is heavier, because a new model is trained."
+         data-memory="The frozen model must still be loaded in full; the add-on and its bookkeeping are small.">LoRA trains only a small add-on, so one graphics card can be enough, though the whole frozen model must still be loaded. Distillation is a larger job.</p>
       <p>
         Once a model exists, others can keep shaping it without starting
         over.
