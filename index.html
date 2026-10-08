@@ -2347,7 +2347,7 @@
     </p>
     </div>
 
-    <div class="view" id="view-timeline" data-narration="off" hidden>
+    <div class="view" id="view-timeline" data-narration="spoken" hidden>
     <header class="hero">
       <h1 class="one-line">Scrolling through time</h1>
       <p class="lead">
@@ -2356,6 +2356,19 @@
         Scroll down to travel from 1843 to the present, past the ideas, the
         inventions, the releases and what they have achieved in the real
         world.
+      </p>
+      <p class="hero-note">
+        Or listen: a short history of AI in six chapters, about twelve
+        minutes. Press the play button beside the title; the chapters
+        follow one another by themselves.
+      </p>
+      <p class="spoken" hidden>
+        Scrolling through time: a short history of artificial intelligence, in six chapters. The ideas
+        behind today's language models took almost two centuries to arrive,
+        and yet most of the names you hear today are less than ten years old.
+        This is the story of how we got here: the ideas, the inventions, the
+        releases, and what they have achieved in the real world. It begins in
+        1843, with a set of notes on a machine that was never built.
       </p>
       <span class="scroll-hint" aria-hidden="true">↓</span>
     </header>
@@ -2370,6 +2383,32 @@
       <h2>Ideas before the machines</h2>
       <p>
         Long before there was a computer that could learn, people argued about whether a machine could think, and worked out the mathematics it would need.
+      </p>
+      <p class="spoken" hidden>
+        Chapter one: ideas before the machines. In 1843 Ada Lovelace translated a paper about a computer
+        that Charles Babbage was planning, and added notes three times as long
+        as the paper itself. She saw further than the inventor. The machine,
+        she wrote, could work on any symbols, not only numbers, and might one
+        day compose music. Yet she insisted that it could only ever do what it
+        was told. Whether a machine can create something new, or only
+        recombine what it was given, is still argued about today. A hundred
+        years passed before the next step. In 1943 Warren McCulloch and Walter
+        Pitts described a nerve cell as a small piece of mathematics. Every
+        neural network descends from that idea. Five years later Claude
+        Shannon produced text that looked like English, by choosing each next
+        word according to how often it follows the ones before. That, in
+        miniature, is what a language model still does. In 1950 Alan Turing
+        asked: can machines think? He found the question too vague to answer,
+        so he replaced it with a game. A judge exchanges written messages with
+        a person and with a machine, without knowing which is which. If the
+        judge cannot tell them apart, why deny that the machine thinks?
+        Today's chat models can pass versions of his test, and the debate has
+        moved on to whether passing it proves anything. And in the summer of
+        1956 a handful of researchers met at Dartmouth College. They expected
+        to make a significant advance in two months. They did not. But the
+        name they had chosen for their project stuck: artificial intelligence.
+        So did the habit of announcing that the breakthrough was only a few
+        years away.
       </p>
       <ol class="events">
         <li class="event" data-year="1843" data-kind="thought">
@@ -2423,6 +2462,38 @@
       <h2>First steps and long winters</h2>
       <p>
         Early successes raised hopes that the machines of the time could not meet. Twice the money and the interest dried up. The methods that matter today were invented in these decades, mostly unnoticed.
+      </p>
+      <p class="spoken" hidden>
+        Chapter two: first steps and long winters. In 1958 Frank Rosenblatt presented the perceptron, a
+        machine that learned from examples: the first neural network to do so.
+        Hopes ran high. In 1965 Herbert Simon predicted that within twenty
+        years machines would do any work a person can. In the same year I. J.
+        Good, who had worked beside Turing during the war, described an idea
+        that still drives the debate about risk: a machine clever enough to
+        design a better machine, which designs a better one again, until
+        people are left far behind. A year later, at MIT, Joseph Weizenbaum
+        wrote ELIZA, the first chatbot. It answered by rearranging what the
+        user had typed. People confided in it all the same, which alarmed its
+        author. But the computers of the time could not keep the promises made
+        for them. In the 1970s the money dried up, and later it happened a
+        second time. People came to call these periods the AI winters. The
+        doubts were not only about money. In 1980 the philosopher John Searle
+        asked his readers to picture a person shut in a room with a rulebook.
+        Questions in Chinese are passed in. The person follows the rules,
+        assembles answers, and passes them out. From outside it looks as if
+        someone in the room understands Chinese. The person inside understands
+        nothing. Following rules for symbols, Searle concluded, is not
+        understanding. The argument is now applied, almost unchanged, to
+        language models. Meanwhile, mostly unnoticed, the methods that matter
+        today were being invented. In 1986, backpropagation: the way to work
+        out how every weight in a network should be adjusted, and still how
+        networks are trained. In 1991, the mixture of experts: a network of
+        specialists, with a router to choose among them. In 1994, byte pair
+        encoding, a compression trick that later became the standard way of
+        cutting text into tokens. The chapter ends with a famous victory that
+        led nowhere near language. In 1997 IBM's Deep Blue beat the world
+        chess champion, Garry Kasparov. It did so by searching through moves
+        at enormous speed, not by learning.
       </p>
       <ol class="events">
         <li class="event" data-year="1958" data-kind="invention">
@@ -2500,6 +2571,29 @@
       <p>
         More data, faster graphics chips and a few stubborn researchers turn neural networks from a curiosity into the method that wins everything.
       </p>
+      <p class="spoken" hidden>
+        Chapter three: deep learning arrives. The turn came slowly, and then all at once. In 2003
+        Yoshua Bengio and his colleagues trained a neural network on language.
+        It learned a list of numbers, a vector, for every word, and used them
+        to predict the next one. Few people noticed. What neural networks
+        lacked was data and computing power. By 2012 both had arrived. A deep
+        network called AlexNet, trained on two graphics cards, won the leading
+        contest in image recognition by a wide margin. The deep-learning boom
+        began here, and so did the hunger for graphics chips that has not
+        stopped since. The ideas now came quickly. In 2013 Google released
+        word-to-vec, a fast way to learn word vectors, and one sum became
+        famous: king, minus man, plus woman, lands close to queen. In 2014
+        three researchers let a translation model look back at the words that
+        mattered most for the word it was writing. They called it attention.
+        In 2015 came distillation: a small network learning from a large one.
+        Then, in 2016, the wider world took notice. DeepMind's AlphaGo
+        defeated Lee Sedol, one of the best players of the game of Go, a
+        decade earlier than most experts had expected. Unlike Deep Blue, this
+        machine had learned. And in the same year Google Translate switched to
+        a neural network. Its translations improved at a stroke, for hundreds
+        of millions of people. Most of them were using deep learning for the
+        first time, without knowing it.
+      </p>
       <ol class="events">
         <li class="event" data-year="2003" data-kind="invention">
           <span class="event-year">2003</span>
@@ -2565,6 +2659,36 @@
       <h2>The transformer years</h2>
       <p>
         One paper replaces the machinery of language models with attention alone. Within four years almost every idea in this guide exists, though few people outside research have noticed.
+      </p>
+      <p class="spoken" hidden>
+        Chapter four: the transformer years. In 2017 eight researchers at Google published a paper
+        with a confident title: Attention Is All You Need. Until then,
+        language models had read a sentence one word after another. The new
+        design, the transformer, relied on attention alone and processed all
+        the words at once. It could be trained far faster, on far more text.
+        Every large language model since is built on it. OpenAI used it for a
+        simple recipe: first train on enormous amounts of plain text, then
+        adapt. The first GPT appeared in 2018. GPT-2, a year later, wrote
+        whole coherent paragraphs, and its makers released it only in stages,
+        out of concern about misuse. In 2020 came GPT-3, a hundred times
+        larger, and able to do tasks it had never been trained for when shown
+        a few examples. In 2019 the researcher Rich Sutton looked back on
+        seventy years of the field and saw one pattern. Again and again,
+        researchers built their own knowledge into their systems, and again
+        and again they were overtaken by simpler methods that just used more
+        computing power. He called it the bitter lesson: cleverness matters
+        less than scale. Not everyone was persuaded. In 2021 a paper by Emily
+        Bender, Timnit Gebru and colleagues argued that a language model
+        stitches together words it has seen, with no reference to meaning. Its
+        title gave the sceptical side of the debate a name: stochastic
+        parrots. And yet the results kept coming. In 2020 DeepMind's AlphaFold
+        2 predicted the three-dimensional shape of proteins about as
+        accurately as laboratory experiments, a problem biologists had worked
+        on for fifty years. In 2021 GitHub Copilot began to suggest lines of
+        code as programmers typed, and programming became the first profession
+        in which working alongside a model was routine. By the end of these
+        years almost every idea in this guide existed. Few people outside
+        research had noticed.
       </p>
       <ol class="events">
         <li class="event" data-year="2017" data-kind="invention">
@@ -2665,6 +2789,32 @@
       <h2>The chat era</h2>
       <p>
         A chat window puts the technology in front of everyone, and the pace changes. Models learn to reason step by step, to use tools, and to run on a laptop.
+      </p>
+      <p class="spoken" hidden>
+        Chapter five: the chat era. In 2022 the public noticed. First came pictures: within
+        a few months, three new programs let anyone turn a sentence into an
+        image. Then, on the thirtieth of November, OpenAI put a language model
+        behind a simple chat window. ChatGPT reached a hundred million users
+        in two months. From here the pace changed. In March 2023 came GPT-4,
+        the first model that many people found useful for serious work. In the
+        same year Meta released the weights of its Llama models, and within
+        weeks a community had them running on ordinary laptops. Models were
+        given a fixed format for asking to use a tool. Google DeepMind steered
+        a robot with a language model that wrote movements instead of words.
+        And a DeepMind system called GraphCast predicted the weather ten days
+        ahead more accurately than the leading conventional forecast, in a
+        fraction of the time. Researchers had already shown that a model does
+        better when it writes out its reasoning step by step. In 2024 OpenAI
+        released a model trained to think before every answer. At the other
+        extreme, Microsoft Research trained a model whose every weight is
+        minus one, zero or plus one. And in November Anthropic published the
+        Model Context Protocol, an open standard for connecting models to
+        tools, which the other major providers adopted within a year. The year
+        2024 also brought a kind of official recognition. The Nobel prize in
+        physics went to John Hopfield and Geoffrey Hinton, for the foundations
+        of neural networks. The prize in chemistry went in part to Demis
+        Hassabis and John Jumper, for AlphaFold. The methods of this field had
+        become part of established science.
       </p>
       <ol class="events">
         <li class="event" data-year="2022" data-kind="release">
@@ -2771,6 +2921,36 @@
       <h2>Now</h2>
       <p>
         Models become agents that work for hours, the largest ones pass a trillion parameters, and the first robots steered by language models leave the laboratory. This last stretch is the one most likely to look different in a year.
+      </p>
+      <p class="spoken" hidden>
+        Chapter six: now. In 2025 models became agents: programs that work on a
+        task for hours, using tools. Andrej Karpathy, one of the founders of
+        OpenAI, described half in jest how he now built small programs. He
+        told an agent what he wanted, accepted whatever it wrote, and never
+        read the code. He called it vibe coding, and the phrase spread within
+        weeks. The results grew harder to dismiss. A DeepMind system found a
+        faster way to multiply certain matrices, the first improvement on a
+        method from 1969. Models from Google DeepMind and OpenAI each solved
+        five of the six problems at the International Mathematical Olympiad,
+        the level of a gold medal. And in October the company 1X opened orders
+        for NEO, a humanoid robot for household chores, at the price of a
+        small car. In January 2026 an open-source assistant called OpenClaw
+        spread faster than any software project before it. It runs on your own
+        computer, and may read your mail, use your files and run programs on
+        your behalf. For many people it was the first agent they used, and the
+        first time they had to decide how much to let one do. In the same year
+        an OpenAI model disproved a conjecture in geometry that the
+        mathematician Paul Erdős had posed in 1946. The proof ran to 125
+        pages, and outside mathematicians checked and accepted it. Moonshot AI
+        published a model with 2.8 trillion parameters, the largest anyone can
+        download. In September the three leading companies each released a new
+        top model within four weeks. And in October Mistral, in France,
+        announced a model with a trillion parameters, trained in its own
+        European data centres. That is where the story stands, in October
+        2026. Ada Lovelace's question, whether a machine can originate
+        anything, is still open. But it is no longer asked about a machine
+        that was never built. This last chapter is the one most likely to
+        sound different in a year.
       </p>
       <ol class="events">
         <li class="event" data-year="2025" data-kind="thought">

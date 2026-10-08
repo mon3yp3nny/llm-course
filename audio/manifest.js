@@ -36,5 +36,12 @@ const NARRATION = {
   "rb-model": "audio/rb-model.mp3",
   "rb-learning": "audio/rb-learning.mp3",
   "rb-makers": "audio/rb-makers.mp3",
-  "rb-future": "audio/rb-future.mp3"
+  "rb-future": "audio/rb-future.mp3",
+  "view-timeline": "audio/view-timeline.mp3",
+  "tl-foundations": "audio/tl-foundations.mp3",
+  "tl-first-steps": "audio/tl-first-steps.mp3",
+  "tl-deep-learning": "audio/tl-deep-learning.mp3",
+  "tl-transformer": "audio/tl-transformer.mp3",
+  "tl-chat": "audio/tl-chat.mp3",
+  "tl-now": "audio/tl-now.mp3"
 };

@@ -58,6 +58,16 @@ function buildNarration() {
   audio.preload = 'none';
   audio.addEventListener('play', () => setListening(narration.button, true));
   audio.addEventListener('pause', () => setListening(narration.button, false));
+  // A tab told as one story plays on: when a chapter ends, the next begins.
+  audio.addEventListener('ended', () => {
+    const view = narration.button.closest('.view');
+    if (view.dataset.narration !== 'spoken') return;
+    const chapters = [...view.querySelectorAll('.listen')];
+    const next = chapters[chapters.indexOf(narration.button) + 1];
+    if (!next) return;
+    next.closest('.step').scrollIntoView();
+    toggleNarration(next);
+  });
   document.addEventListener('click', (event) => {
     const button = event.target.closest('.listen');
     if (button) toggleNarration(button);

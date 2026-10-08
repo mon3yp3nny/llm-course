@@ -7,6 +7,8 @@ page which recordings exist. Steps whose text has not changed are skipped.
 
 Tables are not read out. Where a step has one, a hidden paragraph in the page,
 <p class="spoken" hidden>, says the same thing in a form that suits listening.
+A tab marked data-narration="spoken" is read from such paragraphs alone (the
+Timeline, told as a story); one marked "off" is not read at all.
 
 Needs the gcloud CLI, logged in to an account that may use the Google Cloud
 project named in the GCP_PROJECT environment variable (with the Text-to-Speech
@@ -56,6 +58,7 @@ class NarrationParser(HTMLParser):
         self.texts = {}        # narration id -> list of text pieces
         self.view = None
         self.silent = False    # inside a view marked data-narration="off"
+        self.spoken_only = False  # inside a view marked data-narration="spoken"
         self.owner = None      # narration id of the step or hero we are inside
         self.owner_depth = 0
         self.capture_depth = None
@@ -72,6 +75,7 @@ class NarrationParser(HTMLParser):
         if 'view' in classes:
             self.view = attrs['id']
             self.silent = attrs.get('data-narration') == 'off'
+            self.spoken_only = attrs.get('data-narration') == 'spoken'
         elif self.silent:
             return
         elif tag == 'section' and 'step' in classes:
@@ -84,8 +88,12 @@ class NarrationParser(HTMLParser):
         parent_tag, parent_classes, _ = self.stack[-2]
         direct_child = depth == self.owner_depth + 1
         in_question = parent_tag == 'div' and 'question' in parent_classes and depth == self.owner_depth + 2
-        spoken_paragraph = tag == 'p' and not classes & SKIPPED_PARAGRAPHS
-        if (direct_child and (tag in ('h1', 'h2', 'h3') or spoken_paragraph)) or (in_question and tag in ('h3', 'p')):
+        if self.spoken_only:
+            spoken_paragraph = tag == 'p' and 'spoken' in classes
+        else:
+            spoken_paragraph = tag == 'p' and not classes & SKIPPED_PARAGRAPHS
+        title = tag in ('h1', 'h2', 'h3') and not self.spoken_only
+        if (direct_child and (title or spoken_paragraph)) or (in_question and tag in ('h3', 'p')):
             self.start_capture(depth)
 
     def start_capture(self, depth):
