@@ -5,6 +5,9 @@ Reads the main text of every step from index.html, sends it to the API and
 writes one MP3 per step into audio/, plus audio/manifest.js, which tells the
 page which recordings exist. Steps whose text has not changed are skipped.
 
+Tables are not read out. Where a step has one, a hidden paragraph in the page,
+<p class="spoken" hidden>, says the same thing in a form that suits listening.
+
 Needs the gcloud CLI, logged in to an account that may use the Google Cloud
 project named in the GCP_PROJECT environment variable (with the Text-to-Speech
 API enabled there).
@@ -39,7 +42,9 @@ MANIFEST_FILE = AUDIO_DIR / 'manifest.js'
 VOID_TAGS = {'input', 'br', 'img', 'meta', 'link', 'hr'}
 # Paragraphs that are labels, figures or small print, not narration.
 SKIPPED_PARAGRAPHS = {'step-no', 'load', 'note', 'stat', 'hero-note', 'eyebrow', 'recap'}
-SPOKEN_REPLACEMENTS = [('·', ''), ('→', ', then '), ('×', ' times '), ('≈', ' is about ')]
+# Symbols and names a voice would stumble over, with what to say instead.
+SPOKEN_REPLACEMENTS = [('·', 'a small dot'), ('→', ', then '), ('×', ' times '), ('≈', ' is about '),
+                       ('GR00T', 'Groot'), ('1X', 'One X'), ('NEO', 'Neo')]
 
 
 class NarrationParser(HTMLParser):
@@ -55,7 +60,6 @@ class NarrationParser(HTMLParser):
         self.owner_depth = 0
         self.capture_depth = None
         self.buffer = []
-        self.prefix = ''
 
     def handle_starttag(self, tag, attrs):
         if tag in VOID_TAGS:
@@ -83,16 +87,9 @@ class NarrationParser(HTMLParser):
         spoken_paragraph = tag == 'p' and not classes & SKIPPED_PARAGRAPHS
         if (direct_child and (tag in ('h1', 'h2', 'h3') or spoken_paragraph)) or (in_question and tag in ('h3', 'p')):
             self.start_capture(depth)
-        elif tag == 'td' and self.inside_comparison_table():
-            label = attrs.get('data-label')
-            self.start_capture(depth, prefix=f'{label}: ' if label else '')
 
-    def inside_comparison_table(self):
-        # Wide reference tables (class "four") are for reading, not for listening.
-        return any(tag == 'table' and 'pairs' in classes and 'four' not in classes for tag, classes, _ in self.stack)
-
-    def start_capture(self, depth, prefix=''):
-        self.capture_depth, self.buffer, self.prefix = depth, [], prefix
+    def start_capture(self, depth):
+        self.capture_depth, self.buffer = depth, []
 
     def handle_data(self, data):
         if self.capture_depth is not None:
@@ -107,7 +104,7 @@ class NarrationParser(HTMLParser):
             if text:
                 if not text.endswith(('.', '?', '!', ':')):
                     text += '.'
-                self.texts.setdefault(self.owner, []).append(self.prefix + text)
+                self.texts.setdefault(self.owner, []).append(text)
             self.capture_depth = None
         if self.owner is not None and depth == self.owner_depth:
             self.owner = None
@@ -122,6 +119,9 @@ def narration_texts():
         text = ' '.join(pieces)
         for symbol, spoken in SPOKEN_REPLACEMENTS:
             text = text.replace(symbol, spoken)
+        # Model sizes such as "70B" or "2.8T" are spoken in full.
+        text = re.sub(r'(\d+(?:\.\d+)?)B\b', r'\1 billion', text)
+        text = re.sub(r'(\d+(?:\.\d+)?)T\b', r'\1 trillion', text)
         texts[key] = re.sub(r'\s+', ' ', text).strip()
     return texts
 

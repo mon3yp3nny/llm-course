@@ -901,7 +901,6 @@
 
     <div class="view" id="view-train" hidden>
     <header class="hero">
-      <p class="eyebrow">Part two</p>
       <h1>How an LLM learns what it knows</h1>
       <p class="lead">
         The first tab followed one prompt through a finished model. This one
@@ -1219,7 +1218,6 @@
 
     <div class="view" id="view-agents" hidden>
     <header class="hero">
-      <p class="eyebrow">Part three</p>
       <h1>From answering to acting</h1>
       <p class="lead">
         On its own, a model writes text and stops. This part shows what is
@@ -1371,6 +1369,19 @@
         text interface in which programs are started by typing commands. An
         agent can use all three, and they differ in ways that matter.
       </p>
+      <p class="spoken" hidden>
+        The page shows a table that compares the three side by side. In short:
+        an API is made for programmers, the command line for people typing
+        commands, and MCP for models. With an API, somebody has to describe
+        each function to the model. Command-line programs the model often
+        knows from its training. An MCP server announces its tools by itself.
+        An API and MCP exchange exact, structured data, while the command line
+        returns free text laid out for human eyes. Permissions differ too: an
+        access key or a user account opens everything it covers, whereas MCP
+        can grant access tool by tool. And the cost in the context window
+        differs: a command costs nothing until it is run, while the
+        descriptions of every connected MCP tool are read on each round.
+      </p>
       <table class="pairs four">
         <thead>
           <tr><th></th><th>Traditional API</th><th>Command line</th><th>MCP</th></tr>
@@ -1489,7 +1500,6 @@
 
     <div class="view" id="view-hardware" hidden>
     <header class="hero">
-      <p class="eyebrow">Part four</p>
       <h1 class="one-line">What it runs on</h1>
       <p class="lead">
         The same model can crawl on one machine and fly on another. This
@@ -1689,7 +1699,6 @@
 
     <div class="view" id="view-robots" hidden>
     <header class="hero">
-      <p class="eyebrow">Part five</p>
       <h1>When the model gets a body</h1>
       <p class="lead">
         The same kind of model that writes text is now being taught to move
@@ -1757,6 +1766,19 @@
         motion. Many use two parts side by side: a slow one that looks at
         the scene and works out what to do, a few times a second, and a
         fast one that steers the motors, a hundred times a second or more.
+      </p>
+      <p class="spoken" hidden>
+        Put side by side, a chat model and the model of a robot differ in six
+        ways. A chat model takes in text and sometimes pictures. The model of
+        a robot takes in camera pictures, the position of every joint, and an
+        instruction. One gives back the next token of text, the other the next
+        small movement. With a chat model you can wait a second for the
+        answer. A robot must act many times a second, or it stumbles. A chat
+        model runs in a data centre, the model of a robot mostly inside the
+        robot, because a delay could mean a fall. The chat model learned from
+        the text of the internet. The robot has only recordings of robots at
+        work, which are scarce. And where the mistake of a chat model is a
+        wrong sentence, that of a robot can be a dropped glass, or worse.
       </p>
       <table class="pairs four">
         <thead>
@@ -1834,6 +1856,22 @@
       <p>
         Some companies build bodies, some build the models that steer them,
         and a few do both.
+      </p>
+      <p class="spoken" hidden>
+        First, the makers of robots. Tesla builds Optimus, a humanoid meant
+        first for its own car factories. Figure builds its own humanoids and
+        its own model, called Helix, and has them at work in a BMW plant.
+        Boston Dynamics, long famous for the acrobatics of its robot Atlas,
+        has made it electric and is preparing it for the factories of its
+        owner, Hyundai. Agility Robotics makes Digit, which moves containers
+        in warehouses, among them those of Amazon. The company 1X sells NEO, a
+        humanoid for the home. And Unitree, in China, makes low-priced
+        humanoids and four-legged robots that are widely used in research.
+        Then, the makers of models. Physical Intelligence builds only the
+        model, called pi, which is meant to steer many kinds of robot. Google
+        DeepMind has Gemini Robotics, a robot version of its Gemini models.
+        And NVIDIA offers GR00T, an openly available robot model, along with
+        the chips and the simulation software that much of the field uses.
       </p>
       <table class="pairs two">
         <thead>
@@ -1917,7 +1955,6 @@
 
     <div class="view" id="view-models" data-narration="off" hidden>
     <header class="hero">
-      <p class="eyebrow">Part six</p>
       <h1>Models and software worth knowing</h1>
       <p class="lead">
         The guide so far explains ideas that last. This part names the
@@ -2145,7 +2182,6 @@
 
     <div class="view" id="view-faq" data-narration="off" hidden>
     <header class="hero">
-      <p class="eyebrow">Part seven</p>
       <h1 class="one-line">Often asked</h1>
       <p class="lead">
         Questions that come up again and again and are not answered in the
@@ -2521,7 +2557,6 @@
 
     <div class="view" id="view-quotes" data-narration="off" hidden>
     <header class="hero">
-      <p class="eyebrow">Part eight</p>
       <h1 class="one-line">In their words</h1>
       <p class="lead">
         People have argued about thinking machines for almost two hundred
