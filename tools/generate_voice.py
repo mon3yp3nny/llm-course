@@ -100,7 +100,7 @@ MARKUP_PAUSES = {'title': '[pause long]', 'paragraph': '[pause]', 'before-subtit
 
 VOID_TAGS = {'area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'source', 'track', 'wbr'}
 # Paragraphs that are labels, figures or small print, not narration.
-SKIPPED_PARAGRAPHS = {'step-no', 'load', 'note', 'stat', 'hero-note', 'eyebrow', 'recap'}
+SKIPPED_PARAGRAPHS = {'step-no', 'load', 'note', 'stat', 'hero-note', 'recap'}
 
 
 # ---------------------------------------------------------------------------
