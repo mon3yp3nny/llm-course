@@ -1,5 +1,5 @@
-// Training tab: demos for how a model is trained. Uses $, barRow, percent and
-// showSpaces from app.js and the toy model from model.js.
+// Training tab: demos for how a model is trained. Uses $, barRow and showSpaces
+// from app.js, the toy model from model.js and the strings helpers from i18n.js.
 
 const READ_PROMPT = 'The cat';
 const READ_CANDIDATES = 6;
@@ -7,52 +7,16 @@ const CHART = { width: 600, height: 170, left: 12, right: 12, top: 14, bottom: 2
 const CURVE_POINTS = 60;
 const DESCENT_START = -1.1;
 const DESCENT_RANGE = 2.2;
-const DESCENT_RATES = [
-  { label: 'Small steps', rate: 0.05 },
-  { label: 'Medium steps', rate: 0.3 },
-  { label: 'Too large', rate: 1.05 },
-];
+// Small, medium and too large steps; the button labels are descent.rates in the strings file.
+const DESCENT_RATES = [0.05, 0.3, 1.05];
 const LORA_TABLE_SIDE = 4096;
 const LORA_RANKS = [4, 16, 64, 256];
 const DESCENT_SETTLED = 0.001;
 const DESCENT_LOST = 100;
 
-// Hand-written to show the typical difference.
-const TUNING_EXAMPLE = {
-  prompt: 'What is the capital of France?',
-  base: {
-    text: ' What is the capital of Spain? What is the capital of Italy? Test your knowledge with our geography quiz and',
-    note: 'The base model treats the question as the start of a document and carries on in the same style.',
-  },
-  tuned: {
-    text: '\nThe capital of France is Paris.',
-    note: 'After post-training, the same text is treated as a question to answer.',
-  },
-};
-
-const FEEDBACK_PAIRS = [
-  {
-    prompt: 'Explain what a token is to a ten-year-old.',
-    answers: [
-      'A token is a sub-word unit produced by a byte-pair-encoding tokenizer.',
-      'A token is a small piece of a word, like a building brick. The computer builds every sentence out of these pieces.',
-    ],
-  },
-  {
-    prompt: 'Is the Earth flat?',
-    answers: [
-      'No. The Earth is round, which has been measured in many independent ways.',
-      'People have different views on this, and it is not for me to say.',
-    ],
-  },
-  {
-    prompt: 'My program crashes. Fix it.',
-    answers: [
-      'Done! It should work now.',
-      'I can help. Please show me the error message and the part of the code where it happens.',
-    ],
-  },
-];
+// The post-training example and the three pairs of answers to judge are
+// hand-written illustrations; their text is in the strings file.
+const FEEDBACK_PAIRS = STRINGS.feedback.pairs;
 
 // The loss after reading 0, 1, 2, ... sentences: a real learning curve of the tiny model.
 const LEARNING_CURVE = Array.from({ length: CORPUS_SENTENCES.length + 1 }, (_, read) => (
@@ -63,7 +27,7 @@ const training = {
   sentencesRead: 8,
   weight: DESCENT_START,
   trail: [],
-  rate: DESCENT_RATES[1].rate,
+  rate: DESCENT_RATES[1],
   tuned: false,
   choices: [],
   loraRank: LORA_RANKS[1],
@@ -94,6 +58,7 @@ function segmentButtons(options, isSelected) {
     el.dataset.value = value;
     el.textContent = label;
     el.classList.toggle('selected', isSelected(value));
+    el.setAttribute('aria-pressed', isSelected(value));
     return el;
   });
 }
@@ -105,12 +70,12 @@ function renderReading() {
   const probs = nextTokenProbs(tokenize(READ_PROMPT), countsAfterReading(read));
 
   $('read-count').textContent = read;
-  $('read-last').textContent = read === 0 ? 'Nothing read yet.' : `Just read: “${CORPUS_SENTENCES[read - 1]}”`;
+  $('read-last').textContent = read === 0 ? t('reading.nothing') : t('reading.last', { sentence: CORPUS_SENTENCES[read - 1] });
   $('read-bars').replaceChildren(...probs.slice(0, READ_CANDIDATES).map(({ token, p }) => (
-    barRow(showSpaces(token), p, percent(p), false)
+    barRow(showSpaces(token), p, pct(p), false)
   )));
   $('read-empty').hidden = probs.length > 0;
-  $('loss-value').textContent = LEARNING_CURVE[read].toFixed(1);
+  $('loss-value').textContent = fmt(LEARNING_CURVE[read], 1);
 
   const last = LEARNING_CURVE.length - 1;
   const { x, y } = chartScale(0, last, LEARNING_CURVE[0]);
@@ -119,7 +84,7 @@ function renderReading() {
     svgNode('line', { class: 'baseline', x1: x(0), x2: x(last), y1: y(0), y2: y(0) }),
     svgNode('polyline', { class: 'curve', points }),
     svgNode('circle', { class: 'marker-dot', cx: x(read), cy: y(LEARNING_CURVE[read]), r: 6 }),
-    ...chartLabels('nothing read', `all ${last} sentences read`),
+    ...chartLabels(t('reading.chartStart'), t('reading.chartEnd', { n: last })),
   );
 }
 
@@ -141,21 +106,21 @@ function renderDescent() {
     svgNode('polyline', { class: 'curve faint', points: curve }),
     ...trail.map((value) => dot(value, { class: 'trail-dot', r: 3 })),
     dot(weight, { class: 'marker-dot', r: 6 }),
-    ...chartLabels('weight too low', 'weight too high'),
+    ...chartLabels(t('descent.low'), t('descent.high')),
   );
 
   $('descent-rates').replaceChildren(...segmentButtons(
-    DESCENT_RATES.map(({ label, rate: value }) => ({ label, value })),
+    DESCENT_RATES.map((value, i) => ({ label: STRINGS.descent.rates[i], value })),
     (value) => Number(value) === rate,
   ));
 
   const loss = lossOfWeight(weight);
   const offChart = Math.abs(weight - DESCENT_TARGET) > DESCENT_RANGE;
-  let comment = '';
-  if (offChart) comment = ' Off the chart: every step now overshoots further.';
-  else if (loss < DESCENT_SETTLED) comment = ' At the bottom: more steps change almost nothing.';
-  const position = trail.length ? `Step ${trail.length}` : 'Start';
-  $('descent-stat').textContent = `${position}: weight ${weight.toFixed(2)}, loss ${loss.toFixed(2)}.${comment}`;
+  let key = 'descent.stat';
+  if (offChart) key = 'descent.statOffChart';
+  else if (loss < DESCENT_SETTLED) key = 'descent.statSettled';
+  const position = trail.length ? t('descent.step', { n: trail.length }) : t('descent.start');
+  $('descent-stat').textContent = t(key, { position, weight: fmt(weight, 2), loss: fmt(loss, 2) });
   $('descent-step').disabled = Math.abs(weight) > DESCENT_LOST;
 }
 
@@ -168,17 +133,16 @@ function resetDescent() {
 // Step 4: post-training
 
 function renderTuning() {
-  const { prompt } = TUNING_EXAMPLE;
-  const result = training.tuned ? TUNING_EXAMPLE.tuned : TUNING_EXAMPLE.base;
+  const mode = training.tuned ? 'tuned' : 'base';
   $('tuning-mode').replaceChildren(...segmentButtons(
-    [{ label: 'Base model', value: 'base' }, { label: 'After post-training', value: 'tuned' }],
+    [{ label: t('tuning.base'), value: 'base' }, { label: t('tuning.tuned'), value: 'tuned' }],
     (value) => (value === 'tuned') === training.tuned,
   ));
   const typed = document.createElement('span');
   typed.className = 'prompt-text';
-  typed.textContent = prompt;
-  $('tuning-output').replaceChildren(typed, result.text);
-  $('tuning-stat').textContent = result.note;
+  typed.textContent = t('tuning.prompt');
+  $('tuning-output').replaceChildren(typed, t(`tuning.${mode}Text`));
+  $('tuning-stat').textContent = t(`tuning.${mode}Note`);
 }
 
 // Step 5: feedback
@@ -203,9 +167,9 @@ function renderFeedback() {
 
   const letters = training.choices.map((choice) => 'AB'[choice]).join(', ');
   if (done) {
-    $('feedback-stat').textContent = `All ${judged} judged (you preferred ${letters}). Each choice becomes a signal: make answers like the preferred one more likely.`;
+    $('feedback-stat').textContent = t('feedback.done', { n: judged, letters });
   } else {
-    $('feedback-stat').textContent = `Comparison ${judged + 1} of ${FEEDBACK_PAIRS.length}. Click the answer you prefer.`;
+    $('feedback-stat').textContent = t('feedback.next', { n: judged + 1, total: FEEDBACK_PAIRS.length });
   }
 }
 
@@ -213,13 +177,13 @@ function renderFeedback() {
 
 function renderEvaluation() {
   const rows = [
-    { label: 'Read before', sentences: TEST_SENTENCES },
-    { label: 'Never read', sentences: UNSEEN_SENTENCES },
+    { label: t('evaluation.readBefore'), sentences: TEST_SENTENCES },
+    { label: t('evaluation.neverRead'), sentences: UNSEEN_SENTENCES },
   ].map(({ label, sentences }) => ({ label, sentences, loss: lossAfterReading(COUNTS, sentences) }));
   const worst = -Math.log2(UNKNOWN_PROBABILITY);
 
-  $('eval-bars').replaceChildren(...rows.map(({ label, loss }) => barRow(label, loss / worst, loss.toFixed(1), false)));
-  $('eval-sentences').textContent = `Never read: ${rows[1].sentences.join(' ')}`;
+  $('eval-bars').replaceChildren(...rows.map(({ label, loss }) => barRow(label, loss / worst, fmt(loss, 1), false)));
+  $('eval-sentences').textContent = t('evaluation.sentences', { sentences: rows[1].sentences.join(' ') });
 }
 
 // Step 7: LoRA
@@ -228,17 +192,15 @@ function renderLora() {
   const full = LORA_TABLE_SIDE * LORA_TABLE_SIDE;
   // Two thin tables: one of side x rank, one of rank x side.
   const addOn = 2 * LORA_TABLE_SIDE * training.loraRank;
-  const count = (value) => value.toLocaleString('en');
-
   $('lora-ranks').replaceChildren(...segmentButtons(
-    LORA_RANKS.map((rank) => ({ label: `Rank ${rank}`, value: rank })),
+    LORA_RANKS.map((rank) => ({ label: t('lora.rank', { n: rank }), value: rank })),
     (value) => Number(value) === training.loraRank,
   ));
   $('lora-bars').replaceChildren(
-    barRow('Full table', 1, count(full), false),
-    barRow('Add-on', addOn / full, count(addOn), true),
+    barRow(t('lora.full'), 1, fmt(full), false),
+    barRow(t('lora.addOn'), addOn / full, fmt(addOn), true),
   );
-  $('lora-stat').textContent = `The add-on trains ${(addOn / full * 100).toFixed(1)}% as many weights as the full table.`;
+  $('lora-stat').textContent = t('lora.stat', { share: pct(addOn / full, 1) });
 }
 
 // Wiring

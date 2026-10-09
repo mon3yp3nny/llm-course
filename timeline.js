@@ -51,4 +51,4 @@ for (const event of timeline.events) {
   eventRevealObserver.observe(event);
 }
 
-setCurrentEvent(timeline.events[0]);
+if (timeline.events.length) setCurrentEvent(timeline.events[0]);

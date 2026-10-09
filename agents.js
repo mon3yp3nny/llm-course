@@ -1,59 +1,25 @@
 // Agents tab: demos for agentic systems. Uses $, renderTranscript and
 // segmentButtons from the earlier scripts, and tokenize from tokenizer.js.
+// The wording of every example is in the strings file; fixed here is what must
+// not change with the language: who acts at a station, and how a tool is called.
 
 const MS_PER_DAY = 86400000;
 
-const AUTONOMY_LEVELS = [
-  {
-    label: 'Chatbot',
-    decides: 'You, after every single answer.',
-    touches: 'Nothing. It only writes text.',
-    example: 'Asking a question and reading the reply.',
-  },
-  {
-    label: 'Assistant with tools',
-    decides: 'The model, for a few rounds. You approve anything important.',
-    touches: 'The tools you have switched on, such as search or a calculator.',
-    example: '"Find three flights for Friday and compare them."',
-  },
-  {
-    label: 'Autonomous agent',
-    decides: 'The model, for hundreds of rounds, checking in only rarely.',
-    touches: 'Files, programs and online services, within its permissions.',
-    example: '"Fix this bug and keep going until all tests pass."',
-  },
-];
+const AUTONOMY_LEVELS = STRINGS.autonomy;
 
-const HARNESS_STATIONS = [
-  { title: 'Build the input', actor: 'harness', note: 'It joins the system prompt, the tool descriptions, the conversation so far and the latest results into one text.' },
-  { title: 'Model writes', actor: 'model', note: 'It reads that text and writes either an answer or a tool request. This is the only station where the model is involved.' },
-  { title: 'Read the output', actor: 'harness', note: 'It checks what came back. A plain answer ends the loop; a tool request goes on.' },
-  { title: 'Check and run', actor: 'harness', note: 'It checks the request against its rules, asks you if needed, then runs the tool.' },
-  { title: 'Record the result', actor: 'harness', note: 'It adds the result to the conversation, and shortens older parts if the context window is filling up. Then round again.' },
-];
+// Only the second station is the model's; the rest is the harness.
+const STATION_ACTORS = ['harness', 'model', 'harness', 'harness', 'harness'];
+const HARNESS_STATIONS = STRINGS.harness.stations.map((station, i) => ({ ...station, actor: STATION_ACTORS[i] }));
 
 const MCP_SERVERS = [
-  {
-    name: 'Calendar',
-    tools: [
-      { call: 'list_events(day)', description: 'Returns the events on a given day.' },
-      { call: 'create_event(title, start, end)', description: 'Adds an event to the calendar.' },
-    ],
-  },
-  {
-    name: 'Files',
-    tools: [
-      { call: 'read_file(path)', description: 'Returns the text of a file.' },
-      { call: 'search_files(query)', description: 'Finds files whose text matches a query.' },
-    ],
-  },
-  {
-    name: 'Weather',
-    tools: [
-      { call: 'get_forecast(city, day)', description: 'Returns the weather forecast for a city.' },
-    ],
-  },
-];
+  { id: 'calendar', calls: ['list_events(day)', 'create_event(title, start, end)'] },
+  { id: 'files', calls: ['read_file(path)', 'search_files(query)'] },
+  { id: 'weather', calls: ['get_forecast(city, day)'] },
+].map(({ id, calls }) => ({
+  id,
+  name: STRINGS.mcp.servers[id].name,
+  tools: calls.map((call, i) => ({ call, description: STRINGS.mcp.servers[id].tools[i] })),
+}));
 
 // The model's lines are templates; every tool result is computed here for real.
 function buildChainSteps() {
@@ -64,15 +30,15 @@ function buildChainSteps() {
   const days = Math.round((newYear - today) / MS_PER_DAY);
   const hours = days * 24;
   return [
-    { marker: '[user]', text: 'How many hours are left in this year?', note: 'One question, but no single tool can answer it.' },
-    { marker: '[assistant]', text: 'get_date()', note: 'The model has no clock. Unless the date was put into its input, it has to ask for it.' },
-    { marker: '[tool]', text: isoDate(today), note: 'The harness runs the tool. This is the real date on your device.' },
-    { marker: '[assistant]', text: `days_between(${isoDate(today)}, ${isoDate(newYear)})`, note: 'The first result has become part of the second request.' },
-    { marker: '[tool]', text: String(days), note: 'Computed by this page.' },
-    { marker: '[assistant]', text: `calculator(${days} * 24)`, note: 'The second result feeds the third request.' },
-    { marker: '[tool]', text: String(hours), note: 'Computed by this page.' },
-    { marker: '[assistant]', text: `About ${hours.toLocaleString('en')} hours are left in this year, counted from the start of today.`, note: 'Only now does the model answer. Three tools, each depending on the one before.' },
-  ];
+    { marker: '[user]', text: t('chain.question') },
+    { marker: '[assistant]', text: 'get_date()' },
+    { marker: '[tool]', text: isoDate(today) },
+    { marker: '[assistant]', text: `days_between(${isoDate(today)}, ${isoDate(newYear)})` },
+    { marker: '[tool]', text: String(days) },
+    { marker: '[assistant]', text: `calculator(${days} * 24)` },
+    { marker: '[tool]', text: String(hours) },
+    { marker: '[assistant]', text: t('chain.answer', { hours: fmt(hours) }) },
+  ].map((step, i) => ({ ...step, note: STRINGS.chain.notes[i] }));
 }
 
 const CHAIN_STEPS = buildChainSteps();
@@ -82,7 +48,7 @@ const agents = {
   station: 0,
   round: 1,
   chainStep: 1,
-  servers: new Set([MCP_SERVERS[0].name]),
+  servers: new Set([MCP_SERVERS[0].id]),
 };
 
 // Step 1: degrees of autonomy
@@ -106,14 +72,16 @@ function renderHarness() {
     el.className = `station ${actor}`;
     el.classList.toggle('current', i === agents.station);
     const who = document.createElement('small');
-    who.textContent = actor;
+    who.textContent = t(`harness.actors.${actor}.label`);
     const name = document.createElement('strong');
-    name.textContent = `${i + 1}. ${title}`;
+    name.textContent = t('harness.tile', { n: i + 1, title });
     el.append(who, name);
     return el;
   }));
   const { actor, note } = HARNESS_STATIONS[agents.station];
-  $('station-stat').textContent = `Round ${agents.round}, station ${agents.station + 1} (the ${actor}): ${note}`;
+  $('station-stat').textContent = t('harness.stat', {
+    round: agents.round, n: agents.station + 1, actor: t(`harness.actors.${actor}.inSentence`), note,
+  });
 }
 
 // Step 3: a chain of tools
@@ -125,22 +93,21 @@ function renderChain() {
 // Step 4: MCP
 
 function renderMcp() {
-  $('mcp-servers').replaceChildren(...MCP_SERVERS.map(({ name }) => {
+  $('mcp-servers').replaceChildren(...MCP_SERVERS.map(({ id, name }) => {
     const el = document.createElement('button');
     el.type = 'button';
-    el.dataset.server = name;
+    el.dataset.server = id;
     el.textContent = name;
-    el.classList.toggle('selected', agents.servers.has(name));
-    el.setAttribute('aria-pressed', agents.servers.has(name));
+    el.classList.toggle('selected', agents.servers.has(id));
+    el.setAttribute('aria-pressed', agents.servers.has(id));
     return el;
   }));
 
-  const tools = MCP_SERVERS.filter(({ name }) => agents.servers.has(name)).flatMap(({ tools: list }) => list);
-  const lines = tools.map(({ call, description }) => `${call}: ${description}`);
-  $('mcp-output').textContent = lines.length ? lines.join('\n') : '(no tools connected)';
+  const tools = MCP_SERVERS.filter(({ id }) => agents.servers.has(id)).flatMap(({ tools: list }) => list);
+  const lines = tools.map(({ call, description }) => t('mcp.line', { call, description }));
+  $('mcp-output').textContent = lines.length ? lines.join('\n') : t('mcp.none');
   const tokens = tokenize(lines.join('\n')).length;
-  $('mcp-stat').textContent = `${tools.length} ${tools.length === 1 ? 'tool' : 'tools'} on offer. `
-    + `Their descriptions take up ${tokens} tokens of the context window before you have typed a word.`;
+  $('mcp-stat').textContent = tn('mcp.stat', tools.length, { tokens });
 }
 
 // Wiring
@@ -173,10 +140,10 @@ $('chain-reset').addEventListener('click', () => {
 });
 
 $('mcp-servers').addEventListener('click', (event) => {
-  const name = event.target.closest('button')?.dataset.server;
-  if (name === undefined) return;
-  if (agents.servers.has(name)) agents.servers.delete(name);
-  else agents.servers.add(name);
+  const id = event.target.closest('button')?.dataset.server;
+  if (id === undefined) return;
+  if (agents.servers.has(id)) agents.servers.delete(id);
+  else agents.servers.add(id);
   renderMcp();
 });
 

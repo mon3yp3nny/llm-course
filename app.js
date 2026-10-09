@@ -58,11 +58,6 @@ function showSpaces(token) {
   return token.replace(/ /g, '·').replace(/\n/g, '↵').replace(/\t/g, '→');
 }
 
-function percent(p) {
-  const value = p * 100;
-  return `${value > 0 && value < 1 ? '<1' : Math.round(value)}%`;
-}
-
 function chip(text, index, tag = 'span') {
   const el = document.createElement(tag);
   el.className = `chip c${index % TOKEN_COLORS}`;
@@ -107,14 +102,15 @@ function vectorCells(vector) {
     const cell = document.createElement('span');
     cell.className = value < 0 ? 'neg' : 'pos';
     cell.style.setProperty('--strength', `${Math.round(Math.abs(value) * 60)}%`);
-    cell.textContent = value.toFixed(2);
+    cell.textContent = fmt(value, 2);
     return cell;
   });
 }
 
 // The word map is drawn from 3D positions. In 2D the view is straight on, so
 // depth is invisible; in 3D it is tilted and turned around its vertical axis.
-const wordMap = { items: [], yaw: 0, tilt: 0, userYaw: undefined, frame: null };
+const wordMap = { items: [], yaw: 0, tilt: 0, userYaw: undefined, frame: null, visible: false };
+const stillQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
 
 function buildWordMap() {
   const svg = $('word-map');
@@ -129,14 +125,14 @@ function buildWordMap() {
 
   // The third direction, drawn as a line that only shows once the map is turned.
   wordMap.axis = { el: add(svg, 'line', { class: 'axis' }), from: depth(0), to: depth(1) };
-  for (const [label, edible, shift] of [['not edible', 0, -MAP_AXIS_LABEL_GAP], ['edible', 1, MAP_AXIS_LABEL_GAP]]) {
+  for (const [label, edible, shift] of [[t('map.notEdible'), 0, -MAP_AXIS_LABEL_GAP], [t('map.edible'), 1, MAP_AXIS_LABEL_GAP]]) {
     const el = add(svg, 'text', { class: 'group', 'text-anchor': 'middle', y: 4 }, label);
     wordMap.items.push({ el, x: MAP_CENTER.x, y: MAP_AXIS_Y, z: depth(edible) + shift, onlyIn3d: true });
   }
 
   for (const { group, x, y, words } of WORD_MAP) {
     const average = words.reduce((sum, word) => sum + word[3], 0) / words.length;
-    const label = add(svg, 'text', { class: 'group', 'text-anchor': 'middle' }, group);
+    const label = add(svg, 'text', { class: 'group', 'text-anchor': 'middle' }, t(`map.groups.${group}`));
     wordMap.items.push({ el: label, x, y, z: depth(average) });
     for (const [word, wx, wy, edible] of words) {
       const g = add(svg, 'g', { class: 'word', 'data-word': word });
@@ -185,14 +181,13 @@ function layoutWordMap() {
 }
 
 function animateWordMap(time) {
-  // Off screen there is nothing to see, so only keep the clock ticking.
-  const box = $('word-map').getBoundingClientRect();
-  if (box.bottom < 0 || box.top > window.innerHeight) {
-    wordMap.frame = requestAnimationFrame(animateWordMap);
+  // Off screen or in a hidden tab there is nothing to see: stop until the map is back.
+  if (!wordMap.visible) {
+    wordMap.frame = null;
     return;
   }
   const threeD = state.mapMode === '3d';
-  const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const still = stillQuery.matches;
   const swaying = threeD && wordMap.userYaw === undefined;
   const targetTilt = threeD ? MAP_TILT : 0;
   let targetYaw = 0;
@@ -208,7 +203,15 @@ function animateWordMap(time) {
 }
 
 function startWordMap() {
-  if (wordMap.frame === null) wordMap.frame = requestAnimationFrame(animateWordMap);
+  if (wordMap.frame === null && wordMap.visible) wordMap.frame = requestAnimationFrame(animateWordMap);
+}
+
+// The map only moves while it can be seen; coming back into view picks up where it stopped.
+function watchWordMap() {
+  new IntersectionObserver(([entry]) => {
+    wordMap.visible = entry.isIntersecting;
+    startWordMap();
+  }).observe($('word-map'));
 }
 
 function setMapMode(mode) {
@@ -243,6 +246,7 @@ function renderEmbeddings() {
   const chips = tokens.map((token, i) => {
     const el = chip(showSpaces(token), i, 'button');
     el.classList.toggle('selected', i === state.embedIndex);
+    el.setAttribute('aria-pressed', i === state.embedIndex);
     return el;
   });
   $('embed-chips').replaceChildren(...chips);
@@ -260,8 +264,8 @@ function renderEmbeddings() {
     if (hit) hits.push(el.dataset.word);
   });
   $('map-stat').textContent = hits.length
-    ? `From your prompt: ${hits.join(', ')}`
-    : 'None of your words are on this small map. Try: cat, garden, milk.';
+    ? t('map.hits', { words: hits.join(', ') })
+    : t('map.none');
 }
 
 // Step 4, optional: image patches
@@ -273,8 +277,9 @@ function renderPatches() {
     el.type = 'button';
     el.className = 'patch';
     el.dataset.patch = index;
-    el.setAttribute('aria-label', `Patch ${index + 1}`);
+    el.setAttribute('aria-label', t('patch.label', { n: index + 1 }));
     el.classList.toggle('selected', index === state.patchIndex);
+    el.setAttribute('aria-pressed', index === state.patchIndex);
     const top = Math.floor(index / perSide) * PATCH_SIZE;
     const left = (index % perSide) * PATCH_SIZE;
     for (let row = top; row < top + PATCH_SIZE; row++) {
@@ -287,7 +292,7 @@ function renderPatches() {
     return el;
   });
   $('patches').replaceChildren(...patches);
-  $('patch-label').textContent = `Patch ${state.patchIndex + 1} of ${patches.length} becomes one vector`;
+  $('patch-label').textContent = t('patch.stat', { n: state.patchIndex + 1, total: patches.length });
   $('patch-cells').replaceChildren(...vectorCells(tokenVector(`patch ${state.patchIndex}`)));
 }
 
@@ -302,9 +307,11 @@ function renderNetwork() {
     el.type = 'button';
     el.dataset.layer = n;
     el.textContent = n;
-    el.title = n === 0 ? 'Embedding, before any layer' : `Layer ${n}`;
+    el.title = n === 0 ? t('layers.embedding') : t('layers.layer', { n });
+    el.setAttribute('aria-label', el.title);
     el.classList.toggle('passed', n < layer);
     el.classList.toggle('selected', n === layer);
+    el.setAttribute('aria-pressed', n === layer);
     return el;
   });
   $('layer-stack').replaceChildren(...buttons);
@@ -315,12 +322,11 @@ function renderNetwork() {
     $('layer-cells').replaceChildren();
     return;
   }
-  const where = layer === 0
-    ? 'straight from the embedding, before any layer'
-    : `after layer ${layer} of ${LAYER_COUNT}`;
   const label = document.createElement('strong');
   label.textContent = showSpaces(token);
-  $('layer-label').replaceChildren('Vector for ', label, ` ${where}`);
+  $('layer-label').replaceChildren(...(layer === 0
+    ? tNodes('layers.vectorAtStart', { token: label })
+    : tNodes('layers.vectorAfter', { token: label, layer, total: LAYER_COUNT })));
   $('layer-cells').replaceChildren(...vectorCells(layerVector(tokens, embedIndex, layer)));
 }
 
@@ -332,8 +338,9 @@ function renderQuantization() {
     const el = document.createElement('button');
     el.type = 'button';
     el.dataset.bits = option;
-    el.textContent = `${option} bits`;
+    el.textContent = t('units.bits', { n: option });
     el.classList.toggle('selected', option === bits);
+    el.setAttribute('aria-pressed', option === bits);
     return el;
   }));
 
@@ -341,22 +348,25 @@ function renderQuantization() {
   const error = stored.reduce((sum, value, i) => sum + Math.abs(value - EXAMPLE_WEIGHTS[i]), 0) / stored.length;
   $('weights-original').replaceChildren(...vectorCells(EXAMPLE_WEIGHTS));
   $('weights-stored').replaceChildren(...vectorCells(stored));
-  $('quant-label').textContent = `Stored with ${bits} bits: each weight is one of ${(2 ** bits).toLocaleString('en')} allowed values`;
-  $('quant-error').textContent = `Average rounding error: ${error < 0.001 ? 'less than 0.001' : error.toFixed(3)}`;
+  $('quant-label').textContent = t('quantization.label', { bits, values: fmt(2 ** bits) });
+  $('quant-error').textContent = error < 0.001
+    ? t('quantization.errorTiny', { limit: fmt(0.001, 3) })
+    : t('quantization.error', { error: fmt(error, 3) });
 
   const largest = modelSizeGb(BIT_OPTIONS[0]);
   $('size-bars').replaceChildren(...BIT_OPTIONS.map((option) => (
-    barRow(`${option} bits`, modelSizeGb(option) / largest, `${modelSizeGb(option)} GB`, option === bits)
+    barRow(t('units.bits', { n: option }), modelSizeGb(option) / largest, t('units.gb', { n: fmt(modelSizeGb(option)) }), option === bits)
   )));
 }
 
 // Step 5, optional: test-time training
 
+// The line above the weights before any step is the caption of the row above it, as written in the page.
+const UNTRAINED_LABEL = $('weights-original').previousElementSibling?.textContent ?? '';
+
 function renderTestTimeTraining() {
   const steps = state.trainingSteps;
-  $('ttt-label').textContent = steps === 0
-    ? 'Eight example weights, as trained'
-    : `The same weights after ${steps} training ${steps === 1 ? 'step' : 'steps'} on this request`;
+  $('ttt-label').textContent = steps === 0 ? UNTRAINED_LABEL : tn('testTime.after', steps);
   $('ttt-cells').replaceChildren(...vectorCells(trainedWeights(EXAMPLE_WEIGHTS, steps)));
   $('ttt-step').disabled = steps >= MAX_TRAINING_STEPS;
 }
@@ -371,17 +381,18 @@ function renderAttentionRow(chipsId, statId, tokens, index, weights) {
     const el = chip(showSpaces(token), i, 'button');
     el.className = 'chip weighted';
     el.classList.toggle('selected', i === index);
+    el.setAttribute('aria-pressed', i === index);
     if (i > index) {
       el.classList.add('hidden-token');
       return withCaption(el, '–');
     }
     if (weights[i] > weights[strongest]) strongest = i;
     el.style.setProperty('--shade', `${Math.round((weights[i] / maxWeight) * MAX_SHADE)}%`);
-    return withCaption(el, percent(weights[i]));
+    return withCaption(el, pct(weights[i]));
   });
   $(chipsId).replaceChildren(...chips);
   $(statId).textContent = tokens.length
-    ? `“${showSpaces(tokens[index])}” draws most from “${showSpaces(tokens[strongest])}” (${percent(weights[strongest])}).`
+    ? t('attention.stat', { from: showSpaces(tokens[index]), to: showSpaces(tokens[strongest]), share: pct(weights[strongest]) })
     : '';
 }
 
@@ -403,6 +414,7 @@ function renderExperts() {
   $('moe-chips').replaceChildren(...tokens.map((token, i) => {
     const el = chip(showSpaces(token), i, 'button');
     el.classList.toggle('selected', i === expertIndex);
+    el.setAttribute('aria-pressed', i === expertIndex);
     return el;
   }));
 
@@ -417,12 +429,11 @@ function renderExperts() {
   $('experts').replaceChildren(...scores.map((score, i) => {
     const el = document.createElement('span');
     el.classList.toggle('active', active.includes(i));
-    el.textContent = `E${i + 1}`;
-    return withCaption(el, percent(score));
+    el.textContent = t('experts.tile', { n: i + 1 });
+    return withCaption(el, pct(score));
   }));
-  const names = active.map((i) => i + 1).sort((a, b) => a - b).join(' and ');
-  $('moe-stat').textContent = `The router sends “${showSpaces(token)}” to experts ${names}. `
-    + `The other ${EXPERT_COUNT - ACTIVE_EXPERTS} do no work for this token.`;
+  const names = listAnd(active.map((i) => i + 1).sort((a, b) => a - b));
+  $('moe-stat').textContent = t('experts.stat', { token: showSpaces(token), names, rest: EXPERT_COUNT - ACTIVE_EXPERTS });
 }
 
 // Steps 7 and 8
@@ -431,7 +442,7 @@ function barRow(labelText, fraction, valueText, picked) {
   const row = document.createElement('div');
   row.className = 'bar-row';
   row.classList.toggle('picked', picked);
-  row.title = `${labelText}: ${valueText}`;
+  row.title = t('bars.title', { label: labelText, value: valueText });
 
   const label = document.createElement('span');
   label.className = 'bar-label';
@@ -452,14 +463,15 @@ function barRow(labelText, fraction, valueText, picked) {
 
 function renderBars(container, probs, pickedToken) {
   container.replaceChildren(...probs.slice(0, TOP_CANDIDATES).map(({ token, p }) => (
-    barRow(showSpaces(token), p, percent(p), token === pickedToken)
+    barRow(showSpaces(token), p, pct(p), token === pickedToken)
   )));
 }
 
-function restShare(probs) {
+// What the candidates below the shown ones hold together, as a sentence.
+function restShare(key, probs) {
   const rest = probs.slice(TOP_CANDIDATES);
   const share = rest.reduce((sum, entry) => sum + entry.p, 0);
-  return `${rest.length} other tokens share the remaining ${percent(share)}.`;
+  return tn(key, rest.length, { share: pct(share) });
 }
 
 function renderPrediction() {
@@ -471,14 +483,14 @@ function renderPrediction() {
   blank.textContent = '?';
   $('predict-context').replaceChildren((tokens.length > CONTEXT_TOKENS ? '…' : '') + tail + ' ', blank);
   renderBars($('predict-bars'), probs);
-  $('predict-stat').textContent = restShare(probs);
+  $('predict-stat').textContent = restShare('prediction.rest', probs);
 }
 
 function renderSampling(pickedToken) {
-  $('temperature-value').textContent = temperature().toFixed(1);
+  $('temperature-value').textContent = fmt(temperature(), 1);
   const probs = applyTemperature(nextTokenProbs(state.tokens), temperature());
   renderBars($('sample-bars'), probs, pickedToken);
-  $('sample-stat').textContent = `${restShare(probs)} They hold tickets too.`;
+  $('sample-stat').textContent = restShare('sampling.rest', probs);
 
   const tally = [...state.picks].sort((a, b) => b[1] - a[1]).map(([token, count], i) => {
     const el = document.createElement('span');
@@ -490,7 +502,7 @@ function renderSampling(pickedToken) {
   const shown = probs.slice(0, TOP_CANDIDATES).some(({ token }) => token === pickedToken);
   $('pick-result').textContent = pickedToken === undefined
     ? ''
-    : `Picked “${showSpaces(pickedToken)}”${shown ? '' : ', one of the tokens not shown'}`;
+    : t(shown ? 'sampling.picked' : 'sampling.pickedUnseen', { token: showSpaces(pickedToken) });
 }
 
 function pickToken() {
@@ -500,6 +512,9 @@ function pickToken() {
 }
 
 // Step 9
+
+// The button's resting label is the one written in the page.
+const GENERATE_LABEL = $('generate').textContent;
 
 function renderLoop() {
   const prompt = document.createElement('span');
@@ -512,11 +527,9 @@ function renderLoop() {
     return el;
   });
   $('loop-output').replaceChildren(prompt, ...generated);
-  $('generate').textContent = state.timer ? 'Stop' : 'Generate';
+  $('generate').textContent = state.timer ? t('loop.stop') : GENERATE_LABEL;
   const count = state.generated.length;
-  $('loop-stat').textContent = count
-    ? `${count} tokens added, ${count} passes through the model.`
-    : '';
+  $('loop-stat').textContent = count ? tn('loop.stat', count) : '';
 }
 
 function stopGenerating() {
@@ -557,7 +570,7 @@ function renderRetrieval() {
     const text = document.createElement('span');
     text.textContent = result.text;
     const score = document.createElement('small');
-    score.textContent = `${result.score} shared ${result.score === 1 ? 'word' : 'words'}`;
+    score.textContent = tn('retrieval.score', result.score);
     row.append(text, score);
     return row;
   }));
@@ -566,12 +579,12 @@ function renderRetrieval() {
   prompt.className = 'prompt-text';
   prompt.textContent = promptInput.value;
   if (!found) {
-    $('rag-output').replaceChildren(prompt, '\n\n(Nothing in the library fits, so the prompt goes in unchanged.)');
+    $('rag-output').replaceChildren(prompt, `\n\n${t('retrieval.nothing')}`);
     return;
   }
   const marker = document.createElement('span');
   marker.className = 'marker';
-  marker.textContent = 'Use this information to answer:';
+  marker.textContent = LIBRARY_MARKER;
   $('rag-output').replaceChildren(marker, `\n${found.text}\n\n`, prompt);
 }
 
@@ -579,12 +592,13 @@ function renderRetrieval() {
 
 const AGENT_FACTORS = [1234, 5678];
 const AGENT_PRODUCT = AGENT_FACTORS[0] * AGENT_FACTORS[1];
+// The markers and the tool call are written as real systems write them, in every language.
 const AGENT_STEPS = [
-  { marker: '[user]', text: `What is ${AGENT_FACTORS.join(' × ')}?`, note: 'The question arrives as text, like any prompt.' },
-  { marker: '[assistant]', text: `calculator(${AGENT_FACTORS.join(' * ')})`, note: 'The model does not guess. It writes a request for the calculator tool.' },
-  { marker: '[tool]', text: String(AGENT_PRODUCT), note: 'Ordinary software runs the calculator and pastes the result into the text.' },
-  { marker: '[assistant]', text: `${AGENT_FACTORS.join(' × ')} is ${AGENT_PRODUCT.toLocaleString('en')}.`, note: 'The loop continues: with the result in its context window, the model writes the answer.' },
-];
+  { marker: '[user]', text: t('agent.question', { factors: AGENT_FACTORS.join(' × ') }) },
+  { marker: '[assistant]', text: `calculator(${AGENT_FACTORS.join(' * ')})` },
+  { marker: '[tool]', text: String(AGENT_PRODUCT) },
+  { marker: '[assistant]', text: t('agent.answer', { factors: AGENT_FACTORS.join(' × '), product: fmt(AGENT_PRODUCT) }) },
+].map((step, i) => ({ ...step, note: STRINGS.agent.notes[i] }));
 
 // Shows the first `shown` lines of a hand-stepped exchange, with a note on the latest one.
 function renderTranscript(steps, shown, outputId, statId, nextId) {
@@ -595,7 +609,7 @@ function renderTranscript(steps, shown, outputId, statId, nextId) {
     label.textContent = marker;
     return [i ? '\n' : '', label, ` ${text}`];
   }));
-  $(statId).textContent = `Step ${shown} of ${steps.length}: ${lines[lines.length - 1].note}`;
+  $(statId).textContent = t('transcript.stat', { n: shown, total: steps.length, note: lines[lines.length - 1].note });
   $(nextId).disabled = shown >= steps.length;
 }
 
@@ -638,25 +652,25 @@ function conversationCost(turns) {
 function renderTokenCost() {
   const turns = state.turns;
   const { input, billedWithCache, inputCompacted, output } = conversationCost(turns);
-  const count = (value) => Math.round(value).toLocaleString('en');
+  const count = (value) => fmt(Math.round(value));
 
   $('turns-count').textContent = turns;
   $('io-bars').replaceChildren(
-    barRow('Input', 1, count(input), false),
-    barRow('Cached', billedWithCache / input, count(billedWithCache), false),
-    barRow('Compacted', inputCompacted / input, count(inputCompacted), false),
-    barRow('Output', output / input, count(output), false),
+    barRow(t('cost.input'), 1, count(input), false),
+    barRow(t('cost.cached'), billedWithCache / input, count(billedWithCache), false),
+    barRow(t('cost.compacted'), inputCompacted / input, count(inputCompacted), false),
+    barRow(t('cost.output'), output / input, count(output), false),
   );
-  $('io-stat').textContent = `After ${turns} ${turns === 1 ? 'turn' : 'turns'} the model has read ${count(input)} tokens `
-    + `and written ${count(output)}. With caching the reading is billed like ${count(billedWithCache)} tokens. `
-    + `With compaction only ${count(inputCompacted)} are read at all.`;
+  $('io-stat').textContent = tn('cost.stat', turns, {
+    input: count(input), output: count(output), cached: count(billedWithCache), compacted: count(inputCompacted),
+  });
 }
 
 // Resource meters: a step lists its demand as data-load="cpu,gpu,memory", each from 0 to 3,
 // and the reason for each level as data-cpu, data-gpu and data-memory, shown in a tooltip.
 
-const LOAD_NAMES = ['CPU', 'GPU', 'Memory'];
-const LOAD_WORDS = ['hardly used', 'low', 'medium', 'high'];
+// In the order of data-load; each is also the name of the attribute that holds its reason.
+const LOAD_KINDS = ['cpu', 'gpu', 'memory'];
 const LOAD_MAX = 3;
 
 function buildLoadMeters() {
@@ -668,10 +682,15 @@ function buildLoadMeters() {
       const meter = document.createElement('span');
       meter.className = 'meter';
       meter.tabIndex = 0;
-      meter.dataset.tipTitle = `${LOAD_NAMES[i]}: ${LOAD_WORDS[level]}`;
-      meter.dataset.tip = el.dataset[LOAD_NAMES[i].toLowerCase()];
+      // The level is drawn as dots; a screen reader gets it in words.
+      meter.setAttribute('role', 'img');
+      const name = t(`load.names.${LOAD_KINDS[i]}`);
+      const title = t('load.title', { name, level: STRINGS.load.levels[level] });
+      meter.setAttribute('aria-label', title);
+      meter.dataset.tipTitle = title;
+      meter.dataset.tip = el.dataset[LOAD_KINDS[i]];
       meter.setAttribute('aria-describedby', 'tooltip');
-      meter.append(LOAD_NAMES[i]);
+      meter.append(name);
       for (let pip = 1; pip <= LOAD_MAX; pip++) {
         const dot = document.createElement('i');
         dot.classList.toggle('on', pip <= Number(level));
@@ -688,16 +707,18 @@ function buildLoadMeters() {
 function renderClassifier() {
   const probs = topicProbs(state.tokens);
   $('classify-input').textContent = promptInput.value;
-  $('classify-bars').replaceChildren(...probs.map(({ choice, p }) => barRow(choice, p, percent(p), false)));
+  const name = (choice) => t(`map.groups.${choice}`);
+  $('classify-bars').replaceChildren(...probs.map(({ choice, p }) => barRow(name(choice), p, pct(p), false)));
 
   const top = probs.reduce((best, entry) => (entry.p > best.p ? entry : best));
   const tied = probs.filter((entry) => entry.p === top.p).length;
   $('classify-stat').textContent = tied === probs.length
-    ? 'No evidence for any answer: all are equally likely.'
+    ? t('classifier.none')
     : tied > 1
-      ? `${tied} answers are tied at ${percent(top.p)}.`
-      : `Most likely: ${top.choice} (${percent(top.p)}).`;
-  const fields = probs.map(({ choice, p }) => `"${choice.toLowerCase()}": ${p.toFixed(2)}`);
+      ? tn('classifier.tied', tied, { share: pct(top.p) })
+      : t('classifier.top', { choice: name(top.choice), share: pct(top.p) });
+  // What a program would receive: the answers by their fixed names, numbers with a decimal point.
+  const fields = probs.map(({ choice, p }) => `"${choice}": ${p.toFixed(2)}`);
   $('classify-output').textContent = `{ ${fields.join(', ')} }`;
 }
 
@@ -705,46 +726,74 @@ function renderClassifier() {
 // first plain mention of a glossary term explain themselves on hover or focus.
 
 function termKey(text) {
-  return text.trim().toLowerCase().replace(/\s+/g, ' ').replace(/s$/, '');
+  return text.trim().toLocaleLowerCase(LOCALE).replace(/\s+/g, ' ');
 }
 
+// A word without each of the given endings it ends in. A doubled letter is not
+// an ending: "loss" is not "los" with an s.
+function withoutEndings(word, endings) {
+  return endings
+    .filter((ending) => word.endsWith(ending))
+    .map((ending) => word.slice(0, -ending.length))
+    .filter((stem, i, stems) => stem.length >= 3 && stem.at(-1) !== word.at(-1) && stems.indexOf(stem) === i);
+}
+
+// The glossary, and every spelling under which the text may mention an entry:
+// the term itself, further spellings its dt lists in data-also (inflected forms,
+// for example), and the term without an ending the language lets a mention drop.
 function glossaryEntries() {
   const entries = new Map();
+  const spellings = new Map();
   document.querySelectorAll('.glossary dt').forEach((dt) => {
     const dd = dt.nextElementSibling.cloneNode(true);
     dd.querySelector('a')?.remove();
-    entries.set(termKey(dt.textContent), { term: dt.textContent, definition: dd.textContent.trim() });
+    const key = termKey(dt.textContent);
+    entries.set(key, { term: dt.textContent, definition: dd.textContent.trim() });
+    const also = (dt.dataset.also ?? '').split(',').map(termKey).filter(Boolean);
+    for (const spelling of [key, ...withoutEndings(key, STRINGS.terms.dropped), ...also]) {
+      if (!spellings.has(spelling)) spellings.set(spelling, key);
+    }
   });
-  return entries;
+  // The entry a piece of text names, as written or with an ending a mention may add.
+  const find = (text) => {
+    const spelling = termKey(text);
+    if (spellings.has(spelling)) return spellings.get(spelling);
+    const stem = withoutEndings(spelling, STRINGS.terms.endings).find((candidate) => spellings.has(candidate));
+    return spellings.get(stem);
+  };
+  return { entries, spellings, find };
 }
 
 function addTermTooltips() {
-  const entries = glossaryEntries();
+  const { entries, spellings, find } = glossaryEntries();
+  const escape = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   // Longest first, so "test-time training" wins over "training". Names such
-  // as "GPT-2" are left alone.
-  const alternatives = [...entries.keys()]
+  // as "GPT-2" are left alone. A term must stand on its own: no letter or digit
+  // directly before or after it, accented letters and umlauts included.
+  const alternatives = [...spellings.keys()]
     .sort((a, b) => b.length - a.length)
-    .map((key) => key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/ /g, '\\s+'));
-  const pattern = new RegExp(`\\b(?:${alternatives.join('|')})s?\\b(?!-\\d)`, 'gi');
+    .map((spelling) => escape(spelling).replace(/ /g, '\\s+'));
+  const endings = STRINGS.terms.endings.map(escape).join('|');
+  const pattern = new RegExp(`(?<![\\p{L}\\p{N}])(?:${alternatives.join('|')})(?:${endings})?(?![\\p{L}\\p{N}])(?!-\\d)`, 'giu');
 
-  const makeTerm = (el, key) => {
-    el.tabIndex = 0;
+  // Introduced terms are tab stops. Plain mentions are not: there are hundreds,
+  // and each is explained in the glossary as well.
+  const makeTerm = (el, key, focusable = true) => {
+    if (focusable) el.tabIndex = 0;
     el.dataset.term = key;
     el.setAttribute('aria-describedby', 'tooltip');
   };
-  // Links to a source carry their own summary in data-tip.
-  document.querySelectorAll('a[data-tip]').forEach((el) => el.setAttribute('aria-describedby', 'tooltip'));
   // A dfn can name its glossary entry with data-term when its text differs.
   document.querySelectorAll('.step dfn, .alt-path dfn').forEach((dfn) => {
-    const key = termKey(dfn.dataset.term ?? dfn.textContent);
-    if (entries.has(key)) makeTerm(dfn, key);
+    const key = find(dfn.dataset.term ?? dfn.textContent);
+    if (key) makeTerm(dfn, key);
   });
 
   document.querySelectorAll('.step, .alt-path').forEach((section) => {
     const seen = new Set();
     const walker = document.createTreeWalker(section, NodeFilter.SHOW_TEXT, {
       acceptNode: ({ parentElement }) => (
-        parentElement.closest('p, li, td') && !parentElement.closest('.demo, .step-no, .origins-title, .meter, [data-tip]')
+        parentElement.closest('p, li, td') && !parentElement.closest('.demo, .step-no, .origins-title, .meter, .source')
           ? NodeFilter.FILTER_ACCEPT
           : NodeFilter.FILTER_REJECT
       ),
@@ -757,18 +806,18 @@ function addTermTooltips() {
       // An introduced term has its own tooltip, so plain mentions nearby need none.
       const dfn = node.parentElement.closest('dfn');
       if (dfn) {
-        seen.add(dfn.dataset.term ?? termKey(text));
+        seen.add(dfn.dataset.term ?? find(text));
         continue;
       }
       const parts = [];
       let end = 0;
       for (const match of text.matchAll(pattern)) {
-        const key = termKey(match[0]);
-        if (seen.has(key) || !entries.has(key)) continue;
+        const key = find(match[0]);
+        if (!key || seen.has(key)) continue;
         seen.add(key);
         const el = document.createElement('span');
         el.className = 'term';
-        makeTerm(el, key);
+        makeTerm(el, key, false);
         el.textContent = match[0];
         parts.push(text.slice(end, match.index), el);
         end = match.index + match[0].length;
@@ -784,6 +833,9 @@ function addTermTooltips() {
   tooltip.hidden = true;
   document.body.append(tooltip);
 
+  // The link to a paper whose summary a first click has opened.
+  let opened = null;
+
   const show = (target) => {
     // A glossary term looks its text up; anything else carries its own in data-tip.
     const { term, definition } = target.dataset.tip
@@ -792,6 +844,11 @@ function addTermTooltips() {
     const name = document.createElement('strong');
     name.textContent = term;
     tooltip.replaceChildren(name, definition);
+    if (target.matches('.source')) {
+      const hint = document.createElement('em');
+      hint.textContent = t(target === opened ? 'tooltip.paperOpen' : 'tooltip.paperFirst');
+      tooltip.append(hint);
+    }
     tooltip.hidden = false;
 
     const rect = target.getBoundingClientRect();
@@ -802,7 +859,10 @@ function addTermTooltips() {
     tooltip.style.left = `${left + window.scrollX}px`;
     tooltip.style.top = `${top + window.scrollY}px`;
   };
-  const hide = () => { tooltip.hidden = true; };
+  const hide = () => {
+    tooltip.hidden = true;
+    opened = null;
+  };
   const onEnter = (event) => {
     const target = event.target.closest?.('[data-term], [data-tip]');
     if (target) show(target);
@@ -810,11 +870,28 @@ function addTermTooltips() {
   const onLeave = (event) => {
     if (event.target.closest?.('[data-term], [data-tip]')) hide();
   };
+  // A link to a paper shows its summary on the first click and opens on the
+  // second, so the summary can be read on a touch screen too.
+  const onClick = (event) => {
+    const source = event.target.closest?.('a.source[data-tip]');
+    if (!source) {
+      if (opened) hide();
+      return;
+    }
+    if (source === opened || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+      hide();
+      return;
+    }
+    event.preventDefault();
+    opened = source;
+    show(source);
+  };
 
   document.addEventListener('mouseover', onEnter);
   document.addEventListener('mouseout', onLeave);
   document.addEventListener('focusin', onEnter);
   document.addEventListener('focusout', onLeave);
+  document.addEventListener('click', onClick);
   document.addEventListener('keydown', (event) => {
     if (event.key === 'Escape') hide();
   });
@@ -851,6 +928,19 @@ function onChipClick(containerId, key, renderStep) {
   });
 }
 
+// A demo redraws its buttons when one is pressed, which would drop the keyboard
+// focus; this hands it to the button that replaced the pressed one.
+document.addEventListener('click', (event) => {
+  const button = event.target.closest?.('.chips button, .segments button, .patch');
+  if (!button) return;
+  const group = button.parentElement;
+  const index = [...group.children].indexOf(button);
+  // Noted before the redraw, acted on after it.
+  setTimeout(() => {
+    if (!button.isConnected) group.children[index]?.focus();
+  });
+}, true);
+
 // Hovering a token of the prompt highlights the same token in every step.
 // Demos with their own example text (.own-tokens) are left out.
 document.querySelector('main').addEventListener('mouseover', (event) => {
@@ -866,19 +956,27 @@ document.querySelector('main').addEventListener('mouseover', (event) => {
 const views = [...document.querySelectorAll('.view')];
 
 // Side rail: one dot per step of the current view, the one in sight is marked.
+// The glossary sits below every view, so its dot, a G, closes every rail.
 const rail = document.querySelector('.rail');
+const glossary = document.getElementById('glossary');
 const railLinks = new Map();
+function railLink(target, mark, title) {
+  const link = document.createElement('a');
+  link.href = `#${target.id}`;
+  link.innerHTML = `<span class="dot">${mark}</span><span class="label"></span>`;
+  link.querySelector('.label').textContent = title;
+  railLinks.set(target, link);
+  return link;
+}
 function buildRail() {
   railLinks.clear();
   const steps = views.find((view) => !view.hidden).querySelectorAll('.step');
-  rail.replaceChildren(...[...steps].map((step, i) => {
-    const link = document.createElement('a');
-    link.href = `#${step.id}`;
-    link.innerHTML = `<span class="dot">${i + 1}</span><span class="label"></span>`;
-    link.querySelector('.label').textContent = step.dataset.title;
-    railLinks.set(step, link);
-    return link;
-  }));
+  const glossaryLink = railLink(glossary, t('rail.glossaryMark'), t('glossary'));
+  glossaryLink.classList.add('to-glossary');
+  rail.replaceChildren(
+    ...[...steps].map((step, i) => railLink(step, i + 1, step.dataset.title)),
+    glossaryLink,
+  );
 }
 
 const currentObserver = new IntersectionObserver((entries) => {
@@ -896,6 +994,7 @@ document.querySelectorAll('.step').forEach((step) => {
   currentObserver.observe(step);
   revealObserver.observe(step);
 });
+currentObserver.observe(glossary);
 
 function showView(id) {
   views.forEach((view) => { view.hidden = view.id !== id; });
@@ -903,11 +1002,23 @@ function showView(id) {
     const selected = tab.getAttribute('href') === `#${id}`;
     tab.classList.toggle('selected', selected);
     tab.setAttribute('aria-current', selected ? 'page' : 'false');
-    // On a narrow screen the pill scrolls; keep the chosen tab in sight.
-    if (selected) tab.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    // On a narrow screen the pill scrolls; keep the chosen tab in sight, clear of the faded ends.
+    if (selected) tab.scrollIntoView({ block: 'nearest', inline: 'center' });
   });
   buildRail();
+  // For parts that belong to one tab, such as a narration that is playing.
+  document.dispatchEvent(new CustomEvent('viewchange'));
 }
+
+// Marks the sides of the tab pill on which more tabs are scrolled out of sight.
+const tabBar = document.querySelector('.tabs');
+function markTabOverflow() {
+  tabBar.classList.toggle('more-left', tabBar.scrollLeft > 4);
+  tabBar.classList.toggle('more-right', tabBar.scrollLeft + tabBar.clientWidth < tabBar.scrollWidth - 4);
+}
+tabBar.addEventListener('scroll', markTabOverflow, { passive: true });
+window.addEventListener('resize', markTabOverflow);
+markTabOverflow();
 
 // Goes to an in-page target, switching to the other view first if it lives there.
 function route(hash) {
@@ -924,10 +1035,34 @@ function route(hash) {
 // Links change the address, and the address change does the routing. This also
 // works when the page is opened as a local file, where pushState is refused.
 window.addEventListener('hashchange', () => route(location.hash || '#view-use'));
+// The later scripts fill their demos after the first routing, which moves what
+// lies below them; once everything has loaded, go to the place again.
+window.addEventListener('load', () => route(location.hash));
 // A link to the address already showing changes nothing, so route it by hand.
 document.addEventListener('click', (event) => {
   const href = event.target.closest('a[href^="#"]')?.getAttribute('href');
   if (href && href === location.hash) route(href);
+});
+// The language links lead to the same place in the other language, so they
+// carry the current #... along. Opened from disk they need the file name they
+// are written with; on a web server the folder alone gives the shorter address.
+const languageLinks = [...document.querySelectorAll('.languages a')].map((link) => {
+  const page = link.getAttribute('href');
+  return { link, page: location.protocol === 'file:' ? page : page.replace(/index\.html$/, '') || './' };
+});
+function aimLanguageLinks() {
+  for (const { link, page } of languageLinks) link.href = page + location.hash;
+}
+window.addEventListener('hashchange', aimLanguageLinks);
+// Search can change the address without a hashchange, so look again just before a link is used.
+document.querySelector('.languages')?.addEventListener('pointerdown', aimLanguageLinks);
+document.querySelector('.languages')?.addEventListener('focusin', aimLanguageLinks);
+aimLanguageLinks();
+
+// The skip link moves the focus past the tabs without changing the address.
+document.querySelector('.skip')?.addEventListener('click', (event) => {
+  event.preventDefault();
+  document.querySelector('main').focus();
 });
 
 onChipClick('embed-chips', 'embedIndex', () => {
@@ -1021,7 +1156,7 @@ views.forEach((view) => {
   if (!button) return;
   const extras = [...view.querySelectorAll('details.extra')];
   const allOpen = () => extras.every((el) => el.open);
-  const label = () => { button.textContent = allOpen() ? 'Close all' : `Open all ${extras.length}`; };
+  const label = () => { button.textContent = allOpen() ? t('extras.closeAll') : t('extras.openAll', { n: extras.length }); };
   button.addEventListener('click', () => {
     const open = !allOpen();
     extras.forEach((el) => { el.open = open; });
@@ -1031,7 +1166,15 @@ views.forEach((view) => {
   label();
 });
 
+// Lines that report what a button press did are read out by screen readers.
+const BUTTON_RESULTS = [
+  'pick-result', 'agent-stat', 'chain-stat', 'station-stat', 'robot-stat', 'descent-stat', 'ttt-label', 'feedback-stat',
+  'neural-stat', 'patch-label', 'example-stat', 'quant-label', 'tuning-stat', 'lora-stat', 'mcp-stat', 'hw-size',
+];
+for (const id of BUTTON_RESULTS) $(id).setAttribute('role', 'status');
+
 buildWordMap();
+watchWordMap();
 wireNeuralNet();
 buildLoadMeters();
 addTermTooltips();

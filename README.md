@@ -4,7 +4,9 @@ An interactive, one-page guide to how large language models work: from the
 first character of a prompt to the finished answer, then how models are
 trained, how agents are built around them, and what remains open.
 
-Live: https://mon3yp3nny.github.io/llm-course/
+Live: https://mon3yp3nny.github.io/llm-course/ (English), with German under
+[`de/`](https://mon3yp3nny.github.io/llm-course/de/) and French under
+[`fr/`](https://mon3yp3nny.github.io/llm-course/fr/)
 
 ## Please note
 
@@ -21,14 +23,51 @@ dependencies: open `index.html` in a browser.
 
 ## Files
 
-- `index.html`: all the text, in nine tabs (Using, Training, Agents, Hardware, Robots, Models, Timeline, FAQ, Quotes) and a glossary
+- `index.html`, `de/index.html`, `fr/index.html`: all the text, one page per language, in nine tabs (Using, Training, Agents, Hardware, Robots, Models, Timeline, FAQ, Quotes) and a glossary
+- `i18n/en.js`, `i18n/de.js`, `i18n/fr.js`: every text the scripts put on the page, one file per language; `i18n.js` holds the helpers that fill them in and format numbers
 - `style.css`: the styling, including dark mode and phone layout
 - `tokenizer.js`, `model.js`: the toy tokenizer and toy model behind the demos
 - `app.js`: the demos of the first tab, the tabs, the tooltips and the step dots
 - `search.js`: the search over the whole page
+- `papers.js`: the sources the guide links to (research papers, a few essays, announcements and articles), each with a short summary
 - `network.js`, `training.js`, `agents.js`, `hardware.js`, `robots.js`, `timeline.js`: the neural network drawing and the demos of the other tabs
-- `audio.js`, `audio/`: the narration player and its recordings
-- `tools/generate_voice.py`: regenerates the recordings with Google Cloud Text-to-Speech after the text has changed
+- `audio.js`, `audio/en/`, `audio/de/`, `audio/fr/`: the narration player and the recordings of each language, with a `manifest.js` that lists them
+- `tools/generate_voice.py`: regenerates the recordings of a language with Google Cloud Text-to-Speech after its text has changed (`--lang en|de|fr|all`, `--dry-run` shows what would be spoken); how names, abbreviations and numbers are said is set in the tables at its top
+- `tools/check_voice.py`: has the recordings transcribed by Google Cloud Speech-to-Text and prints where that differs from the text, to find mispronounced words
+- `tools/check_i18n.py`: checks that the three languages still fit together
+
+## Languages
+
+Each language is a complete page of its own. The three pages share the
+stylesheet and the scripts, so they must be the same in everything but the
+wording:
+
+- The same elements in the same order, with the same `id`, `class` and
+  `data-*` names. Links, the address after `#`, the search, the narration
+  and the language switch all rely on them. Only the text between the tags
+  and the wording inside `title`, `aria-label`, `placeholder`, `data-title`,
+  `data-label`, `data-cpu`, `data-gpu`, `data-memory` and `data-empty` is
+  translated.
+- A page loads its own `i18n/<language>.js` and `audio/<language>/manifest.js`
+  and nothing else of its own. The three strings files have the same entries
+  with the same `{blanks}`.
+- The toy model stays English everywhere: its sentences, the word map, the
+  example prompt and the little library are data in `model.js`, and the text
+  around them quotes their numbers. Only labels and explanations are
+  translated.
+- The glossary is sorted by each language's own alphabet. A term introduced
+  in the text (`<dfn>`) is matched to its glossary entry by its wording; where
+  the wording differs, as with an inflected form, `data-term` on the `dfn`
+  names the entry, or `data-also` on the entry's `dt` lists further spellings.
+
+A change to the content therefore goes into all three pages at once. Afterwards
+run
+
+    python3 tools/check_i18n.py
+
+It compares the structure of the three pages and the three strings files, and
+checks the links, the glossary terms and the head of each page. It prints
+every difference with its line and ends with an error if there is one.
 
 ## What is real and what is simplified
 

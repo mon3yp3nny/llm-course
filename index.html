@@ -3,15 +3,31 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#faf9f6" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#151517" media="(prefers-color-scheme: dark)">
   <title>How an LLM works</title>
   <meta name="description" content="An interactive, step-by-step guide to how large language models work: from the first character of a prompt to the finished answer, plus training, agents and open questions.">
   <meta property="og:title" content="How an LLM works">
   <meta property="og:description" content="An interactive, step-by-step guide to how large language models work.">
   <meta property="og:type" content="website">
+  <meta property="og:url" content="https://mon3yp3nny.github.io/llm-course/">
+  <meta property="og:locale" content="en_GB">
+  <meta property="og:locale:alternate" content="de_DE">
+  <meta property="og:locale:alternate" content="fr_FR">
+  <link rel="canonical" href="https://mon3yp3nny.github.io/llm-course/">
+  <link rel="alternate" hreflang="en" href="https://mon3yp3nny.github.io/llm-course/">
+  <link rel="alternate" hreflang="de" href="https://mon3yp3nny.github.io/llm-course/de/">
+  <link rel="alternate" hreflang="fr" href="https://mon3yp3nny.github.io/llm-course/fr/">
+  <link rel="alternate" hreflang="x-default" href="https://mon3yp3nny.github.io/llm-course/">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='15' fill='%234b47d6'/%3E%3Cpath d='M12.5 9.5v13l11-6.5z' fill='%23faf9f6'/%3E%3C/svg%3E">
+  <!-- Steps start out invisible and fade in only when scripts run; without them every tab is shown in full. -->
+  <script>document.documentElement.classList.add('js')</script>
   <link rel="stylesheet" href="style.css">
+  <noscript><style>.view[hidden] { display: block; } .rail, .search-open, .toggle-extras { display: none; }</style></noscript>
 </head>
 <body>
+  <a class="skip" href="#content">Skip to content</a>
   <nav class="tabs" aria-label="Parts">
     <a href="#view-use" class="selected" aria-current="page">Using</a>
     <a href="#view-train">Training</a>
@@ -26,9 +42,14 @@
   <button type="button" class="search-open" id="search-open" aria-label="Search this guide" title="Search ( / )">
     <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5"/><line x1="12.7" y1="12.7" x2="17" y2="17"/></svg>
   </button>
+  <nav class="languages" aria-label="Language">
+    <a href="index.html" lang="en" hreflang="en" title="English" aria-current="true">EN</a>
+    <a href="de/index.html" lang="de" hreflang="de" title="Deutsch">DE</a>
+    <a href="fr/index.html" lang="fr" hreflang="fr" title="Français">FR</a>
+  </nav>
   <nav class="rail" aria-label="Steps"></nav>
 
-  <main>
+  <main id="content" tabindex="-1">
     <div class="view" id="view-use">
     <header class="hero">
       <p class="eyebrow">An interactive walkthrough</p>
@@ -112,7 +133,7 @@
         <span class="space-mark">·</span>).
       </p>
       <div class="demo">
-        <div class="chips" id="token-chips"></div>
+        <div class="chips" id="token-chips" data-empty="No tokens yet. Type a prompt in step 1."></div>
         <p class="stat">
           <strong id="token-count">0</strong> tokens from
           <strong id="char-count-2">0</strong> characters
@@ -128,7 +149,7 @@
         <summary><span class="extra-tag">Origins</span> Who came up with tokens?</summary>
         <ul class="origins">
           <li><span>1994</span><span><strong>Philip Gage</strong> publishes byte pair encoding (BPE), a way to compress data by merging pairs of characters that often occur together.</span></li>
-          <li><span>2015</span><span><strong>Rico Sennrich, Barry Haddow and Alexandra Birch</strong> at the University of Edinburgh use it to split rare words into pieces for machine translation.</span></li>
+          <li><span>2015</span><span><strong>Rico Sennrich, Barry Haddow and Alexandra Birch</strong> at the University of Edinburgh use it to split rare words into pieces for machine translation. <a class="source" data-paper="bpe">Paper</a></span></li>
           <li><span>2019</span><span><strong>GPT-2</strong> from OpenAI uses this kind of tokenizer. Most LLMs since use it or a close relative.</span></li>
         </ul>
       </details>
@@ -148,7 +169,7 @@
         of integers. The number under each token is its ID.
       </p>
       <div class="demo">
-        <div class="chips stacked" id="id-chips"></div>
+        <div class="chips stacked" id="id-chips" data-empty="No tokens yet. Type a prompt in step 1."></div>
         <pre class="sequence" id="id-sequence"></pre>
       </div>
       <p class="note">
@@ -163,14 +184,14 @@
       <p class="load" data-load="0,1,1"
          data-cpu="Hardly involved. The lookup happens on the graphics chip, where the table is kept."
          data-gpu="Light work: one row is fetched from the table for each token. No arithmetic yet."
-         data-memory="The table holds one vector for every token of the vocabulary. Large in itself, but under one percent of a big model.">Another lookup. The table is large, but small next to the layers that follow.</p>
+         data-memory="The table holds one vector for every token of the vocabulary. Large in itself, but only a few percent of a big model at most.">Another lookup. The table is large, but small next to the layers that follow.</p>
       <p>
         An ID on its own says nothing: token 4,012 is not "close to" token
         4,013. So each ID is looked up in a big table and swapped for a list
         of numbers, a <dfn>vector</dfn>. The vector a token gets from this lookup is called its <dfn>embedding</dfn>. Click a token to see its vector.
       </p>
       <div class="demo">
-        <div class="chips" id="embed-chips"></div>
+        <div class="chips" id="embed-chips" data-empty="No tokens yet. Type a prompt in step 1."></div>
         <p class="stat">Vector for <strong id="vector-label"></strong></p>
         <div class="vector" id="vector-cells"></div>
       </div>
@@ -235,16 +256,16 @@
         </p>
         <p class="origins-title">Where it comes from</p>
         <ul class="origins">
-          <li><span>2020</span><span><strong>Alexey Dosovitskiy</strong> and colleagues at Google introduce the <strong>Vision Transformer</strong> in a paper titled "An Image Is Worth 16x16 Words": cut the image into patches and feed them to a transformer like words.</span></li>
-          <li><span>2021</span><span><strong>OpenAI</strong> releases <strong>CLIP</strong>, which learns to place images and their descriptions close together in one shared space of vectors.</span></li>
+          <li><span>2020</span><span><strong>Alexey Dosovitskiy</strong> and colleagues at Google introduce the <strong>Vision Transformer</strong> in a paper titled "An Image Is Worth 16x16 Words": cut the image into patches and feed them to a transformer like words. <a class="source" data-paper="vit">Paper</a></span></li>
+          <li><span>2021</span><span><strong>OpenAI</strong> releases <strong>CLIP</strong>, which learns to place images and their descriptions close together in one shared space of vectors. <a class="source" data-paper="clip">Paper</a></span></li>
           <li><span>2023</span><span><strong>OpenAI</strong> adds image input to ChatGPT, bringing multimodal models to a mass audience.</span></li>
         </ul>
       </details>
       <details class="extra">
         <summary><span class="extra-tag">Origins</span> Who came up with embeddings?</summary>
         <ul class="origins">
-          <li><span>2003</span><span><strong>Yoshua Bengio</strong> and colleagues at the Université de Montréal train a neural network that learns a vector for every word.</span></li>
-          <li><span>2013</span><span><strong>Tomas Mikolov</strong> and colleagues at Google release <strong>word2vec</strong>. It made word vectors fast to train, and famous through examples like "king − man + woman ≈ queen".</span></li>
+          <li><span>2003</span><span><strong>Yoshua Bengio</strong> and colleagues at the Université de Montréal train a neural network that learns a vector for every word. <a class="source" data-paper="bengio">Paper</a></span></li>
+          <li><span>2013</span><span><strong>Tomas Mikolov</strong> and colleagues at Google release <strong>word2vec</strong>. It made word vectors fast to train, and famous through examples like "king − man + woman ≈ queen". <a class="source" data-paper="word2vec">Paper</a></span></li>
         </ul>
       </details>
     </section>
@@ -400,7 +421,7 @@
         <p class="origins-title">Where it comes from</p>
         <ul class="origins">
           <li><span>2023</span><span><strong>Georgi Gerganov</strong>'s open-source project <strong>llama.cpp</strong> makes it common to run 4-bit models on an ordinary laptop.</span></li>
-          <li><span>2024</span><span><strong>Microsoft Research</strong> goes to the extreme with <strong>BitNet b1.58</strong>: every weight is −1, 0 or +1, about 1.58 bits. Weights with just these three values are called <dfn>ternary</dfn>. The model is trained that way from the start instead of being rounded afterwards, which is why it still works.</span></li>
+          <li><span>2024</span><span><strong>Microsoft Research</strong> goes to the extreme with <strong>BitNet b1.58</strong>: every weight is −1, 0 or +1, about 1.58 bits. Weights with just these three values are called <dfn>ternary</dfn>. The model is trained that way from the start instead of being rounded afterwards, which is why it still works. <a class="source" data-paper="bitnet">Paper</a></span></li>
           <li><span>2026</span><span><strong>PrismML</strong> releases <strong>Ternary Bonsai 2 27B</strong>, an existing 27-billion-parameter model compressed to −1, 0 and +1 weights, where each small group of weights shares one precise scaling number. It takes 5.9 GB instead of about 54 GB, and PrismML reports that it keeps 98% of the original's benchmark score.</span></li>
         </ul>
       </details>
@@ -440,8 +461,8 @@
         </p>
         <p class="origins-title">Where it comes from</p>
         <ul class="origins">
-          <li><span>2020</span><span><strong>Yu Sun</strong> and colleagues at UC Berkeley introduce test-time training, at first for image recognition.</span></li>
-          <li><span>2024</span><span><strong>Ekin Akyürek</strong> and colleagues at MIT apply it to an LLM and report large gains on ARC, a benchmark of abstract puzzles that language models find hard.</span></li>
+          <li><span>2019</span><span><strong>Yu Sun</strong> and colleagues at UC Berkeley introduce test-time training, at first for image recognition. <a class="source" data-paper="ttt">Paper</a></span></li>
+          <li><span>2024</span><span><strong>Ekin Akyürek</strong> and colleagues at MIT apply it to an LLM and report large gains on ARC, a benchmark of abstract puzzles that language models find hard. <a class="source" data-paper="tttLlm">Paper</a></span></li>
         </ul>
       </details>
       <details class="extra">
@@ -475,10 +496,10 @@
       <details class="extra">
         <summary><span class="extra-tag">Origins</span> Who came up with neural networks and the transformer?</summary>
         <ul class="origins">
-          <li><span>1958</span><span><strong>Frank Rosenblatt</strong> presents the perceptron, an early neural network that learns from examples.</span></li>
-          <li><span>1986</span><span><strong>David Rumelhart, Geoffrey Hinton and Ronald Williams</strong> popularise backpropagation, the method still used to train neural networks.</span></li>
-          <li><span>2017</span><span>Eight researchers at <strong>Google</strong> publish <a class="source" href="https://arxiv.org/abs/1706.03762" target="_blank" rel="noopener" data-tip-title="Attention Is All You Need (2017)" data-tip="Until then, language models read a sentence one word after another. This paper drops that and relies on attention alone, so all words are processed at once. Such a network, the transformer, trains far faster on far more text. Click to open the original paper.">"Attention Is All You Need"</a>, the paper that introduces the transformer.</span></li>
-          <li><span>2018</span><span><strong>OpenAI</strong> releases the first <strong>GPT</strong>.</span></li>
+          <li><span>1958</span><span><strong>Frank Rosenblatt</strong> presents the perceptron, an early neural network that learns from examples. <a class="source" data-paper="perceptron">Paper</a></span></li>
+          <li><span>1986</span><span><strong>David Rumelhart, Geoffrey Hinton and Ronald Williams</strong> popularise backpropagation, the method still used to train neural networks. <a class="source" data-paper="backprop">Paper</a></span></li>
+          <li><span>2017</span><span>Eight researchers at <strong>Google</strong> publish <a class="source" data-paper="attention">"Attention Is All You Need"</a>, the paper that introduces the transformer.</span></li>
+          <li><span>2018</span><span><strong>OpenAI</strong> releases the first <strong>GPT</strong>. <a class="source" data-paper="gpt1">Paper</a></span></li>
         </ul>
       </details>
     </section>
@@ -519,7 +540,7 @@
         on your own prompt.
       </p>
       <div class="demo">
-        <div class="chips stacked" id="attention-chips"></div>
+        <div class="chips stacked" id="attention-chips" data-empty="No tokens yet. Type a prompt in step 1."></div>
         <p class="stat" id="attention-stat"></p>
       </div>
       <p class="note">
@@ -541,7 +562,7 @@
           see where it goes.
         </p>
         <div class="demo">
-          <div class="chips" id="moe-chips"></div>
+          <div class="chips" id="moe-chips" data-empty="No tokens yet. Type a prompt in step 1."></div>
           <div class="experts" id="experts"></div>
           <p class="stat" id="moe-stat"></p>
         </div>
@@ -565,14 +586,14 @@
         </p>
         <p class="origins-title">Where it comes from</p>
         <ul class="origins">
-          <li><span>1991</span><span><strong>Robert Jacobs, Michael Jordan, Steven Nowlan and Geoffrey Hinton</strong> propose "adaptive mixtures of local experts".</span></li>
+          <li><span>1991</span><span><strong>Robert Jacobs, Michael Jordan, Steven Nowlan and Geoffrey Hinton</strong> propose "adaptive mixtures of local experts". <a class="source" data-paper="moe">Paper</a></span></li>
           <li><span>2023</span><span><strong>Mistral AI</strong> releases <strong>Mixtral 8x7B</strong>, an openly available LLM that made the design widely known.</span></li>
         </ul>
       </details>
       <details class="extra">
         <summary><span class="extra-tag">Origins</span> Who came up with attention?</summary>
         <ul class="origins">
-          <li><span>2014</span><span><strong>Dzmitry Bahdanau, Kyunghyun Cho and Yoshua Bengio</strong> add attention to a translation model, so it can look back at the source words that matter for the word it is writing.</span></li>
+          <li><span>2014</span><span><strong>Dzmitry Bahdanau, Kyunghyun Cho and Yoshua Bengio</strong> add attention to a translation model, so it can look back at the source words that matter for the word it is writing. <a class="source" data-paper="bahdanau">Paper</a></span></li>
           <li><span>2017</span><span>The <strong>transformer</strong> from Google drops the older machinery and builds the whole network around attention.</span></li>
         </ul>
       </details>
@@ -640,14 +661,14 @@
         </p>
         <p class="origins-title">Where it comes from</p>
         <ul class="origins">
-          <li><span>2020</span><span><strong>Patrick Lewis</strong> and colleagues at Facebook AI Research give the approach its name in the paper "Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks".</span></li>
+          <li><span>2020</span><span><strong>Patrick Lewis</strong> and colleagues at Facebook AI Research give the approach its name in the paper "Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks". <a class="source" data-paper="rag">Paper</a></span></li>
         </ul>
       </details>
       <details class="extra">
         <summary><span class="extra-tag">Origins</span> Who came up with predicting the next word?</summary>
         <ul class="origins">
-          <li><span>1948</span><span><strong>Claude Shannon</strong> at Bell Labs produces English-like text by choosing each next letter or word according to how often it follows the ones before. The tiny model on this page works the same way.</span></li>
-          <li><span>2003</span><span><strong>Yoshua Bengio</strong>'s neural language model replaces the counting with a neural network.</span></li>
+          <li><span>1948</span><span><strong>Claude Shannon</strong> at Bell Labs produces English-like text by choosing each next letter or word according to how often it follows the ones before. The tiny model on this page works the same way. <a class="source" data-paper="shannon">Paper</a></span></li>
+          <li><span>2003</span><span><strong>Yoshua Bengio</strong>'s neural language model replaces the counting with a neural network. <a class="source" data-paper="bengio">Paper</a></span></li>
         </ul>
       </details>
     </section>
@@ -692,7 +713,7 @@
         <summary><span class="extra-tag">Origins</span> Where do temperature and sampling come from?</summary>
         <ul class="origins">
           <li><span>1800s</span><span>The word temperature is borrowed from physics. <strong>Ludwig Boltzmann</strong> described how heat spreads particles over more states; the same formula spreads the probabilities here.</span></li>
-          <li><span>2019</span><span><strong>Ari Holtzman</strong> and colleagues at the University of Washington introduce nucleus sampling, better known as <strong>top-p</strong>. You will find it next to temperature in many tools.</span></li>
+          <li><span>2019</span><span><strong>Ari Holtzman</strong> and colleagues at the University of Washington introduce nucleus sampling, better known as <strong>top-p</strong>. You will find it next to temperature in many tools. <a class="source" data-paper="nucleus">Paper</a></span></li>
         </ul>
       </details>
     </section>
@@ -819,7 +840,7 @@
         </p>
         <p class="origins-title">Where it comes from</p>
         <ul class="origins">
-          <li><span>2022</span><span><strong>Jason Wei</strong> and colleagues at Google show that a model gets much better at reasoning tasks when its prompt contains examples with the steps written out. They call it chain-of-thought prompting.</span></li>
+          <li><span>2022</span><span><strong>Jason Wei</strong> and colleagues at Google show that a model gets much better at reasoning tasks when its prompt contains examples with the steps written out. They call it chain-of-thought prompting. <a class="source" data-paper="cot">Paper</a></span></li>
           <li><span>2024</span><span><strong>OpenAI</strong> releases <strong>o1</strong>, a model trained to think this way by itself before every answer, which made "reasoning model" a common term.</span></li>
         </ul>
       </details>
@@ -859,15 +880,15 @@
         </p>
         <p class="origins-title">Where it comes from</p>
         <ul class="origins">
-          <li><span>2022</span><span><strong>Shunyu Yao</strong> and colleagues at Princeton and Google describe <strong>ReAct</strong>, a loop in which a model alternates between reasoning and using tools.</span></li>
+          <li><span>2022</span><span><strong>Shunyu Yao</strong> and colleagues at Princeton and Google describe <strong>ReAct</strong>, a loop in which a model alternates between reasoning and using tools. <a class="source" data-paper="react">Paper</a></span></li>
           <li><span>2023</span><span><strong>OpenAI</strong> adds function calling to its models, a standard format for tool requests that other providers soon offer too.</span></li>
-          <li><span>2024</span><span><strong>Anthropic</strong> publishes the <strong>Model Context Protocol</strong> (MCP), an open standard for connecting models to tools and data sources.</span></li>
+          <li><span>2024</span><span><strong>Anthropic</strong> publishes the <strong>Model Context Protocol</strong> (MCP), an open standard for connecting models to tools and data sources. <a class="source" data-paper="mcp">Announcement</a></span></li>
         </ul>
       </details>
       <details class="extra">
         <summary><span class="extra-tag">Origins</span> Which models made this famous?</summary>
         <ul class="origins">
-          <li><span>2019</span><span><strong>GPT-2</strong> from OpenAI shows that a model writing token by token can produce whole coherent paragraphs.</span></li>
+          <li><span>2019</span><span><strong>GPT-2</strong> from OpenAI shows that a model writing token by token can produce whole coherent paragraphs. <a class="source" data-paper="gpt2">Paper</a></span></li>
           <li><span>2022</span><span><strong>ChatGPT</strong> from OpenAI puts this loop behind a chat window and brings LLMs to the general public.</span></li>
         </ul>
       </details>
@@ -919,7 +940,7 @@
         </p>
         <p class="origins-title">Where it comes from</p>
         <ul class="origins">
-          <li><span>2018</span><span><strong>Google</strong> releases <strong>BERT</strong>, a transformer built to understand text, not to write it. For years it was the standard base for classifiers.</span></li>
+          <li><span>2018</span><span><strong>Google</strong> releases <strong>BERT</strong>, a transformer built to understand text, not to write it. For years it was the standard base for classifiers. <a class="source" data-paper="bert">Paper</a></span></li>
           <li><span>2026</span><span><strong>TypeSafe AI</strong> releases <strong>Jev</strong>, which it calls a <dfn>System One model</dfn>: you define questions and possible answers, and it returns probabilities and never writes text. How it works inside is not published.</span></li>
         </ul>
       </details>
@@ -1015,11 +1036,14 @@
       </p>
       <p class="note">
         About the curve: the three test sentences are among the 63 it reads,
-        and the big drops come exactly when it reads one of them (sentences
+        and big drops come when it reads one of them (sentences
         1, 13 and 40): it is memorising the test, which step 6 returns to.
-        In between, the loss creeps up a little, because every new sentence
-        adds possibilities and makes the model slightly less sure about
-        these three. The loss shown is the average surprise per token: 0
+        Sentences that only share words with a test sentence help too:
+        sentence 4, "The cat slept in the garden.", lowers the loss about as
+        much as sentence 13 does, because it teaches "in the garden". The
+        rest of the time the loss mostly creeps up a little, because every
+        new sentence adds possibilities and makes the model slightly less
+        sure about these three. The loss shown is the average surprise per token: 0
         would mean it was certain of every next token, 1 that it was as
         unsure as a coin flip each time. This demo caps it at about 10 for
         tokens the model considers impossible.
@@ -1027,7 +1051,7 @@
       <details class="extra">
         <summary><span class="extra-tag">Origins</span> Who came up with pre-training?</summary>
         <ul class="origins">
-          <li><span>2018</span><span><strong>OpenAI</strong>'s first <strong>GPT</strong> establishes the recipe for language models: pre-train on plain text first, adapt to a task afterwards. It is the P in GPT.</span></li>
+          <li><span>2018</span><span><strong>OpenAI</strong>'s first <strong>GPT</strong> establishes the recipe for language models: pre-train on plain text first, adapt to a task afterwards. It is the P in GPT. <a class="source" data-paper="gpt1">Paper</a></span></li>
         </ul>
       </details>
     </section>
@@ -1075,7 +1099,7 @@
         <summary><span class="extra-tag">Origins</span> Who came up with this?</summary>
         <ul class="origins">
           <li><span>1847</span><span><strong>Augustin-Louis Cauchy</strong> describes gradient descent as a general way to find the lowest point of a function.</span></li>
-          <li><span>1986</span><span><strong>David Rumelhart, Geoffrey Hinton and Ronald Williams</strong> popularise backpropagation, which makes gradient descent practical for neural networks.</span></li>
+          <li><span>1986</span><span><strong>David Rumelhart, Geoffrey Hinton and Ronald Williams</strong> popularise backpropagation, which makes gradient descent practical for neural networks. <a class="source" data-paper="backprop">Paper</a></span></li>
         </ul>
       </details>
     </section>
@@ -1155,8 +1179,8 @@
       <details class="extra">
         <summary><span class="extra-tag">Origins</span> Who came up with learning from preferences?</summary>
         <ul class="origins">
-          <li><span>2017</span><span><strong>Paul Christiano</strong> and colleagues at OpenAI and DeepMind show that a system can learn a task purely from people comparing pairs of its attempts.</span></li>
-          <li><span>2022</span><span><strong>OpenAI</strong> applies the method to a language model in <strong>InstructGPT</strong>, the direct forerunner of ChatGPT.</span></li>
+          <li><span>2017</span><span><strong>Paul Christiano</strong> and colleagues at OpenAI and DeepMind show that a system can learn a task purely from people comparing pairs of its attempts. <a class="source" data-paper="prefs">Paper</a></span></li>
+          <li><span>2022</span><span><strong>OpenAI</strong> applies the method to a language model in <strong>InstructGPT</strong>, the direct forerunner of ChatGPT. <a class="source" data-paper="instructgpt">Paper</a></span></li>
         </ul>
       </details>
     </section>
@@ -1253,8 +1277,8 @@
       <details class="extra">
         <summary><span class="extra-tag">Origins</span> Who came up with these methods?</summary>
         <ul class="origins">
-          <li><span>2015</span><span><strong>Geoffrey Hinton, Oriol Vinyals and Jeff Dean</strong> at Google describe distillation: a small network learning from a large one.</span></li>
-          <li><span>2021</span><span><strong>Edward Hu</strong> and colleagues at Microsoft introduce LoRA, short for low-rank adaptation.</span></li>
+          <li><span>2015</span><span><strong>Geoffrey Hinton, Oriol Vinyals and Jeff Dean</strong> at Google describe distillation: a small network learning from a large one. <a class="source" data-paper="distill">Paper</a></span></li>
+          <li><span>2021</span><span><strong>Edward Hu</strong> and colleagues at Microsoft introduce LoRA, short for low-rank adaptation. <a class="source" data-paper="lora">Paper</a></span></li>
         </ul>
       </details>
     </section>
@@ -1294,6 +1318,14 @@
       <p>
         "Agentic" is a matter of degree, not a yes or no. Compare three
         levels.
+      </p>
+      <p class="spoken" hidden>
+        The first is a chatbot: you decide after every single answer, and it
+        touches nothing, it only writes text. The second is an assistant with
+        tools: the model decides for a few rounds, using the tools you have
+        switched on, and you approve anything important. The third is an
+        autonomous agent: the model decides for hundreds of rounds and works
+        with files, programs and online services, within its permissions.
       </p>
       <div class="demo">
         <div class="segments" id="autonomy-levels"></div>
@@ -1419,13 +1451,15 @@
         agent can use all three, and they differ in ways that matter.
       </p>
       <p class="spoken" hidden>
-        The page shows a table that compares the three side by side. In short:
-        an API is made for programmers, the command line for people typing
+        Put side by side, the three compare like this. An API is made for
+        programmers, the command line for people typing
         commands, and MCP for models. With an API, somebody has to describe
         each function to the model. Command-line programs the model often
         knows from its training. An MCP server announces its tools by itself.
-        An API and MCP exchange exact, structured data, while the command line
-        returns free text laid out for human eyes. Permissions differ too: an
+        An API exchanges exact, structured data. MCP is just as exact about
+        what goes in, and its results come back in a fixed envelope, though
+        often as plain text inside it. The command line returns free text
+        laid out for human eyes. Permissions differ too: an
         access key or a user account opens everything it covers, whereas MCP
         can grant access tool by tool. And the cost in the context window
         differs: a command costs nothing until it is run, while the
@@ -1433,7 +1467,7 @@
       </p>
       <table class="pairs four">
         <thead>
-          <tr><th></th><th>Traditional API</th><th>Command line</th><th>MCP</th></tr>
+          <tr><th scope="col"></th><th scope="col">Traditional API</th><th scope="col">Command line</th><th scope="col">MCP</th></tr>
         </thead>
         <tbody>
           <tr>
@@ -1452,7 +1486,7 @@
             <td data-label="">What goes in and comes out</td>
             <td data-label="Traditional API">Structured data in an exact format.</td>
             <td data-label="Command line">Free text, laid out for human eyes.</td>
-            <td data-label="MCP">Structured data, with every input spelled out.</td>
+            <td data-label="MCP">Exact inputs, every one spelled out. Results in a fixed envelope, often plain text inside.</td>
           </tr>
           <tr>
             <td data-label="">What it may do</td>
@@ -1494,7 +1528,8 @@
       </p>
       <p>
         Compared with the command line, MCP is tidier and safer: exact
-        inputs and outputs instead of text to be interpreted, permission for
+        inputs, and results in a fixed envelope instead of whatever a
+        program happens to print, permission for
         single actions instead of a whole computer, and it works where there
         is no command line at all, such as a chat app on a phone. The
         command line keeps real strengths, though. It needs no setup, models
@@ -1515,7 +1550,7 @@
         <summary><span class="extra-tag">Origins</span> Where does MCP come from?</summary>
         <ul class="origins">
           <li><span>2023</span><span><strong>OpenAI</strong> adds function calling to its models, a fixed format in which a model can request a tool.</span></li>
-          <li><span>2024</span><span><strong>Anthropic</strong> publishes the Model Context Protocol as an open standard. Other major providers adopt it in the months that follow.</span></li>
+          <li><span>2024</span><span><strong>Anthropic</strong> publishes the Model Context Protocol as an open standard. Other major providers adopt it in the months that follow. <a class="source" data-paper="mcp">Announcement</a></span></li>
         </ul>
       </details>
     </section>
@@ -1589,7 +1624,7 @@
         read, and a CPU has a handful of processing cores where a graphics
         chip has thousands. So a small model works, and you can watch it
         write word by word. Large ones fit on paper and are too slow to
-        use. An NPU, a small extra chip for AI tasks in recent laptops, helps
+        use. An NPU, a small part of the chip for AI tasks in recent laptops, helps
         with small jobs such as turning speech into text, not with a large
         language model.
       </p>
@@ -1638,7 +1673,7 @@
         GB.
       </p>
       <p>
-        Its reading speed spans the two worlds: somewhat above an ordinary
+        Its reading speed spans the two worlds: about that of an ordinary
         PC on the smallest chips, and as fast as a top graphics card on the
         largest. A phone is built the same way in miniature: one chip and
         one shared pool of memory, of which an app may use about half. Its raw
@@ -1648,9 +1683,9 @@
       </p>
       <dl class="facts boxed">
         <dt>Memory</dt>
-        <dd>16 to 512 GB, shared by processor and graphics</dd>
+        <dd>8 to 512 GB, shared by processor and graphics</dd>
         <dt>Reading speed</dt>
-        <dd>Medium to very high: 100 to 1,200 GB per second, depending on the chip</dd>
+        <dd>Low to very high: 60 to 1,200 GB per second, depending on the chip</dd>
         <dt>Good for</dt>
         <dd>Large models at moderate speed, quietly and on little power</dd>
       </dl>
@@ -1685,6 +1720,13 @@
     <section class="step" id="hw-compare" data-title="Compare">
       <p class="step-no">Hardware · Step 6</p>
       <h2>What fits where, and how fast</h2>
+      <p class="spoken" hidden>
+        This step is a table of seven machines, from a phone and a laptop to
+        a Mac Studio and a data-centre server. You choose a model and how many
+        bits each weight gets. For every machine the table then shows whether
+        the model fits, how fast it could write at most, and, in the last
+        column, how much it writes for the power it draws.
+      </p>
       <p>
         Two rules from this guide are enough for a rough estimate. Size: the
         number of parameters times the bits per weight. Speed: a machine
@@ -1701,7 +1743,7 @@
         <div class="segments compact-row" id="hw-sort"></div>
         <table class="pairs four machines">
           <thead>
-            <tr><th>Machine</th><th>Fits?</th><th><button type="button" class="sort" data-sort="speed">Speed limit</button></th><th><button type="button" class="sort" data-sort="efficiency">Tokens per watt</button></th></tr>
+            <tr><th scope="col">Machine</th><th scope="col">Fits?</th><th scope="col"><button type="button" class="sort" data-sort="speed">Speed limit</button></th><th scope="col"><button type="button" class="sort" data-sort="efficiency">Tokens per watt</button></th></tr>
           </thead>
           <tbody id="hw-rows"></tbody>
         </table>
@@ -1772,8 +1814,8 @@
       </p>
       <p>
         The new development is the <dfn>humanoid</dfn>, a robot with the
-        shape of a person, meant to work in places built for people. In
-        2026 humanoids moved from stage demonstrations to first real jobs:
+        shape of a person, meant to work in places built for people. Since
+        2024 humanoids have moved from stage demonstrations to first real jobs:
         carrying parts in car factories, moving boxes in warehouses,
         sorting parcels for days on end. The first models for the home can
         be ordered, at about the price of a small car.
@@ -1831,7 +1873,7 @@
       </p>
       <table class="pairs four">
         <thead>
-          <tr><th></th><th>A chat model</th><th>A robot's model</th></tr>
+          <tr><th scope="col"></th><th scope="col">A chat model</th><th scope="col">A robot's model</th></tr>
         </thead>
         <tbody>
           <tr>
@@ -1924,7 +1966,7 @@
       </p>
       <table class="pairs two">
         <thead>
-          <tr><th>Company</th><th>Known for</th></tr>
+          <tr><th scope="col">Company</th><th scope="col">Known for</th></tr>
         </thead>
         <tbody>
           <tr>
@@ -2005,9 +2047,10 @@
         person helping from afar.
       </p>
       <p>
-        Beyond that, forecasts differ by a factor of ten. For 2027, one
-        research firm expects about 10,000 humanoids to be shipped, another
-        more than 100,000. Robots that are useful in an ordinary home, at
+        Beyond that, forecasts differ widely and age fast. In 2024 one
+        research firm expected about 10,000 humanoids to be shipped in 2027;
+        by its own count, some 13,000 were already shipped in 2025. Another
+        firm expects more than 100,000 for 2027. Robots that are useful in an ordinary home, at
         an ordinary price, are mostly expected around 2030 or later.
       </p>
       <p>
@@ -2053,16 +2096,16 @@
       </p>
       <table class="pairs">
         <thead>
-          <tr><th>Model</th><th>From</th><th>Notable for</th></tr>
+          <tr><th scope="col">Model</th><th scope="col">From</th><th scope="col">Notable for</th></tr>
         </thead>
         <tbody>
           <tr>
-            <td data-label="Model"><strong>Claude Opus 5.5</strong>, with the smaller Sonnet 5.5</td>
+            <td data-label="Model"><strong>Claude Opus 5.5</strong>, with the smaller Sonnet 5.5 and the higher-priced Fable 5.1</td>
             <td data-label="From">Anthropic</td>
-            <td data-label="Notable for">Released in September 2026. At or near the top of general rankings; often named for programming.</td>
+            <td data-label="Notable for">All three released in September 2026. At or near the top of general rankings; often named for programming. Anthropic recommends Opus 5.5 for most work and Fable 5.1, at two and a half times the price, for the most demanding reasoning and long tasks.</td>
           </tr>
           <tr>
-            <td data-label="Model"><strong>Gemini 4 Argon</strong>, with the cheaper Gemini 3.7 Flash</td>
+            <td data-label="Model"><strong>Gemini 4 Argon</strong>, with the cheaper Gemini 3.8 Flash</td>
             <td data-label="From">Google</td>
             <td data-label="Notable for">Announced on 30 September 2026, with access still limited when this was written. At or near the top of general rankings; the Flash model is known for results at low cost.</td>
           </tr>
@@ -2093,18 +2136,18 @@
       </p>
       <table class="pairs">
         <thead>
-          <tr><th>Model</th><th>From</th><th>Notable for</th></tr>
+          <tr><th scope="col">Model</th><th scope="col">From</th><th scope="col">Notable for</th></tr>
         </thead>
         <tbody>
           <tr>
             <td data-label="Model"><strong>DeepSeek V4-Pro</strong></td>
             <td data-label="From">DeepSeek</td>
-            <td data-label="Notable for">Often named best overall among open models, for programming and reasoning; a very permissive licence.</td>
+            <td data-label="Notable for">A strong, low-priced all-rounder for programming and reasoning with a very permissive licence; newer open models now score higher on current rankings.</td>
           </tr>
           <tr>
             <td data-label="Model"><strong>Qwen 3.8</strong> family</td>
             <td data-label="From">Alibaba</td>
-            <td data-label="Notable for">The widest range of sizes under one permissive licence, from laptop-sized to very large.</td>
+            <td data-label="Notable for">Three models rather than a size for every machine: one of 27 billion parameters under a permissive licence, which fits a well-equipped desktop, a mid-sized one, and a very large one with 2.4 trillion parameters. The two larger ones come under Alibaba's own licence terms.</td>
           </tr>
           <tr>
             <td data-label="Model"><strong>Kimi K3</strong></td>
@@ -2171,7 +2214,7 @@
       </p>
       <table class="pairs">
         <thead>
-          <tr><th>Model</th><th>From</th><th>Notable for</th></tr>
+          <tr><th scope="col">Model</th><th scope="col">From</th><th scope="col">Notable for</th></tr>
         </thead>
         <tbody>
           <tr>
@@ -2207,7 +2250,7 @@
       </p>
       <table class="pairs">
         <thead>
-          <tr><th>Model</th><th>From</th><th>Notable for</th></tr>
+          <tr><th scope="col">Model</th><th scope="col">From</th><th scope="col">Notable for</th></tr>
         </thead>
         <tbody>
           <tr>
@@ -2240,7 +2283,7 @@
       </p>
       <table class="pairs">
         <thead>
-          <tr><th>For</th><th>Names you will hear</th><th>Notable for</th></tr>
+          <tr><th scope="col">For</th><th scope="col">Names you will hear</th><th scope="col">Notable for</th></tr>
         </thead>
         <tbody>
           <tr>
@@ -2250,8 +2293,8 @@
           </tr>
           <tr>
             <td data-label="For">Video</td>
-            <td data-label="Names you will hear"><strong>Wan 3.0</strong> (Alibaba), <strong>Seedance 2.5</strong> (ByteDance), <strong>Veo 3.1</strong> (Google), <strong>Kling</strong> (Kuaishou); to download: <strong>LTX-2.5</strong>, <strong>HunyuanVideo</strong></td>
-            <td data-label="Notable for">Clips of some seconds from a sentence or a starting picture, the best with matching sound. Wan and Seedance top the rankings at the moment; which is "best" differs by the job.</td>
+            <td data-label="Names you will hear"><strong>Wan 3.0</strong> (Alibaba), <strong>Seedance 2.5</strong> (ByteDance), <strong>Gemini Omni</strong> (Google, alongside its older Veo 3.1), <strong>Kling</strong> (Kuaishou); to download: <strong>LTX-2.5</strong>, <strong>HunyuanVideo</strong></td>
+            <td data-label="Notable for">Clips of some seconds from a sentence or a starting picture, the best with matching sound. Wan and Seedance are at or near the top of one major ranking at the moment and Gemini Omni leads the other; which is "best" differs by the job.</td>
           </tr>
           <tr>
             <td data-label="For">Music</td>
@@ -2260,7 +2303,7 @@
           </tr>
           <tr>
             <td data-label="For">Speaking</td>
-            <td data-label="Names you will hear"><strong>ElevenLabs v3</strong>, <strong>Qwen3-TTS</strong> (Alibaba), <strong>Chirp 3 HD</strong> (Google)</td>
+            <td data-label="Names you will hear"><strong>ElevenLabs v4</strong>, <strong>Qwen3-TTS</strong> (Alibaba), <strong>Chirp 3 HD</strong> (Google)</td>
             <td data-label="Notable for">Text read aloud in a natural voice; many can copy a voice from a short sample. The narration of this guide was made with Chirp 3 HD.</td>
           </tr>
           <tr>
@@ -2304,7 +2347,7 @@
       </p>
       <table class="pairs">
         <thead>
-          <tr><th>Software</th><th>What it is</th><th>Where it fits in this guide</th></tr>
+          <tr><th scope="col">Software</th><th scope="col">What it is</th><th scope="col">Where it fits in this guide</th></tr>
         </thead>
         <tbody>
           <tr>
@@ -2425,7 +2468,7 @@
           <div>
             <span class="event-kind">Invention</span>
             <h3>The first model of a neuron</h3>
-            <p>Warren McCulloch and Walter Pitts describe a nerve cell as a small piece of mathematics. Every neural network descends from it. <a href="#brain">FAQ, brain</a></p>
+            <p>Warren McCulloch and Walter Pitts describe a nerve cell as a small piece of mathematics. Every neural network descends from it. <a href="#brain">FAQ, brain</a> · <a class="source" data-paper="mcculloch">Paper</a></p>
           </div>
         </li>
         <li class="event" data-year="1948" data-kind="invention">
@@ -2433,7 +2476,7 @@
           <div>
             <span class="event-kind">Invention</span>
             <h3>Predicting the next letter</h3>
-            <p>Claude Shannon produces English-like text by choosing each next letter or word according to how often it follows the ones before. <a href="#prediction">Using, step 7</a></p>
+            <p>Claude Shannon produces English-like text by choosing each next letter or word according to how often it follows the ones before. <a href="#prediction">Using, step 7</a> · <a class="source" data-paper="shannon">Paper</a></p>
           </div>
         </li>
         <li class="event" data-year="1950" data-kind="thought">
@@ -2442,7 +2485,7 @@
             <span class="event-kind">Thought</span>
             <h3>Can machines think?</h3>
             <p>Alan Turing found the question too vague to answer, so he replaced it with a game. A judge exchanges written messages with a person and a machine, without knowing which is which. If the judge cannot tell them apart, why deny that the machine thinks?</p>
-            <p>He predicted that by the year 2000 a machine would fool an average judge about a third of the time after five minutes. He was a few decades early, but today's chat models can pass versions of his test, and the debate has moved on to whether passing it proves anything. <a href="#questions">FAQ, under debate</a></p>
+            <p>He predicted that by the year 2000 a machine would fool an average judge about a third of the time after five minutes. He was a few decades early, but today's chat models can pass versions of his test, and the debate has moved on to whether passing it proves anything. <a href="#questions">FAQ, under debate</a> · <a class="source" data-paper="turing">Paper</a></p>
           </div>
         </li>
         <li class="event" data-year="1956" data-kind="thought">
@@ -2451,7 +2494,7 @@
             <span class="event-kind">Thought</span>
             <h3>The field gets its name</h3>
             <p>Four researchers, among them John McCarthy and Claude Shannon, invited a handful of colleagues to Dartmouth College for the summer. Their proposal expected that a small group could make "a significant advance" on machine intelligence in two months.</p>
-            <p>They did not, but the name they had chosen for the project stuck: artificial intelligence. So did the habit of announcing that the breakthrough was only a few years away. <a href="#view-quotes">Their words</a></p>
+            <p>They did not, but the name they had chosen for the project stuck: artificial intelligence. So did the habit of announcing that the breakthrough was only a few years away. <a href="#view-quotes">Their words</a> · <a class="source" data-paper="dartmouth">Proposal</a></p>
           </div>
         </li>
       </ol>
@@ -2465,10 +2508,10 @@
       </p>
       <p class="spoken" hidden>
         Chapter two: first steps and long winters. In 1958 Frank Rosenblatt presented the perceptron, a
-        machine that learned from examples: the first neural network to do so.
-        Hopes ran high. In 1965 Herbert Simon predicted that within twenty
-        years machines would do any work a person can. In the same year I. J.
-        Good, who had worked beside Turing during the war, described an idea
+        machine that learned from examples: the first neural network to
+        become famous for it. Hopes ran high. In 1960 Herbert Simon predicted
+        that within twenty years machines would do any work a person can. Five
+        years later I. J. Good, who had worked beside Turing during the war, described an idea
         that still drives the debate about risk: a machine clever enough to
         design a better machine, which designs a better one again, until
         people are left far behind. A year later, at MIT, Joseph Weizenbaum
@@ -2485,11 +2528,11 @@
         nothing. Following rules for symbols, Searle concluded, is not
         understanding. The argument is now applied, almost unchanged, to
         language models. Meanwhile, mostly unnoticed, the methods that matter
-        today were being invented. In 1986, backpropagation: the way to work
-        out how every weight in a network should be adjusted, and still how
-        networks are trained. In 1991, the mixture of experts: a network of
-        specialists, with a router to choose among them. In 1994, byte pair
-        encoding, a compression trick that later became the standard way of
+        today were being invented. In 1986 came backpropagation, the way to
+        work out how every weight in a network should be adjusted, and still
+        how networks are trained. In 1991 came the mixture of experts, a
+        network of specialists with a router to choose among them. And in 1994
+        came byte pair encoding, a compression trick that later became the standard way of
         cutting text into tokens. The chapter ends with a famous victory that
         led nowhere near language. In 1997 IBM's Deep Blue beat the world
         chess champion, Garry Kasparov. It did so by searching through moves
@@ -2501,7 +2544,7 @@
           <div>
             <span class="event-kind">Invention</span>
             <h3>The perceptron</h3>
-            <p>Frank Rosenblatt presents a machine that learns from examples, the first neural network to do so. <a href="#network">Using, step 5</a></p>
+            <p>Frank Rosenblatt presents a machine that learns from examples, the first neural network to become famous for it. <a href="#network">Using, step 5</a> · <a class="source" data-paper="perceptron">Paper</a></p>
           </div>
         </li>
         <li class="event" data-year="1965" data-kind="thought">
@@ -2509,8 +2552,8 @@
           <div>
             <span class="event-kind">Thought</span>
             <h3>Twenty years, at most</h3>
-            <p>Herbert Simon, who later won a Nobel prize, predicted that machines would be able to do any work a person can within twenty years. Forecasts like his raised expectations that the computers of the time could not meet, and in the 1970s the funding collapsed. People later called these periods AI winters.</p>
-            <p>In the same year I. J. Good, who had worked alongside Turing during the war, described the idea that still drives the debate about risk: a machine clever enough to design a better machine, which designs a better one again, until people are left far behind. <a href="#view-quotes">Their words</a></p>
+            <p>Herbert Simon, who later won a Nobel prize, had predicted in 1960 that machines would be able to do any work a person can within twenty years, and repeats it in a book this year. Forecasts like his raised expectations that the computers of the time could not meet, and in the 1970s the funding collapsed. People later called these periods AI winters.</p>
+            <p>In the same year I. J. Good, who had worked alongside Turing during the war, described the idea that still drives the debate about risk: a machine clever enough to design a better machine, which designs a better one again, until people are left far behind. <a href="#view-quotes">Their words</a> · <a class="source" data-paper="good">Good's paper</a></p>
           </div>
         </li>
         <li class="event" data-year="1966" data-kind="release">
@@ -2518,7 +2561,7 @@
           <div>
             <span class="event-kind">Release</span>
             <h3>ELIZA, the first chatbot</h3>
-            <p>Joseph Weizenbaum's program at MIT answers by rearranging what the user typed. People confide in it all the same, which alarms its author.</p>
+            <p>Joseph Weizenbaum's program at MIT answers by rearranging what the user typed. People confide in it all the same, which alarms its author. <a class="source" data-paper="eliza">Paper</a></p>
           </div>
         </li>
         <li class="event" data-year="1980" data-kind="thought">
@@ -2527,7 +2570,7 @@
             <span class="event-kind">Thought</span>
             <h3>The Chinese room</h3>
             <p>John Searle asks you to picture a person shut in a room with a rulebook. Questions in Chinese are passed in, the person follows the rules to assemble answers and passes them out. From outside it looks as if someone in the room understands Chinese. The person inside understands nothing.</p>
-            <p>His conclusion: following rules for symbols, however well, is not understanding. The best-known reply is that the room as a whole, person and rulebook together, does understand. The argument was aimed at the programs of 1980 and is now applied, almost unchanged, to language models. <a href="#questions">FAQ, under debate</a></p>
+            <p>His conclusion: following rules for symbols, however well, is not understanding. The best-known reply is that the room as a whole, person and rulebook together, does understand. The argument was aimed at the programs of 1980 and is now applied, almost unchanged, to language models. <a href="#questions">FAQ, under debate</a> · <a class="source" data-paper="searle">Paper</a></p>
           </div>
         </li>
         <li class="event" data-year="1986" data-kind="invention">
@@ -2535,7 +2578,7 @@
           <div>
             <span class="event-kind">Invention</span>
             <h3>Backpropagation</h3>
-            <p>David Rumelhart, Geoffrey Hinton and Ronald Williams popularise the method that works out how to adjust every weight. It is still how networks are trained. <a href="#descent">Training, step 3</a></p>
+            <p>David Rumelhart, Geoffrey Hinton and Ronald Williams popularise the method that works out how to adjust every weight. It is still how networks are trained. <a href="#descent">Training, step 3</a> · <a class="source" data-paper="backprop">Paper</a></p>
           </div>
         </li>
         <li class="event" data-year="1991" data-kind="invention">
@@ -2543,7 +2586,7 @@
           <div>
             <span class="event-kind">Invention</span>
             <h3>Mixtures of experts</h3>
-            <p>A network made of several specialists and a router that chooses among them. Thirty years later the largest models are built this way. <a href="#attention">Using, step 6</a></p>
+            <p>A network made of several specialists and a router that chooses among them. Thirty years later many of the largest models are built on this idea. <a href="#attention">Using, step 6</a> · <a class="source" data-paper="moe">Paper</a></p>
           </div>
         </li>
         <li class="event" data-year="1994" data-kind="invention">
@@ -2591,8 +2634,8 @@
         decade earlier than most experts had expected. Unlike Deep Blue, this
         machine had learned. And in the same year Google Translate switched to
         a neural network. Its translations improved at a stroke, for hundreds
-        of millions of people. Most of them were using deep learning for the
-        first time, without knowing it.
+        of millions of people. Few of them knew that a neural network was now
+        doing the work.
       </p>
       <ol class="events">
         <li class="event" data-year="2003" data-kind="invention">
@@ -2600,7 +2643,7 @@
           <div>
             <span class="event-kind">Invention</span>
             <h3>A neural network that models language</h3>
-            <p>Yoshua Bengio and colleagues train a network that learns a vector for every word and predicts the next one. <a href="#embeddings">Using, step 4</a></p>
+            <p>Yoshua Bengio and colleagues train a network that learns a vector for every word and predicts the next one. <a href="#embeddings">Using, step 4</a> · <a class="source" data-paper="bengio">Paper</a></p>
           </div>
         </li>
         <li class="event" data-year="2012" data-kind="release">
@@ -2608,7 +2651,7 @@
           <div>
             <span class="event-kind">Release</span>
             <h3>AlexNet</h3>
-            <p>A deep network trained on two graphics cards wins the leading image-recognition contest by a wide margin. The deep-learning boom, and the demand for GPUs, begin here. <a href="#hw-nvidia">Hardware, step 3</a></p>
+            <p>A deep network trained on two graphics cards wins the leading image-recognition contest by a wide margin. The deep-learning boom, and the demand for GPUs, begin here. <a href="#hw-nvidia">Hardware, step 3</a> · <a class="source" data-paper="alexnet">Paper</a></p>
           </div>
         </li>
         <li class="event" data-year="2013" data-kind="release">
@@ -2616,7 +2659,7 @@
           <div>
             <span class="event-kind">Release</span>
             <h3>word2vec</h3>
-            <p>Google releases a fast way to learn word vectors, and "king − man + woman ≈ queen" becomes famous. <a href="#embeddings">Using, step 4</a></p>
+            <p>Google releases a fast way to learn word vectors, and "king − man + woman ≈ queen" becomes famous. <a href="#embeddings">Using, step 4</a> · <a class="source" data-paper="word2vec">Paper</a></p>
           </div>
         </li>
         <li class="event" data-year="2014" data-kind="invention">
@@ -2624,7 +2667,7 @@
           <div>
             <span class="event-kind">Invention</span>
             <h3>Attention</h3>
-            <p>Dzmitry Bahdanau, Kyunghyun Cho and Yoshua Bengio let a translation model look back at the words that matter for the one it is writing. <a href="#attention">Using, step 6</a></p>
+            <p>Dzmitry Bahdanau, Kyunghyun Cho and Yoshua Bengio let a translation model look back at the words that matter for the one it is writing. <a href="#attention">Using, step 6</a> · <a class="source" data-paper="bahdanau">Paper</a></p>
           </div>
         </li>
         <li class="event" data-year="2015" data-kind="invention">
@@ -2632,7 +2675,7 @@
           <div>
             <span class="event-kind">Invention</span>
             <h3>Distillation</h3>
-            <p>Geoffrey Hinton and colleagues show how a small network can learn from a large one. <a href="#adapting">Training, step 7</a></p>
+            <p>Geoffrey Hinton and colleagues show how a small network can learn from a large one. <a href="#adapting">Training, step 7</a> · <a class="source" data-paper="distill">Paper</a></p>
           </div>
         </li>
         <li class="event" data-year="2016" data-kind="release">
@@ -2640,7 +2683,7 @@
           <div>
             <span class="event-kind">Release</span>
             <h3>AlphaGo beats Lee Sedol</h3>
-            <p>DeepMind's program defeats one of the best Go players in the world, a decade earlier than most experts expected. This time the machine had learned.</p>
+            <p>DeepMind's program defeats one of the best Go players in the world, a decade earlier than most experts expected. This time the machine had learned. <a class="source" data-paper="alphago">Paper</a></p>
           </div>
         </li>
         <li class="event" data-year="2016" data-kind="result">
@@ -2648,7 +2691,7 @@
           <div>
             <span class="event-kind">Result</span>
             <h3>Translation by neural network</h3>
-            <p>Google Translate switches from stitched-together phrases to a neural network, and its translations improve at a stroke for hundreds of millions of users. Most people use deep learning for the first time here, without knowing it. <a href="#attention">Using, step 6</a></p>
+            <p>Google Translate switches from stitched-together phrases to a neural network, and its translations improve at a stroke for hundreds of millions of users. For many people it is the first time deep learning visibly changes something they use every day, though few know what is behind it. <a href="#attention">Using, step 6</a> · <a class="source" data-paper="gnmt">Paper</a></p>
           </div>
         </li>
       </ol>
@@ -2696,7 +2739,7 @@
           <div>
             <span class="event-kind">Invention</span>
             <h3>The transformer</h3>
-            <p>Eight researchers at Google publish <a class="source" href="https://arxiv.org/abs/1706.03762" target="_blank" rel="noopener" data-tip-title="Attention Is All You Need (2017)" data-tip="Until then, language models read a sentence one word after another. This paper drops that and relies on attention alone, so all words are processed at once. Such a network, the transformer, trains far faster on far more text. Click to open the original paper.">"Attention Is All You Need"</a>. Every large language model since is built on it. <a href="#network">Using, step 5</a></p>
+            <p>Eight researchers at Google publish <a class="source" data-paper="attention">"Attention Is All You Need"</a>. Every large language model since is built on it. <a href="#network">Using, step 5</a></p>
           </div>
         </li>
         <li class="event" data-year="2017" data-kind="invention">
@@ -2704,7 +2747,7 @@
           <div>
             <span class="event-kind">Invention</span>
             <h3>Learning from human preferences</h3>
-            <p>Researchers at OpenAI and DeepMind show that a system can learn a task from people comparing pairs of its attempts. <a href="#feedback">Training, step 5</a></p>
+            <p>Researchers at OpenAI and DeepMind show that a system can learn a task from people comparing pairs of its attempts. <a href="#feedback">Training, step 5</a> · <a class="source" data-paper="prefs">Paper</a></p>
           </div>
         </li>
         <li class="event" data-year="2018" data-kind="release">
@@ -2712,7 +2755,7 @@
           <div>
             <span class="event-kind">Release</span>
             <h3>The first GPT, and BERT</h3>
-            <p>OpenAI shows the recipe of pre-training on plain text and adapting afterwards. Google's BERT applies the transformer to understanding text. <a href="#pretraining">Training, step 2</a></p>
+            <p>OpenAI shows the recipe of pre-training on plain text and adapting afterwards. Google's BERT applies the transformer to understanding text. <a href="#pretraining">Training, step 2</a> · <a class="source" data-paper="gpt1">GPT paper</a> · <a class="source" data-paper="bert">BERT paper</a></p>
           </div>
         </li>
         <li class="event" data-year="2019" data-kind="release">
@@ -2720,7 +2763,7 @@
           <div>
             <span class="event-kind">Release</span>
             <h3>GPT-2</h3>
-            <p>A model that writes whole coherent paragraphs. OpenAI releases its weights in stages, out of concern about misuse. <a href="#loop">Using, step 9</a></p>
+            <p>A model that writes whole coherent paragraphs. OpenAI releases its weights in stages, out of concern about misuse. <a href="#loop">Using, step 9</a> · <a class="source" data-paper="gpt2">Paper</a></p>
           </div>
         </li>
         <li class="event" data-year="2019" data-kind="thought">
@@ -2729,7 +2772,7 @@
             <span class="event-kind">Thought</span>
             <h3>The Bitter Lesson</h3>
             <p>Rich Sutton looks back on seventy years of the field and sees one pattern. In chess, in Go, in speech and in vision, researchers first built in their own knowledge of the subject. Each time they were overtaken by simpler methods that just used more computing power to search and to learn.</p>
-            <p>The lesson is bitter because it says that cleverness matters less than scale. Many see large language models as its clearest confirmation, though Sutton himself has disputed that reading. <a href="#view-quotes">His words</a></p>
+            <p>The lesson is bitter because it says that cleverness matters less than scale. Many see large language models as its clearest confirmation, though Sutton himself has disputed that reading. <a href="#view-quotes">His words</a> · <a class="source" data-paper="bitterLesson">Essay</a></p>
           </div>
         </li>
         <li class="event" data-year="2020" data-kind="release">
@@ -2737,7 +2780,7 @@
           <div>
             <span class="event-kind">Release</span>
             <h3>GPT-3</h3>
-            <p>A hundred times larger than its predecessor, and able to do tasks it was never trained for when shown a few examples in the prompt. <a href="#prompt">Using, step 1</a></p>
+            <p>A hundred times larger than its predecessor, and able to do tasks it was never trained for when shown a few examples in the prompt. <a href="#prompt">Using, step 1</a> · <a class="source" data-paper="gpt3">Paper</a></p>
           </div>
         </li>
         <li class="event" data-year="2020" data-kind="invention">
@@ -2745,7 +2788,7 @@
           <div>
             <span class="event-kind">Invention</span>
             <h3>Retrieval and image patches</h3>
-            <p>Two ideas of one year: looking text up and placing it in front of the prompt, and cutting images into patches that a transformer reads like words. <a href="#prediction">Using, step 7</a></p>
+            <p>Two ideas of one year: looking text up and placing it in front of the prompt, and cutting images into patches that a transformer reads like words. <a href="#prediction">Using, step 7</a> · <a class="source" data-paper="rag">Retrieval paper</a> · <a class="source" data-paper="vit">Image paper</a></p>
           </div>
         </li>
         <li class="event" data-year="2020" data-kind="result">
@@ -2753,7 +2796,7 @@
           <div>
             <span class="event-kind">Result</span>
             <h3>AlphaFold 2 solves protein folding</h3>
-            <p>DeepMind's system predicts the three-dimensional shape of a protein from its sequence about as accurately as laboratory experiments, a problem biologists had worked on for fifty years. The predicted shapes of nearly all known proteins are later published for anyone to use.</p>
+            <p>DeepMind's system predicts the three-dimensional shape of a protein from its sequence about as accurately as laboratory experiments, a problem biologists had worked on for fifty years. The predicted shapes of nearly all known proteins are later published for anyone to use. <a class="source" data-paper="alphafold">Paper</a></p>
           </div>
         </li>
         <li class="event" data-year="2021" data-kind="invention">
@@ -2761,7 +2804,7 @@
           <div>
             <span class="event-kind">Invention</span>
             <h3>LoRA</h3>
-            <p>Researchers at Microsoft find a way to adapt a model by training only a small add-on. <a href="#adapting">Training, step 7</a></p>
+            <p>Researchers at Microsoft find a way to adapt a model by training only a small add-on. <a href="#adapting">Training, step 7</a> · <a class="source" data-paper="lora">Paper</a></p>
           </div>
         </li>
         <li class="event" data-year="2021" data-kind="result">
@@ -2778,7 +2821,7 @@
             <span class="event-kind">Thought</span>
             <h3>Stochastic parrots</h3>
             <p>A paper by Emily Bender, Timnit Gebru and colleagues argues that a language model stitches together words it has seen, according to how likely they are, without any reference to meaning. It also warns about the energy such models consume, the prejudices they absorb from their training text, and the human tendency to mistake fluent language for understanding.</p>
-            <p>The paper became famous before it appeared: Google forced Gebru out in a dispute over it. Its title gave the sceptical side of the debate its name. <a href="#questions">FAQ, under debate</a></p>
+            <p>The paper became famous before it appeared: Google forced Gebru out in a dispute over it. Its title gave the sceptical side of the debate its name. <a href="#questions">FAQ, under debate</a> · <a class="source" data-paper="parrots">Paper</a></p>
           </div>
         </li>
       </ol>
@@ -2797,8 +2840,9 @@
         behind a simple chat window. ChatGPT reached a hundred million users
         in two months. From here the pace changed. In March 2023 came GPT-4,
         the first model that many people found useful for serious work. In the
-        same year Meta released the weights of its Llama models, and within
-        weeks a community had them running on ordinary laptops. Models were
+        same year Meta shared the weights of its Llama model with researchers.
+        They leaked, and within weeks a community had them running on ordinary
+        laptops. Models were
         given a fixed format for asking to use a tool. Google DeepMind steered
         a robot with a language model that wrote movements instead of words.
         And a DeepMind system called GraphCast predicted the weather ten days
@@ -2830,7 +2874,7 @@
           <div>
             <span class="event-kind">Invention</span>
             <h3>Thinking in steps, acting with tools</h3>
-            <p>Two papers show that a model does better when it writes out its reasoning, and better still when it can alternate between reasoning and using tools. <a href="#loop">Using, step 9</a></p>
+            <p>Two papers show that a model does better when it writes out its reasoning, and better still when it can alternate between reasoning and using tools. <a href="#loop">Using, step 9</a> · <a class="source" data-paper="cot">First paper</a> · <a class="source" data-paper="react">Second paper</a></p>
           </div>
         </li>
         <li class="event" data-year="2022" data-kind="release">
@@ -2854,7 +2898,7 @@
           <div>
             <span class="event-kind">Release</span>
             <h3>Llama and llama.cpp</h3>
-            <p>Meta releases model weights, and within weeks a community has them running, shrunk to 4 bits, on ordinary laptops. <a href="#network">Using, step 5</a></p>
+            <p>Meta shares the weights of its first Llama model with researchers. They leak within days, and within weeks a community has them running, shrunk to 4 bits, on ordinary laptops. In July Meta releases the next Llama openly. <a href="#network">Using, step 5</a></p>
           </div>
         </li>
         <li class="event" data-year="2023" data-kind="invention">
@@ -2870,7 +2914,7 @@
           <div>
             <span class="event-kind">Release</span>
             <h3>RT-2 and Mixtral</h3>
-            <p>Google DeepMind steers a robot with a language model that outputs movements as tokens. Mistral releases an open model built as a mixture of experts. <a href="#rb-model">Robots, step 2</a></p>
+            <p>Google DeepMind steers a robot with a language model that outputs movements as tokens. Mistral releases an open model built as a mixture of experts. <a href="#rb-model">Robots, step 2</a> · <a class="source" data-paper="rt2">RT-2 paper</a></p>
           </div>
         </li>
         <li class="event" data-year="2023" data-kind="result">
@@ -2878,7 +2922,7 @@
           <div>
             <span class="event-kind">Result</span>
             <h3>Better weather forecasts</h3>
-            <p>DeepMind's GraphCast predicts the weather up to ten days ahead more accurately than the leading conventional system, and in a fraction of the time.</p>
+            <p>DeepMind's GraphCast predicts the weather up to ten days ahead more accurately than the leading conventional system, and in a fraction of the time. <a class="source" data-paper="graphcast">Paper</a></p>
           </div>
         </li>
         <li class="event" data-year="2024" data-kind="invention">
@@ -2886,7 +2930,7 @@
           <div>
             <span class="event-kind">Invention</span>
             <h3>BitNet b1.58</h3>
-            <p>Microsoft Research trains a model whose every weight is −1, 0 or +1. <a href="#network">Using, step 5</a></p>
+            <p>Microsoft Research trains a model whose every weight is −1, 0 or +1. <a href="#network">Using, step 5</a> · <a class="source" data-paper="bitnet">Paper</a></p>
           </div>
         </li>
         <li class="event" data-year="2024" data-kind="release">
@@ -2910,7 +2954,7 @@
           <div>
             <span class="event-kind">Release</span>
             <h3>The Model Context Protocol</h3>
-            <p>In November Anthropic publishes an open standard for connecting models to tools. Within a year the other major providers have adopted it. <a href="#mcp">Agents, step 4</a></p>
+            <p>In November Anthropic publishes an open standard for connecting models to tools. Within a year the other major providers have adopted it. <a href="#mcp">Agents, step 4</a> · <a class="source" data-paper="mcp">Announcement</a></p>
           </div>
         </li>
       </ol>
@@ -2935,16 +2979,18 @@
         the level of a gold medal. And in October the company 1X opened orders
         for NEO, a humanoid robot for household chores, at the price of a
         small car. In January 2026 an open-source assistant called OpenClaw
-        spread faster than any software project before it. It runs on your own
+        spread faster on GitHub, the programmers' platform, than any software
+        project before it. It runs on your own
         computer, and may read your mail, use your files and run programs on
         your behalf. For many people it was the first agent they used, and the
         first time they had to decide how much to let one do. In the same year
         an OpenAI model disproved a conjecture in geometry that the
-        mathematician Paul Erdős had posed in 1946. The proof ran to 125
-        pages, and outside mathematicians checked and accepted it. Moonshot AI
+        mathematician Paul Erdős had posed in 1946. Outside mathematicians
+        checked the proof, shortened it and accepted it. Moonshot AI
         published a model with 2.8 trillion parameters, the largest anyone can
-        download. In September the three leading companies each released a new
-        top model within four weeks. And in October Mistral, in France,
+        download. In September the three leading companies each presented a
+        new top model within four weeks, though Google's went at first only to
+        selected security teams. And in October Mistral, in France,
         announced a model with a trillion parameters, trained in its own
         European data centres. That is where the story stands, in October
         2026. Ada Lovelace's question, whether a machine can originate
@@ -2999,7 +3045,7 @@
           <div>
             <span class="event-kind">Result</span>
             <h3>An 80-year-old conjecture is disproved</h3>
-            <p>An OpenAI model disproves a conjecture in geometry that Paul Erdős posed in 1946, with a proof of 125 pages that outside mathematicians check and accept. In the same year a DeepMind system settles nine more open problems from Erdős's list. <a href="#loop">Using, step 9</a></p>
+            <p>An OpenAI model disproves a conjecture in geometry that Paul Erdős posed in 1946, with a long proof that outside mathematicians check, shorten and accept. In the same year a DeepMind system settles nine more open problems from Erdős's list. <a href="#loop">Using, step 9</a></p>
           </div>
         </li>
         <li class="event" data-year="2026" data-kind="release">
@@ -3014,8 +3060,8 @@
           <span class="event-year">2026</span>
           <div>
             <span class="event-kind">Release</span>
-            <h3>A desktop with 512 GB for models</h3>
-            <p>In August Apple's Mac Studio with the M5 Ultra chip puts memory for very large models on a desk. <a href="#hw-mac">Hardware, step 4</a></p>
+            <h3>A new Mac Studio for large models</h3>
+            <p>In August Apple announces the Mac Studio with the M5 Ultra chip. Like its predecessor of 2025 it offers up to 512 GB of memory, enough for very large models on a desk; the 512 GB version is due in late October. <a href="#hw-mac">Hardware, step 4</a></p>
           </div>
         </li>
         <li class="event" data-year="2026" data-kind="release">
@@ -3023,7 +3069,7 @@
           <div>
             <span class="event-kind">Release</span>
             <h3>GPT-6 Astra, Claude Opus 5.5, Gemini 4 Argon</h3>
-            <p>Within four weeks of September the three leading companies each release a new top model. <a href="#frontier">Models, 1</a></p>
+            <p>Within four weeks in September the three leading companies each present a new top model. Google's is at first available only to selected security teams. <a href="#frontier">Models, 1</a></p>
           </div>
         </li>
         <li class="event" data-year="2026" data-kind="release">
@@ -3220,7 +3266,7 @@
       <details class="extra faq">
         <summary>How much energy does one answer use?</summary>
         <p>
-          For a short text answer, about a third of a watt-hour: Google reported 0.24 Wh for a typical Gemini text prompt in 2025, and OpenAI gave 0.34 Wh for an average ChatGPT query. That is roughly a small LED lamp burning for two minutes. Three cautions: these figures come from the companies themselves, they leave out the energy spent on training, and long reasoning, images and video use many times more. The total matters because of the sheer number of requests.
+          For a short text answer, about a third of a watt-hour: Google reported 0.24 Wh for a typical Gemini text prompt in 2025, and OpenAI gave 0.34 Wh for an average ChatGPT query. That is roughly a small LED lamp burning for two minutes. Three cautions: these figures come from the companies themselves, they leave out the energy spent on training, and long reasoning, images and video use many times more. The total matters because of the sheer number of requests. <a class="source" data-paper="geminiEnergy">Google's study</a> · <a class="source" data-paper="gentleSingularity">Altman's essay</a>
         </p>
         <p class="background">Background: <a href="#loop">Using, step 9</a> · <a href="#pretraining">Training, step 2</a></p>
       </details>
@@ -3257,7 +3303,7 @@
         </p>
           <table class="pairs">
             <thead>
-              <tr><th>In people</th><th>In a language model</th><th>Where the comparison breaks</th></tr>
+              <tr><th scope="col">In people</th><th scope="col">In a language model</th><th scope="col">Where the comparison breaks</th></tr>
             </thead>
             <tbody>
               <tr>
@@ -3300,7 +3346,7 @@
         </p>
           <table class="pairs two">
             <thead>
-              <tr><th>The brain</th><th>A language model</th></tr>
+              <tr><th scope="col">The brain</th><th scope="col">A language model</th></tr>
             </thead>
             <tbody>
               <tr>
@@ -3331,8 +3377,8 @@
         </p>
         <p class="origins-title">Where the comparison comes from</p>
         <ul class="origins">
-          <li><span>1943</span><span><strong>Warren McCulloch and Walter Pitts</strong> describe a mathematical model of a neuron, the starting point of artificial neural networks.</span></li>
-          <li><span>1958</span><span><strong>Frank Rosenblatt</strong>, a psychologist, builds the perceptron as a model of how the brain might learn.</span></li>
+          <li><span>1943</span><span><strong>Warren McCulloch and Walter Pitts</strong> describe a mathematical model of a neuron, the starting point of artificial neural networks. <a class="source" data-paper="mcculloch">Paper</a></span></li>
+          <li><span>1958</span><span><strong>Frank Rosenblatt</strong>, a psychologist, builds the perceptron as a model of how the brain might learn. <a class="source" data-paper="perceptron">Paper</a></span></li>
         </ul>
         <p class="background">Background: <a href="#network">Using, step 5</a> · <a href="#descent">Training, step 3</a></p>
       </details>
@@ -3412,9 +3458,9 @@
       <details class="extra faq">
         <summary>Where do these debates come from?</summary>
         <ul class="origins">
-          <li><span>1950</span><span><strong>Alan Turing</strong> proposes replacing the question "Can machines think?" with a test: can a machine pass for a person in a written conversation?</span></li>
-          <li><span>1980</span><span><strong>John Searle</strong> argues with his "Chinese room" thought experiment that following rules for symbols is not understanding.</span></li>
-          <li><span>2021</span><span><strong>Emily Bender, Timnit Gebru</strong> and colleagues coin the phrase "stochastic parrots" for language models.</span></li>
+          <li><span>1950</span><span><strong>Alan Turing</strong> proposes replacing the question "Can machines think?" with a test: can a machine pass for a person in a written conversation? <a class="source" data-paper="turing">Paper</a></span></li>
+          <li><span>1980</span><span><strong>John Searle</strong> argues with his "Chinese room" thought experiment that following rules for symbols is not understanding. <a class="source" data-paper="searle">Paper</a></span></li>
+          <li><span>2021</span><span><strong>Emily Bender, Timnit Gebru</strong> and colleagues coin the phrase "stochastic parrots" for language models. <a class="source" data-paper="parrots">Paper</a></span></li>
         </ul>
         <p class="background">Background: <a href="#view-quotes">Quotes</a></p>
       </details>
@@ -3445,7 +3491,7 @@
       </figure>
       <figure class="quote">
         <blockquote>I propose to consider the question, "Can machines think?"</blockquote>
-        <figcaption><strong>Alan Turing</strong>, 1950. The opening sentence of the paper that proposed what became known as the Turing test.</figcaption>
+        <figcaption><strong>Alan Turing</strong>, 1950. The opening sentence of the paper that proposed what became known as the Turing test. <a class="source" data-paper="turing">Paper</a></figcaption>
       </figure>
       <figure class="quote">
         <blockquote>…the question of whether Machines Can Think … is about as relevant as the question of whether Submarines Can Swim.</blockquote>
@@ -3458,11 +3504,11 @@
       <h2>Great expectations</h2>
       <figure class="quote">
         <blockquote>…every aspect of learning or any other feature of intelligence can in principle be so precisely described that a machine can be made to simulate it.</blockquote>
-        <figcaption><strong>John McCarthy, Marvin Minsky, Nathaniel Rochester and Claude Shannon</strong>, 1955. From the proposal for the Dartmouth summer workshop, which also gave the field its name: artificial intelligence. The proposal states this as a conjecture to be tested.</figcaption>
+        <figcaption><strong>John McCarthy, Marvin Minsky, Nathaniel Rochester and Claude Shannon</strong>, 1955. From the proposal for the Dartmouth summer workshop, which also gave the field its name: artificial intelligence. The proposal states this as a conjecture to be tested. <a class="source" data-paper="dartmouth">Proposal</a></figcaption>
       </figure>
       <figure class="quote">
-        <blockquote>Machines will be capable, within twenty years, of doing any work that a man can do.</blockquote>
-        <figcaption><strong>Herbert Simon</strong>, 1965. One of the field's founders. The twenty years passed, and so did several more waves of confident forecasts.</figcaption>
+        <blockquote>…machines will be capable, within twenty years, of doing any work that a man can do.</blockquote>
+        <figcaption><strong>Herbert Simon</strong>, 1960. One of the field's founders, in his book "The New Science of Management Decision". The twenty years passed, and so did several more waves of confident forecasts.</figcaption>
       </figure>
       <figure class="quote">
         <blockquote>Just as electricity transformed almost everything 100 years ago, today I actually have a hard time thinking of an industry that I don't think AI will transform in the next several years.</blockquote>
@@ -3475,11 +3521,11 @@
       <h2>Warnings</h2>
       <figure class="quote">
         <blockquote>…we had better be quite sure that the purpose put into the machine is the purpose which we really desire and not merely a colorful imitation of it.</blockquote>
-        <figcaption><strong>Norbert Wiener</strong>, 1960. The founder of cybernetics, describing what is now called the alignment problem. <a href="#feedback">Training, step 5</a></figcaption>
+        <figcaption><strong>Norbert Wiener</strong>, 1960. The founder of cybernetics, describing what is now called the alignment problem. <a href="#feedback">Training, step 5</a> · <a class="source" data-paper="wiener">Paper</a></figcaption>
       </figure>
       <figure class="quote">
         <blockquote>Thus the first ultraintelligent machine is the last invention that man need ever make, provided that the machine is docile enough to tell us how to keep it under control.</blockquote>
-        <figcaption><strong>I. J. Good</strong>, 1965. A mathematician who had worked with Turing. The first half is quoted often, the condition at the end less so.</figcaption>
+        <figcaption><strong>I. J. Good</strong>, 1965. A mathematician who had worked with Turing. The first half is quoted often, the condition at the end less so. <a class="source" data-paper="good">Paper</a></figcaption>
       </figure>
       <figure class="quote">
         <blockquote>The AI does not hate you, nor does it love you, but you are made out of atoms which it can use for something else.</blockquote>
@@ -3487,7 +3533,7 @@
       </figure>
       <figure class="quote">
         <blockquote>The development of full artificial intelligence could spell the end of the human race.</blockquote>
-        <figcaption><strong>Stephen Hawking</strong>, 2014. In an interview with the BBC.</figcaption>
+        <figcaption><strong>Stephen Hawking</strong>, 2014. In an interview with the BBC. <a class="source" data-paper="hawking">BBC article</a></figcaption>
       </figure>
     </section>
 
@@ -3496,11 +3542,11 @@
       <h2>How progress is made</h2>
       <figure class="quote">
         <blockquote>The biggest lesson that can be read from 70 years of AI research is that general methods that leverage computation are ultimately the most effective, and by a large margin.</blockquote>
-        <figcaption><strong>Rich Sutton</strong>, 2019. From his essay "The Bitter Lesson": general methods that scale with computing power have beaten clever hand-built rules again and again. Many read large language models as the clearest case; Sutton himself has disputed that. <a href="#pretraining">Training, step 2</a></figcaption>
+        <figcaption><strong>Rich Sutton</strong>, 2019. From his essay "The Bitter Lesson": general methods that scale with computing power have beaten clever hand-built rules again and again. Many read large language models as the clearest case; Sutton himself has disputed that. <a href="#pretraining">Training, step 2</a> · <a class="source" data-paper="bitterLesson">Essay</a></figcaption>
       </figure>
       <figure class="quote">
         <blockquote>We can only see a short distance ahead, but we can see plenty there that needs to be done.</blockquote>
-        <figcaption><strong>Alan Turing</strong>, 1950. The last sentence of the same paper.</figcaption>
+        <figcaption><strong>Alan Turing</strong>, 1950. The last sentence of the same paper. <a class="source" data-paper="turing">Paper</a></figcaption>
       </figure>
     </section>
 
@@ -3560,7 +3606,7 @@
         <div><dt>Neural Engine</dt> <dd>Apple's name for the NPU in its phones and Macs. <a href="#network">Step 5</a></dd></div>
         <div><dt>Neural network</dt> <dd>The stack of layers that transforms the vectors. This is "the model". <a href="#network">Step 5</a></dd></div>
         <div><dt>Neuron</dt> <dd>In a neural network: a tiny unit that multiplies its inputs by weights, adds them up and passes on the result. Loosely named after the nerve cells of the brain. <a href="#network">Step 5</a></dd></div>
-        <div><dt>NPU</dt> <dd>Neural processing unit: a small chip in recent phones and laptops, built to run modest models on the device itself. <a href="#network">Step 5</a></dd></div>
+        <div><dt>NPU</dt> <dd>Neural processing unit: a small part of the main chip in recent phones and laptops, built to run modest models on the device itself. <a href="#network">Step 5</a></dd></div>
         <div><dt>Open weights</dt> <dd>Describes a model whose weights are published, so anyone can download and run it. Not the same as open source. <a href="#network">Step 5</a></dd></div>
         <div><dt>Output tokens</dt> <dd>The tokens a model writes. Each needs its own pass through the model, so they are slower and cost more than input tokens. <a href="#loop">Step 9</a></dd></div>
         <div><dt>Parameters</dt> <dd>Another word for weights. Model sizes are given as a parameter count. <a href="#network">Step 5</a></dd></div>
@@ -3612,6 +3658,8 @@
     <ol class="search-results" id="search-results"></ol>
   </dialog>
 
+  <script src="i18n/en.js"></script>
+  <script src="i18n.js"></script>
   <script src="tokenizer.js"></script>
   <script src="model.js"></script>
   <script src="network.js"></script>
@@ -3622,7 +3670,8 @@
   <script src="robots.js"></script>
   <script src="timeline.js"></script>
   <script src="search.js"></script>
-  <script src="audio/manifest.js"></script>
+  <script src="papers.js"></script>
+  <script src="audio/en/manifest.js"></script>
   <script src="audio.js"></script>
 </body>
 </html>

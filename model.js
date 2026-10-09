@@ -10,7 +10,8 @@ const ACTIVE_EXPERTS = 2;
 const ROUTER_SHARPNESS = 3;
 const EXAMPLE_PARAMETERS = 7e9;
 const TRAINING_STEP = 0.06;
-const TOPICS = ['Animals', 'Home', 'Food', 'Language'];
+// The classifier's answers, named by the word-map group each one counts.
+const TOPICS = ['animals', 'home', 'food', 'language'];
 const TOPIC_SHARPNESS = 1.2;
 const ATTENTION_SHARPNESS = 1.5;
 // How much the last two tokens, the last token, and plain frequency each count.
@@ -18,13 +19,15 @@ const MIX = { tri: 0.6, bi: 0.3, uni: 0.1 };
 
 // Hand-placed for illustration: related words sit close together. Each word
 // is [word, x, y, edible]; the last value (0 to 1) is the third direction of
-// the 3D view, roughly "can you eat it?".
+// the 3D view, roughly "can you eat it?". The words stay English in every
+// language, like the sentences the toy model has read; a group's visible name
+// comes from the strings file.
 const WORD_MAP = [
-  { group: 'Animals', x: 120, y: 30, words: [['cat', 95, 70, 0], ['dog', 150, 95, 0], ['mouse', 80, 120, 0.2], ['bird', 175, 55, 0.3], ['fish', 140, 140, 0.85]] },
-  { group: 'Home', x: 465, y: 30, words: [['house', 430, 65, 0], ['garden', 500, 95, 0.15], ['kitchen', 420, 115, 0.5], ['mat', 510, 55, 0], ['sofa', 480, 140, 0]] },
-  { group: 'Language', x: 305, y: 135, words: [['word', 270, 165, 0], ['token', 335, 160, 0], ['sentence', 262, 205, 0], ['model', 388, 190, 0]] },
-  { group: 'Food', x: 125, y: 225, words: [['milk', 90, 260, 1], ['bread', 155, 285, 1], ['cheese', 100, 310, 1], ['water', 180, 250, 0.9]] },
-  { group: 'Actions', x: 440, y: 225, words: [['sat', 410, 260, 0], ['slept', 480, 270, 0], ['ran', 430, 305, 0], ['walk', 505, 310, 0], ['ate', 370, 290, 0.7]] },
+  { group: 'animals', x: 120, y: 30, words: [['cat', 95, 70, 0], ['dog', 150, 95, 0], ['mouse', 80, 120, 0.2], ['bird', 175, 55, 0.3], ['fish', 140, 140, 0.85]] },
+  { group: 'home', x: 465, y: 30, words: [['house', 430, 65, 0], ['garden', 500, 95, 0.15], ['kitchen', 420, 115, 0.5], ['mat', 510, 55, 0], ['sofa', 480, 140, 0]] },
+  { group: 'language', x: 305, y: 135, words: [['word', 270, 165, 0], ['token', 335, 160, 0], ['sentence', 262, 205, 0], ['model', 388, 190, 0]] },
+  { group: 'food', x: 125, y: 225, words: [['milk', 90, 260, 1], ['bread', 155, 285, 1], ['cheese', 100, 310, 1], ['water', 180, 250, 0.9]] },
+  { group: 'actions', x: 440, y: 225, words: [['sat', 410, 260, 0], ['slept', 480, 270, 0], ['ran', 430, 305, 0], ['walk', 505, 310, 0], ['ate', 370, 290, 0.7]] },
 ];
 
 // Hand-written attention weights for an example sentence. Row i says how much
@@ -176,6 +179,7 @@ function topicProbs(tokens) {
 }
 
 // Tiny retrieval: scores each library text by the distinct words it shares with the query.
+// English in every language, like the prompt it is matched against.
 const LIBRARY = [
   'Cats sleep 12 to 16 hours a day.',
   'Most adult cats cannot digest milk well.',
@@ -183,6 +187,7 @@ const LIBRARY = [
   'A token is about three quarters of an English word on average.',
   'The transformer design was introduced in 2017.',
 ];
+const LIBRARY_MARKER = 'Use this information to answer:';
 const STOPWORDS = new Set(['the', 'a', 'an', 'of', 'to', 'in', 'on', 'is', 'are', 'was', 'were', 'and', 'from', 'about', 'what', 'how', 'do', 'doe', 'it']);
 
 function contentWords(text) {

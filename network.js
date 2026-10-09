@@ -6,7 +6,6 @@ const NET = { width: 600, height: 300, sideGap: 46, topGap: 22, bottomGap: 34, r
 const NET_LAYER_DELAY_MS = 380;
 const NET_LINE_MIN_OPACITY = 0.1;
 const NET_LINE_DIMMED_OPACITY = 0.04;
-const NET_LAYER_LABELS = ['vector in', 'neurons', 'neurons', 'vector out'];
 
 // Elements of the current drawing, kept so a selection only restyles them.
 const neuralNet = { lines: [], neurons: [], layers: [], selected: null };
@@ -62,7 +61,7 @@ function renderNeuralNet() {
       elements.push(el);
     });
     const { x } = neuronPosition(layer, 0);
-    elements.push(svgNode('text', { x, y: NET.height - 8, 'text-anchor': 'middle' }, NET_LAYER_LABELS[layer]));
+    elements.push(svgNode('text', { x, y: NET.height - 8, 'text-anchor': 'middle' }, STRINGS.network.columns[layer]));
   });
 
   $('neural-net').replaceChildren(...elements);
@@ -82,16 +81,16 @@ function styleNeuralNet() {
   }
 
   if (!selected) {
-    $('neural-stat').textContent = 'Each circle is a neuron and each line a weight: blue for negative, orange for positive. '
-      + 'A line shows stronger the more signal passes along it. Point at a neuron.';
+    $('neural-stat').textContent = t('network.hint');
   } else if (selected.layer === 0) {
     const value = layers[0].values[selected.index];
-    $('neural-stat').textContent = `An input: number ${selected.index + 1} of the token's vector, ${value.toFixed(2)}. Nothing is calculated here yet.`;
+    $('neural-stat').textContent = t('network.input', { n: selected.index + 1, value: fmt(value, 2) });
   } else {
     const { sums, values } = layers[selected.layer];
     const inputs = NETWORK_SIZES[selected.layer - 1];
-    $('neural-stat').textContent = `This neuron multiplies each of its ${inputs} inputs by the weight on its line and adds them up: `
-      + `${sums[selected.index].toFixed(2)}. Squashed into the range from -1 to 1, it passes on ${values[selected.index].toFixed(2)}.`;
+    $('neural-stat').textContent = t('network.neuron', {
+      inputs, sum: fmt(sums[selected.index], 2), value: fmt(values[selected.index], 2),
+    });
   }
 }
 
@@ -109,5 +108,18 @@ function wireNeuralNet() {
   svg.addEventListener('pointerover', (event) => selectNeuron(event.target));
   svg.addEventListener('pointerleave', () => selectNeuron(svg));
   svg.addEventListener('click', (event) => selectNeuron(event.target));
+  // Without a pointer: the drawing is one tab stop and the arrow keys walk through its neurons.
+  svg.tabIndex = 0;
+  svg.addEventListener('keydown', (event) => {
+    const step = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[event.key];
+    const { neurons, selected } = neuralNet;
+    if (!step || !neurons.length) return;
+    event.preventDefault();
+    const at = selected ? neurons.findIndex((n) => n.layer === selected.layer && n.index === selected.index) : (step > 0 ? -1 : 0);
+    const next = neurons[(at + step + neurons.length) % neurons.length];
+    neuralNet.selected = { layer: next.layer, index: next.index };
+    styleNeuralNet();
+  });
+  svg.addEventListener('blur', () => selectNeuron(svg));
   $('neural-send').addEventListener('click', renderNeuralNet);
 }
