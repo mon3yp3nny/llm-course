@@ -151,10 +151,6 @@ const STRINGS = {
     paperTitle: '{title} ({by})',
   },
 
-  rail: {
-    glossaryMark: 'G',
-  },
-
   extras: {
     closeAll: 'Alle schließen',
     openAll: 'Alle {n} öffnen',

@@ -956,9 +956,7 @@ document.querySelector('main').addEventListener('mouseover', (event) => {
 const views = [...document.querySelectorAll('.view')];
 
 // Side rail: one dot per step of the current view, the one in sight is marked.
-// The glossary sits below every view, so its dot, a G, closes every rail.
 const rail = document.querySelector('.rail');
-const glossary = document.getElementById('glossary');
 const railLinks = new Map();
 function railLink(target, mark, title) {
   const link = document.createElement('a');
@@ -971,12 +969,7 @@ function railLink(target, mark, title) {
 function buildRail() {
   railLinks.clear();
   const steps = views.find((view) => !view.hidden).querySelectorAll('.step');
-  const glossaryLink = railLink(glossary, t('rail.glossaryMark'), t('glossary'));
-  glossaryLink.classList.add('to-glossary');
-  rail.replaceChildren(
-    ...[...steps].map((step, i) => railLink(step, i + 1, step.dataset.title)),
-    glossaryLink,
-  );
+  rail.replaceChildren(...[...steps].map((step, i) => railLink(step, i + 1, step.dataset.title)));
 }
 
 const currentObserver = new IntersectionObserver((entries) => {
@@ -994,7 +987,6 @@ document.querySelectorAll('.step').forEach((step) => {
   currentObserver.observe(step);
   revealObserver.observe(step);
 });
-currentObserver.observe(glossary);
 
 function showView(id) {
   views.forEach((view) => { view.hidden = view.id !== id; });
@@ -1002,23 +994,44 @@ function showView(id) {
     const selected = tab.getAttribute('href') === `#${id}`;
     tab.classList.toggle('selected', selected);
     tab.setAttribute('aria-current', selected ? 'page' : 'false');
-    // On a narrow screen the pill scrolls; keep the chosen tab in sight, clear of the faded ends.
-    if (selected) tab.scrollIntoView({ block: 'nearest', inline: 'center' });
   });
   buildRail();
   // For parts that belong to one tab, such as a narration that is playing.
   document.dispatchEvent(new CustomEvent('viewchange'));
 }
 
-// Marks the sides of the tab pill on which more tabs are scrolled out of sight.
-const tabBar = document.querySelector('.tabs');
-function markTabOverflow() {
-  tabBar.classList.toggle('more-left', tabBar.scrollLeft > 4);
-  tabBar.classList.toggle('more-right', tabBar.scrollLeft + tabBar.clientWidth < tabBar.scrollWidth - 4);
+// The menu: a button in the corner opens a panel with the tabs, the search and the languages.
+const menu = $('menu');
+const menuButton = $('menu-open');
+const languageButton = $('language-open');
+function setLanguages(open) {
+  $('language-list').hidden = !open;
+  languageButton.setAttribute('aria-expanded', open);
 }
-tabBar.addEventListener('scroll', markTabOverflow, { passive: true });
-window.addEventListener('resize', markTabOverflow);
-markTabOverflow();
+function setMenu(open) {
+  menu.hidden = !open;
+  menuButton.setAttribute('aria-expanded', open);
+  if (!open) setLanguages(false);
+}
+menuButton.addEventListener('click', () => setMenu(menu.hidden));
+// Choosing a tab or the search closes it; a language link leaves the page anyway.
+menu.addEventListener('click', (event) => {
+  if (event.target.closest('.tabs a, .search-open')) setMenu(false);
+  else if (event.target === languageButton) setLanguages($('language-list').hidden);
+  else if (!event.target.closest('.languages')) setLanguages(false);
+});
+document.addEventListener('click', (event) => {
+  if (!menu.hidden && !event.target.closest('#menu, #menu-open')) setMenu(false);
+});
+document.addEventListener('keydown', (event) => {
+  if (event.key !== 'Escape' || menu.hidden) return;
+  setMenu(false);
+  menuButton.focus();
+});
+// The search was opened from the menu, which has closed since; its button takes the focus back.
+$('search').addEventListener('close', () => {
+  if (document.activeElement === document.body) menuButton.focus();
+});
 
 // Goes to an in-page target, switching to the other view first if it lives there.
 function route(hash) {

@@ -24,29 +24,41 @@
   <!-- Steps start out invisible and fade in only when scripts run; without them every tab is shown in full. -->
   <script>document.documentElement.classList.add('js')</script>
   <link rel="stylesheet" href="../style.css">
-  <noscript><style>.view[hidden] { display: block; } .rail, .search-open, .toggle-extras { display: none; }</style></noscript>
+  <noscript><style>.view[hidden] { display: block; } .menu[hidden] { display: block; } .rail, .menu-open, .search-open, .toggle-extras { display: none; }</style></noscript>
 </head>
 <body>
   <a class="skip" href="#content">Aller au contenu</a>
-  <nav class="tabs" aria-label="Parties">
-    <a href="#view-use" class="selected" aria-current="page">Usage</a>
-    <a href="#view-train">Entraînement</a>
-    <a href="#view-agents">Agents</a>
-    <a href="#view-hardware">Matériel</a>
-    <a href="#view-robots">Robots</a>
-    <a href="#view-models">Modèles</a>
-    <a href="#view-timeline">Chronologie</a>
-    <a href="#view-faq">FAQ</a>
-    <a href="#view-quotes">Citations</a>
-  </nav>
-  <button type="button" class="search-open" id="search-open" aria-label="Rechercher dans ce guide" title="Rechercher ( / )">
-    <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5"/><line x1="12.7" y1="12.7" x2="17" y2="17"/></svg>
+  <button type="button" class="menu-open" id="menu-open" aria-expanded="false" aria-controls="menu" aria-label="Menu">
+    <svg viewBox="0 0 20 20" aria-hidden="true"><line x1="3" y1="5.5" x2="17" y2="5.5"/><line x1="3" y1="10" x2="17" y2="10"/><line x1="3" y1="14.5" x2="17" y2="14.5"/></svg>
   </button>
-  <nav class="languages" aria-label="Langue">
-    <a href="../index.html" lang="en" hreflang="en" title="English">EN</a>
-    <a href="../de/index.html" lang="de" hreflang="de" title="Deutsch">DE</a>
-    <a href="index.html" lang="fr" hreflang="fr" title="Français" aria-current="true">FR</a>
-  </nav>
+  <div class="menu" id="menu" hidden>
+    <div class="menu-top">
+      <button type="button" class="search-open" id="search-open" aria-label="Rechercher dans ce guide" title="Rechercher ( / )">
+        <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5"/><line x1="12.7" y1="12.7" x2="17" y2="17"/></svg>
+        <span>Recherche</span>
+      </button>
+      <nav class="languages" aria-label="Langue">
+        <button type="button" class="language-open" id="language-open" aria-expanded="false" aria-controls="language-list">FR</button>
+        <div class="language-list" id="language-list" hidden>
+          <a href="../index.html" lang="en" hreflang="en">English</a>
+          <a href="../de/index.html" lang="de" hreflang="de">Deutsch</a>
+          <a href="index.html" lang="fr" hreflang="fr" aria-current="true">Français</a>
+        </div>
+      </nav>
+    </div>
+    <nav class="tabs" aria-label="Parties">
+      <a href="#view-use" class="selected" aria-current="page">Usage</a>
+      <a href="#view-train">Entraînement</a>
+      <a href="#view-agents">Agents</a>
+      <a href="#view-hardware">Matériel</a>
+      <a href="#view-robots">Robots</a>
+      <a href="#view-models">Modèles</a>
+      <a href="#view-timeline">Chronologie</a>
+      <a href="#view-faq">FAQ</a>
+      <a href="#view-quotes">Citations</a>
+      <a href="#view-glossary" class="aside">Glossaire</a>
+    </nav>
+  </div>
   <nav class="rail" aria-label="Étapes"></nav>
 
   <main id="content" tabindex="-1">
@@ -3614,6 +3626,7 @@
     </p>
     </div>
 
+    <div class="view" id="view-glossary" data-narration="off" hidden>
     <section class="glossary" id="glossary">
       <h2>Les mots que vous entendrez</h2>
       <dl>
@@ -3705,6 +3718,7 @@
         <div><dt>VRAM</dt> <dd>Mémoire vive vidéo (video random-access memory) : la mémoire d’une carte graphique. Elle détermine la taille maximale du modèle que la carte peut contenir. <a href="#network">Étape 5</a></dd></div>
       </dl>
     </section>
+    </div>
   </main>
 
   <dialog class="search" id="search" aria-label="Rechercher dans ce guide">

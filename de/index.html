@@ -24,29 +24,41 @@
   <!-- Steps start out invisible and fade in only when scripts run; without them every tab is shown in full. -->
   <script>document.documentElement.classList.add('js')</script>
   <link rel="stylesheet" href="../style.css">
-  <noscript><style>.view[hidden] { display: block; } .rail, .search-open, .toggle-extras { display: none; }</style></noscript>
+  <noscript><style>.view[hidden] { display: block; } .menu[hidden] { display: block; } .rail, .menu-open, .search-open, .toggle-extras { display: none; }</style></noscript>
 </head>
 <body>
   <a class="skip" href="#content">Zum Inhalt springen</a>
-  <nav class="tabs" aria-label="Teile">
-    <a href="#view-use" class="selected" aria-current="page">Nutzung</a>
-    <a href="#view-train">Training</a>
-    <a href="#view-agents">Agenten</a>
-    <a href="#view-hardware">Hardware</a>
-    <a href="#view-robots">Roboter</a>
-    <a href="#view-models">Modelle</a>
-    <a href="#view-timeline">Zeitleiste</a>
-    <a href="#view-faq">FAQ</a>
-    <a href="#view-quotes">Zitate</a>
-  </nav>
-  <button type="button" class="search-open" id="search-open" aria-label="Diesen Leitfaden durchsuchen" title="Suche ( / )">
-    <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5"/><line x1="12.7" y1="12.7" x2="17" y2="17"/></svg>
+  <button type="button" class="menu-open" id="menu-open" aria-expanded="false" aria-controls="menu" aria-label="Menü">
+    <svg viewBox="0 0 20 20" aria-hidden="true"><line x1="3" y1="5.5" x2="17" y2="5.5"/><line x1="3" y1="10" x2="17" y2="10"/><line x1="3" y1="14.5" x2="17" y2="14.5"/></svg>
   </button>
-  <nav class="languages" aria-label="Sprache">
-    <a href="../index.html" lang="en" hreflang="en" title="English">EN</a>
-    <a href="index.html" lang="de" hreflang="de" title="Deutsch" aria-current="true">DE</a>
-    <a href="../fr/index.html" lang="fr" hreflang="fr" title="Français">FR</a>
-  </nav>
+  <div class="menu" id="menu" hidden>
+    <div class="menu-top">
+      <button type="button" class="search-open" id="search-open" aria-label="Diesen Leitfaden durchsuchen" title="Suche ( / )">
+        <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5"/><line x1="12.7" y1="12.7" x2="17" y2="17"/></svg>
+        <span>Suche</span>
+      </button>
+      <nav class="languages" aria-label="Sprache">
+        <button type="button" class="language-open" id="language-open" aria-expanded="false" aria-controls="language-list">DE</button>
+        <div class="language-list" id="language-list" hidden>
+          <a href="../index.html" lang="en" hreflang="en">English</a>
+          <a href="index.html" lang="de" hreflang="de" aria-current="true">Deutsch</a>
+          <a href="../fr/index.html" lang="fr" hreflang="fr">Français</a>
+        </div>
+      </nav>
+    </div>
+    <nav class="tabs" aria-label="Teile">
+      <a href="#view-use" class="selected" aria-current="page">Nutzung</a>
+      <a href="#view-train">Training</a>
+      <a href="#view-agents">Agenten</a>
+      <a href="#view-hardware">Hardware</a>
+      <a href="#view-robots">Roboter</a>
+      <a href="#view-models">Modelle</a>
+      <a href="#view-timeline">Zeitleiste</a>
+      <a href="#view-faq">FAQ</a>
+      <a href="#view-quotes">Zitate</a>
+      <a href="#view-glossary" class="aside">Glossar</a>
+    </nav>
+  </div>
   <nav class="rail" aria-label="Schritte"></nav>
 
   <main id="content" tabindex="-1">
@@ -3698,6 +3710,7 @@
     </p>
     </div>
 
+    <div class="view" id="view-glossary" data-narration="off" hidden>
     <section class="glossary" id="glossary">
       <h2>Begriffe, die Ihnen begegnen</h2>
       <dl>
@@ -3789,6 +3802,7 @@
         <div><dt data-also="Knowledge Cutoff">Wissensstichtag</dt> <dd>Das Datum, nach dem ein Modell nichts mehr weiß, weil seine Trainingsdaten dort enden. Englisch: Knowledge Cutoff. <a href="#data">Training, Schritt 1</a></dd></div>
       </dl>
     </section>
+    </div>
   </main>
 
   <dialog class="search" id="search" aria-label="Diesen Leitfaden durchsuchen">

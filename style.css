@@ -158,48 +158,90 @@ main:focus { outline: none; }
   white-space: nowrap;
 }
 
-/* Tabs */
-.tabs {
+/* Menu: one button in the top left corner opens a panel with the tabs, the
+   search and the languages. */
+.menu-open,
+.search-open {
+  display: flex;
+  align-items: center;
+  background: var(--surface);
+  color: var(--muted);
+  border: 1px solid var(--border);
+  cursor: pointer;
+}
+
+.menu-open {
   position: fixed;
   top: 12px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 5;
+  left: 12px;
+  z-index: 6;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border-radius: 50%;
+}
+
+.menu-open:focus-visible,
+.menu-open[aria-expanded="true"],
+.search-open:focus-visible { color: var(--accent); border-color: var(--accent); }
+
+/* Hover styles only where there is a pointer; on a touch screen they would stick after a tap. */
+@media (hover: hover) {
+  .menu-open:hover,
+  .search-open:hover { color: var(--accent); border-color: var(--accent); }
+}
+
+.menu-open svg,
+.search-open svg {
+  width: 16px;
+  height: 16px;
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.menu {
+  position: fixed;
+  top: 56px;
+  left: 12px;
+  z-index: 6;
   display: flex;
-  gap: 2px;
-  padding: 3px;
+  flex-direction: column;
+  gap: 10px;
+  width: 240px;
+  max-width: calc(100vw - 24px);
+  max-height: calc(100dvh - 68px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 10px;
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 99px;
-  white-space: nowrap;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.12);
 }
 
-/* With many tabs on a narrow screen the pill scrolls sideways. */
+.menu[hidden] { display: none; }
+
+/* The first row: the search, and beside it the language. */
+.menu-top {
+  display: flex;
+  gap: 6px;
+}
+
 .tabs {
-  max-width: calc(100vw - 16px);
-  overflow-x: auto;
-  scrollbar-width: none;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
-
-.tabs::-webkit-scrollbar { display: none; }
-
-/* Where tabs are scrolled out of sight, the pill fades out on that side. */
-.tabs.more-left,
-.tabs.more-right {
-  --fade-left: 0px;
-  --fade-right: 0px;
-  -webkit-mask-image: linear-gradient(to right, transparent, #000 var(--fade-left), #000 calc(100% - var(--fade-right)), transparent);
-  mask-image: linear-gradient(to right, transparent, #000 var(--fade-left), #000 calc(100% - var(--fade-right)), transparent);
-}
-
-.tabs.more-left { --fade-left: 28px; }
-.tabs.more-right { --fade-right: 28px; }
 
 .tabs a {
-  padding: 6px 14px;
+  padding: 7px 12px;
   border-radius: 99px;
   color: var(--muted);
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   font-weight: 600;
   text-decoration: none;
 }
@@ -214,230 +256,106 @@ main:focus { outline: none; }
   outline-offset: 2px;
 }
 
-.step a { color: var(--accent); }
-
-@media (max-width: 520px) {
-  .tabs a { padding: 6px 8px; font-size: 0.72rem; }
+@media (hover: hover) {
+  .tabs a:not(.selected):hover { color: var(--accent); }
 }
 
-/* Search: a round button in the corner opens a box over the page. */
+/* The glossary is not one of the parts: a line sets it off. */
+.tabs .aside { margin-top: 8px; }
+
+.tabs .aside::before {
+  content: "";
+  display: block;
+  margin: -11px 0 10px;
+  border-top: 1px solid var(--border);
+}
+
+.step a { color: var(--accent); }
+
+/* Search: it looks like a field and opens a box over the page. */
 .search-open {
-  position: fixed;
-  top: 12px;
-  right: 12px;
-  z-index: 5;
-  display: grid;
-  place-items: center;
-  width: 36px;
-  height: 36px;
-  padding: 0;
+  flex: 1;
+  gap: 8px;
+  min-width: 0;
+  padding: 7px 12px;
+  border-radius: 99px;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+/* Language: a button shows the current one and opens a list of the others. */
+.languages { position: relative; }
+
+.language-open {
+  height: 100%;
+  padding: 0 12px;
   background: var(--surface);
   color: var(--muted);
   border: 1px solid var(--border);
-  border-radius: 50%;
+  border-radius: 99px;
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 600;
   cursor: pointer;
 }
 
-.search-open:focus-visible { color: var(--accent); border-color: var(--accent); }
-
-/* Hover styles only where there is a pointer; on a touch screen they would stick after a tap. */
-@media (hover: hover) {
-  .search-open:hover { color: var(--accent); border-color: var(--accent); }
+.language-open::after {
+  content: "";
+  display: inline-block;
+  margin: 0 0 2px 6px;
+  border: solid currentColor;
+  border-width: 0 1.5px 1.5px 0;
+  padding: 2px;
+  transform: rotate(45deg);
 }
 
-.search-open svg {
-  width: 16px;
-  height: 16px;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 2;
-  stroke-linecap: round;
-}
+.language-open:focus-visible,
+.language-open[aria-expanded="true"] { color: var(--accent); border-color: var(--accent); }
 
-/* Language switch: three short links in a small pill of the same make as the
-   tabs. On a wide screen it sits beside the search button. Where the tabs need
-   that room it lies below them at the top of the page and scrolls away with it. */
-.languages {
+.language-list {
   position: absolute;
-  top: 58px;
-  right: 12px;
-  z-index: 4;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 1;
   display: flex;
+  flex-direction: column;
   gap: 2px;
-  padding: 3px;
+  padding: 4px;
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 99px;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.12);
 }
 
-.languages a {
-  padding: 4px 8px;
+.language-list[hidden],
+.language-list a[aria-current="true"] { display: none; }
+
+.language-list a {
+  padding: 5px 12px;
   border-radius: 99px;
   color: var(--muted);
-  font-size: 0.72rem;
+  font-size: 0.8rem;
   font-weight: 600;
-  line-height: 1.5;
   text-decoration: none;
 }
 
-.languages a[aria-current="true"] {
-  background: var(--accent);
-  color: var(--bg);
-}
-
-.languages a:focus-visible {
+.language-list a:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
 
 @media (hover: hover) {
-  .languages a:not([aria-current="true"]):hover { color: var(--accent); }
-}
-
-@media (min-width: 1200px) {
-  .languages {
-    position: fixed;
-    top: 15px;
-    right: 56px;
-    z-index: 5;
-  }
-}
-
-.search {
-  width: min(600px, calc(100vw - 24px));
-  max-height: min(70vh, 640px);
-  /* Where supported: the height that is left when a phone's keyboard is open. */
-  max-height: min(70dvh, 640px);
-  margin-top: 64px;
-  padding: 14px;
-  background: var(--surface);
-  color: var(--text);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-}
-
-.search[open] { display: flex; flex-direction: column; }
-
-.search::backdrop { background: rgb(0 0 0 / 0.35); }
-
-.search form { display: flex; gap: 8px; }
-
-.search input {
-  flex: 1;
-  min-width: 0;
-  padding: 9px 12px;
-  background: var(--bg);
-  color: inherit;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  /* 16px keeps a phone from zooming in when the field is tapped. */
-  font: inherit;
-  font-size: 1rem;
-}
-
-.search input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
-
-.search input::placeholder { color: var(--muted); opacity: 1; }
-
-.search-close {
-  padding: 0 12px;
-  background: none;
-  color: var(--muted);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  font: inherit;
-  font-size: 0.8rem;
-  cursor: pointer;
-}
-
-.search-status {
-  margin: 10px 2px 6px;
-  color: var(--muted);
-  font-size: 0.8rem;
-}
-
-.search-results {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  overflow-y: auto;
-  /* The end of the list does not scroll the page behind the box. */
-  overscroll-behavior: contain;
-}
-
-.search-results button {
-  display: block;
-  width: 100%;
-  padding: 9px 10px;
-  background: none;
-  color: inherit;
-  border: 0;
-  border-radius: 8px;
-  font: inherit;
-  font-size: 0.9rem;
-  line-height: 1.4;
-  text-align: left;
-  cursor: pointer;
-}
-
-.search-results button:focus-visible {
-  background: var(--bg);
-  outline: 2px solid var(--accent);
-  outline-offset: -2px;
-}
-
-@media (hover: hover) {
-  .search-results button:hover { background: var(--bg); }
-}
-
-.search-place {
-  display: block;
-  color: var(--accent);
-  font-size: 0.68rem;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
-.search-text {
-  display: block;
-  color: var(--muted);
-  font-size: 0.82rem;
-}
-
-.search mark {
-  background: color-mix(in srgb, var(--accent) 22%, transparent);
-  color: inherit;
-  border-radius: 2px;
-}
-
-/* Grey text on the marked background is too faint. */
-.search-text mark { color: var(--text); }
-
-/* The place a search result led to lights up briefly. */
-.search-hit {
-  border-radius: 6px;
-  outline: 2px solid var(--accent);
-  outline-offset: 8px;
+  .language-open:hover { color: var(--accent); border-color: var(--accent); }
+  .language-list a:hover { color: var(--accent); }
 }
 
 /* It also takes the focus, so reading and tabbing go on from there; the outline above shows it. */
 [tabindex="-1"]:focus:not(.search-hit) { outline: none; }
 
 @media (max-width: 520px) {
-  /* The tabs make room for the search button beside them. */
-  .tabs {
-    left: 8px;
-    transform: none;
-    max-width: calc(100vw - 60px);
-  }
-  .search-open { right: 8px; }
-  .languages { right: 8px; }
-}
-
-@media (min-width: 521px) and (max-width: 800px) {
-  /* Room on both sides, so the centred pill stays clear of the search button. */
-  .tabs { max-width: calc(100vw - 112px); }
+  .menu-open { left: 8px; }
+  .menu { left: 8px; max-width: calc(100vw - 16px); }
 }
 
 /* Hero */
@@ -1791,17 +1709,8 @@ button.chip:focus-visible {
   position: relative;
   left: 50%;
   width: min(940px, calc(100vw - 32px));
-  padding: 4vh 0 16vh;
+  padding: 96px 0 16vh;
   transform: translateX(-50%);
-}
-
-/* Where the step rail is shown, the glossary stays clear of its dots and labels. */
-@media (min-width: 821px) {
-  .glossary { width: min(940px, calc(100vw - 112px)); }
-}
-
-@media (min-width: 1101px) {
-  .glossary { width: min(940px, calc(100vw - 250px)); }
 }
 
 .glossary dl {
@@ -1889,9 +1798,6 @@ button.chip:focus-visible {
   color: var(--bg);
 }
 
-/* The glossary is not a step: its dot stands a little apart from the numbers. */
-.rail .to-glossary { margin-top: 8px; }
-
 /* In a medium-wide window there is room beside the text for the dots but not
    for their labels; below that there is no room at all. */
 @media (max-width: 1100px) {
@@ -1925,7 +1831,7 @@ button.chip:focus-visible {
   .step.era::after, .event.passed::after, .event.now::after,
   .era.reached > h2::before { background: CanvasText; }
   .bar-track, .meter i { border: 1px solid CanvasText; }
-  .tabs a.selected, .languages a[aria-current="true"], .segments button.selected, .experts .active,
+  .tabs a.selected, .segments button.selected, .experts .active,
   .rail a.current .dot, .listen.playing {
     forced-color-adjust: none;
     background: Highlight;
@@ -1936,7 +1842,7 @@ button.chip:focus-visible {
 
 /* On paper: everything visible, nothing fixed, no empty pages. */
 @media print {
-  .tabs, .rail, .search-open, .languages, .skip, .scroll-hint, .listen, .toggle-extras, .time-bar, .tooltip { display: none !important; }
+  .menu-open, .menu, .rail, .skip, .scroll-hint, .listen, .toggle-extras, .time-bar, .tooltip { display: none !important; }
   .hero { min-height: 0; padding: 24px 0; }
   .step { min-height: 0; padding: 16px 0; }
   .step, .event { opacity: 1 !important; transform: none !important; transition: none !important; }

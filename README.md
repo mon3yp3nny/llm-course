@@ -23,7 +23,7 @@ dependencies: open `index.html` in a browser.
 
 ## Files
 
-- `index.html`, `de/index.html`, `fr/index.html`: all the text, one page per language, in nine tabs (Using, Training, Agents, Hardware, Robots, Models, Timeline, FAQ, Quotes) and a glossary
+- `index.html`, `de/index.html`, `fr/index.html`: all the text, one page per language, in nine tabs (Using, Training, Agents, Hardware, Robots, Models, Timeline, FAQ, Quotes) and a glossary, all reached through the menu
 - `i18n/en.js`, `i18n/de.js`, `i18n/fr.js`: every text the scripts put on the page, one file per language; `i18n.js` holds the helpers that fill them in and format numbers
 - `style.css`: the styling, including dark mode and phone layout
 - `tokenizer.js`, `model.js`: the toy tokenizer and toy model behind the demos
