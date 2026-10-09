@@ -165,16 +165,13 @@ function renderSearchResults() {
 
 // Shows a found unit: switches to its tab, unfolds what hides it and scrolls there.
 function goToUnit(el) {
-  $('search').close();
   const view = el.closest('.view');
-  if (view?.hidden) {
-    showView(view.id);
-    // Keep the address in step, so reload, back and a copied link show this tab.
-    try { history.replaceState(null, '', `#${view.id}`); } catch { /* refused for local files */ }
-  }
+  showView(view.id);
+  // A new address, so that reload and a copied link show this tab and Back returns to the results.
+  try { history.pushState(null, '', `#${view.id}`); } catch { /* refused for local files */ }
   for (let fold = el.closest('details'); fold; fold = fold.parentElement.closest('details')) fold.open = true;
   el.scrollIntoView({ block: el.matches('.step, .alt-path') ? 'start' : 'center' });
-  // Reading and tabbing go on from the place that was found, not from the search button.
+  // Reading and tabbing go on from the place that was found.
   const stop = el.matches('details') ? el.querySelector('summary') : el;
   if (stop.tagName !== 'SUMMARY' && !stop.hasAttribute('tabindex')) stop.tabIndex = -1;
   stop.focus({ preventScroll: true });
@@ -182,23 +179,19 @@ function goToUnit(el) {
   setTimeout(() => el.classList.remove('search-hit'), 2500);
 }
 
-function openSearch() {
+// The search is a part of its own; the menu and the "/" key lead to it.
+const searchView = $('view-search');
+document.addEventListener('viewchange', () => {
+  if (searchView.hidden) return;
   search.index ??= buildSearchIndex();
-  $('search').showModal();
-  $('search-input').select();
   renderSearchResults();
-}
+  $('search-input').select();
+});
 
-$('search-open').addEventListener('click', openSearch);
-$('search-close').addEventListener('click', () => $('search').close());
 $('search-input').addEventListener('input', renderSearchResults);
 $('search-form').addEventListener('submit', (event) => {
   event.preventDefault();
   $('search-results').querySelector('button')?.click();
-});
-// A click on the dimmed page around the box closes it.
-$('search').addEventListener('click', (event) => {
-  if (event.target === $('search')) $('search').close();
 });
 // The arrow keys walk through the results.
 $('search').addEventListener('keydown', (event) => {
@@ -211,8 +204,9 @@ $('search').addEventListener('keydown', (event) => {
 });
 // "/" opens the search, as on many sites, unless you are typing somewhere.
 document.addEventListener('keydown', (event) => {
-  if (event.key !== '/' || event.metaKey || event.ctrlKey || $('search').open) return;
+  if (event.key !== '/' || event.metaKey || event.ctrlKey) return;
   if (event.target.closest?.('input, textarea, select, [contenteditable]')) return;
   event.preventDefault();
-  openSearch();
+  if (searchView.hidden) location.hash = `#${searchView.id}`;
+  else $('search-input').select();
 });

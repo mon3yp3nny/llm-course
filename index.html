@@ -24,7 +24,7 @@
   <!-- Steps start out invisible and fade in only when scripts run; without them every tab is shown in full. -->
   <script>document.documentElement.classList.add('js')</script>
   <link rel="stylesheet" href="style.css">
-  <noscript><style>.view[hidden] { display: block; } .menu[hidden] { display: block; } .rail, .menu-open, .search-open, .toggle-extras { display: none; }</style></noscript>
+  <noscript><style>.view[hidden] { display: block; } .menu[hidden] { display: block; } .rail, .menu-open, .search-open, .toggle-extras, #view-search { display: none !important; }</style></noscript>
 </head>
 <body>
   <a class="skip" href="#content">Skip to content</a>
@@ -33,10 +33,10 @@
   </button>
   <div class="menu" id="menu" hidden>
     <div class="menu-top">
-      <button type="button" class="search-open" id="search-open" aria-label="Search this guide" title="Search ( / )">
+      <a class="search-open" id="search-open" href="#view-search" aria-label="Search this guide" title="Search ( / )">
         <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5"/><line x1="12.7" y1="12.7" x2="17" y2="17"/></svg>
         <span>Search</span>
-      </button>
+      </a>
       <nav class="languages" aria-label="Language">
         <button type="button" class="language-open" id="language-open" aria-expanded="false" aria-controls="language-list">EN</button>
         <div class="language-list" id="language-list" hidden>
@@ -3661,16 +3661,18 @@
       </dl>
     </section>
     </div>
+    <div class="view" id="view-search" data-narration="off" hidden>
+    <section class="search" id="search">
+      <h2>Search</h2>
+      <form id="search-form" role="search">
+        <input type="search" id="search-input" placeholder="Search the whole guide" autocomplete="off" aria-label="Search the whole guide">
+      </form>
+      <p class="search-status" id="search-status" aria-live="polite"></p>
+      <ol class="search-results" id="search-results"></ol>
+    </section>
+    </div>
   </main>
 
-  <dialog class="search" id="search" aria-label="Search this guide">
-    <form id="search-form" role="search">
-      <input type="search" id="search-input" placeholder="Search the whole guide" autocomplete="off" aria-label="Search the whole guide">
-      <button type="button" class="search-close" id="search-close">Close</button>
-    </form>
-    <p class="search-status" id="search-status" aria-live="polite"></p>
-    <ol class="search-results" id="search-results"></ol>
-  </dialog>
 
   <script src="i18n/en.js"></script>
   <script src="i18n.js"></script>

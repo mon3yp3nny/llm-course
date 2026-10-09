@@ -1028,11 +1028,6 @@ document.addEventListener('keydown', (event) => {
   setMenu(false);
   menuButton.focus();
 });
-// The search was opened from the menu, which has closed since; its button takes the focus back.
-$('search').addEventListener('close', () => {
-  if (document.activeElement === document.body) menuButton.focus();
-});
-
 // Goes to an in-page target, switching to the other view first if it lives there.
 function route(hash) {
   const target = hash.length > 1 && document.getElementById(hash.slice(1));
