@@ -271,7 +271,7 @@ const FILM_SCENES = {
     const slabX = (k) => 300 + k * 85;
     const lane = (i) => 150 + i * 60;
     const [from, to] = [185, 860];
-    const passes = (x) => at(0.1 + (0.8 * (x - from)) / (to - from));
+    const passes = (x) => at(0.06 + (0.88 * (x - from)) / (to - from));
     filmTokens.forEach((token, i) => chip(g, tokenLabel(token), 80, lane(i), i, { width: 84, height: 36, size: 18 }));
     for (let k = 0; k < slabs; k++) {
       const slab = draw(g, 'rect', { class: 'f-layer', x: slabX(k) - 23, y: 105, width: 46, height: 330, rx: 12 });
@@ -279,7 +279,7 @@ const FILM_SCENES = {
       change(slab, [{ opacity: 0.45 }, { opacity: 1 }, { opacity: 0.45 }], passes(slabX(k)) - 0.2, passes(slabX(k)) + 0.5);
     }
     const packet = place(draw(g, 'g'), from, 0);
-    change(packet, { translate: `${to}px 0px` }, at(0.1), at(0.9), 'linear');
+    change(packet, { translate: `${to}px 0px` }, at(0.06), at(0.94), 'linear');
     // One set of strips per stretch between two layers; the packet shows the set of where it is.
     for (let stretch = 0; stretch <= slabs; stretch++) {
       const set = draw(packet, 'g');
@@ -371,7 +371,7 @@ const FILM_SCENES = {
     pop(chip(g, tokenLabel(film.answer[0]), WINNER.x, WINNER.y, 0, { width: 126, height: 54, size: 27 }), at(0.8));
   },
 
-  // The drawn token joins the text and the run starts again, once per further token.
+  // The drawn token joins the text and the run starts again, once for every further token.
   loop(g, at) {
     const all = [...filmTokens, ...film.answer];
     const small = { width: 84, height: 36, size: 18 };
@@ -381,14 +381,16 @@ const FILM_SCENES = {
     const drawn = chip(g, tokenLabel(film.answer[0]), WINNER.x, WINNER.y, 0, small);
     drawn.style.scale = 1.5;
     change(drawn, { translate: `${x(filmTokens.length)}px ${y}px`, scale: 1 }, at(0.04), at(0.24));
-    const back = `M ${x(all.length - 1)} ${y - 40} C ${x(all.length - 1)} ${y - 140}, ${x(0)} ${y - 140}, ${x(0)} ${y - 46}`;
-    const round = draw(g, 'g', { class: 'f-arrow' });
-    trace(draw(round, 'path', { d: back }), at(0.28), at(0.46));
-    appear(draw(round, 'polygon', { points: `${x(0)},${y - 34} ${x(0) - 7},${y - 48} ${x(0) + 7},${y - 48}` }), at(0.44), 0.15);
-    film.answer.slice(1).forEach((token, k) => {
-      const from = at(0.5 + k * 0.14);
-      change(round, [{ opacity: 1 }, { opacity: 0.25 }, { opacity: 1 }], from - 0.5, from + 0.2);
-      pop(chip(g, tokenLabel(token), x(filmTokens.length + 1 + k), y, k + 1, small), from);
+    // After each new token an arrow leads from it back to the start: the whole text goes in again.
+    film.answer.forEach((token, k) => {
+      const arrives = at(0.24 + k * 0.18);
+      if (k > 0) pop(chip(g, tokenLabel(token), x(filmTokens.length + k), y, k, small), arrives - 0.35);
+      const newest = x(filmTokens.length + k);
+      const round = draw(g, 'g', { class: 'f-arrow' });
+      trace(draw(round, 'path', { d: `M ${newest} ${y - 40} C ${newest} ${y - 140}, ${x(0)} ${y - 140}, ${x(0)} ${y - 46}` }), arrives, arrives + 0.9);
+      appear(draw(round, 'polygon', { points: `${x(0)},${y - 34} ${x(0) - 7},${y - 48} ${x(0) + 7},${y - 48}` }), arrives + 0.8, 0.15);
+      // It gives way to the arrow of the next token; the last one stays.
+      if (k < film.answer.length - 1) change(round, { opacity: 0 }, at(0.24 + (k + 1) * 0.18) - 0.5, at(0.24 + (k + 1) * 0.18) - 0.2);
     });
   },
 

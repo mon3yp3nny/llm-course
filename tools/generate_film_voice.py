@@ -1,16 +1,19 @@
 #!/usr/bin/env python3
-"""Generates the narration of the film (de/film.html) and the times of its scenes.
+"""Generates the narration of the film (film.html, de/film.html, fr/film.html) and the times of its scenes.
 
 The film page lists its scenes as <li class="scene"> with one paragraph each.
 This script has every paragraph spoken by the voice of the guide, joins them
 with pauses into one recording, audio/film/<language>.mp3, and writes beside it
 <language>.js with the moment each scene begins. film.js moves its pictures by
 those moments, so picture and voice always fit, whatever the length of a text.
+A scene whose picture needs more time than its text takes says so in the page:
+data-hold="3" keeps it three seconds longer, in silence.
 
 It uses the voice, the spoken forms and the sound pipeline of
 tools/generate_voice.py; see there for what is needed (gcloud, GCP_PROJECT,
 ffmpeg).
 
+    GCP_PROJECT=my-project python3 tools/generate_film_voice.py              # all languages
     GCP_PROJECT=my-project python3 tools/generate_film_voice.py --lang de
     python3 tools/generate_film_voice.py --lang de --dry-run   # only show what would be spoken
     python3 tools/generate_film_voice.py --lang de --silent    # no recording: times estimated from the text
@@ -33,7 +36,7 @@ import generate_voice as voice  # noqa: E402
 ROOT = voice.ROOT
 FOLDER = ROOT / 'audio' / 'film'
 # The film page of each language that has one.
-PAGES = {'de': 'de/film.html'}
+PAGES = {'en': 'film.html', 'de': 'de/film.html', 'fr': 'fr/film.html'}
 # Seconds: before the first word, between two scenes, after the last word
 # (the last picture stays a moment).
 PAUSES = {'head': 0.4, 'scene': 0.9, 'tail': 1.8}
@@ -48,14 +51,16 @@ class SceneParser(HTMLParser):
 
     def __init__(self):
         super().__init__()
-        self.scenes = []     # (name, text)
+        self.scenes = []     # (name, text, seconds the scene is held after its text)
         self.name = None
+        self.hold = 0.0
         self.buffer = None
 
     def handle_starttag(self, tag, attrs):
         attrs = dict(attrs)
         if tag == 'li' and 'scene' in (attrs.get('class') or '').split():
             self.name = attrs.get('data-scene')
+            self.hold = float(attrs.get('data-hold') or 0)
         elif tag == 'p' and self.name:
             self.buffer = []
 
@@ -65,7 +70,7 @@ class SceneParser(HTMLParser):
 
     def handle_endtag(self, tag):
         if tag == 'p' and self.buffer is not None:
-            self.scenes.append((self.name, voice.clean(''.join(self.buffer))))
+            self.scenes.append((self.name, voice.clean(''.join(self.buffer)), self.hold))
             self.buffer = None
         elif tag == 'li':
             self.name = None
@@ -94,16 +99,16 @@ def write_times(lang, cues, length, version):
     print(f'Wrote audio/film/{lang}.js: {len(cues)} scenes, {int(length // 60)}:{int(length % 60):02d}.')
 
 
-def estimate(spoken):
+def estimate(spoken, holds):
     """Scene times guessed from the length of each text, for a film without a recording."""
     cues, at = [], PAUSES['head']
-    for parts in spoken:
+    for parts, hold in zip(spoken, holds):
         cues.append(max(0.0, at - LEAD))
-        at += sum(len(part) for part in parts) * SECONDS_PER_CHARACTER + PAUSES['scene']
+        at += sum(len(part) for part in parts) * SECONDS_PER_CHARACTER + hold + PAUSES['scene']
     return cues, at - PAUSES['scene'] + PAUSES['tail']
 
 
-def record(lang, spoken, title):
+def record(lang, spoken, holds, title):
     """Makes the recording and returns where each scene begins, the length and a note on the sound."""
     api = voice.Api()
     samples, rate, cues = None, None, []
@@ -120,7 +125,7 @@ def record(lang, spoken, title):
             else:
                 samples.extend(voice.silence(voice.PAUSES['split'], rate))
             samples.extend(voice.trim(piece, rate))
-        samples.extend(voice.silence(PAUSES['scene'] if index + 1 < len(spoken) else PAUSES['tail'], rate))
+        samples.extend(voice.silence(holds[index] + (PAUSES['scene'] if index + 1 < len(spoken) else PAUSES['tail']), rate))
     cues[0] = 0.0
     if sys.byteorder == 'big':
         samples.byteswap()
@@ -139,24 +144,19 @@ def record(lang, spoken, title):
     return cues, len(samples) / rate, f'{loudness:.1f} LUFS, peak {peak:.1f} dBTP'
 
 
-def main():
-    parser = argparse.ArgumentParser(description='Generates the narration of the film. See the top of this file.')
-    parser.add_argument('--lang', choices=list(PAGES), default='de', help='which film page to read (default: de)')
-    parser.add_argument('--dry-run', action='store_true', help='show what would be spoken; write and send nothing')
-    parser.add_argument('--silent', action='store_true', help='no recording: write scene times estimated from the text')
-    options = parser.parse_args()
-    lang = options.lang
-
+def generate(lang, options):
+    """Handles the film of one language. Returns 0 if all went well."""
     scenes, title = read_scenes(lang)
     used = []
-    spoken = [voice.split_for_api(voice.spoken_form(text, lang, used)) for _, text in scenes]
+    spoken = [voice.split_for_api(voice.spoken_form(text, lang, used)) for _, text, _ in scenes]
+    holds = [hold for _, _, hold in scenes]
     characters = sum(len(part) for parts in spoken for part in parts)
     print(f'[{lang}] {voice.LANGUAGES[lang]["voice"]}: {len(scenes)} scenes, {characters:,} characters, '
           f'{sum(len(parts) for parts in spoken)} requests.')
 
     if options.dry_run:
-        for (name, _), parts in zip(scenes, spoken):
-            print(f'\n[{name}]')
+        for (name, _, hold), parts in zip(scenes, spoken):
+            print(f'\n[{name}]' + (f'  held {hold:g} s longer' if hold else ''))
             for part in parts:
                 print(f'  {part}')
         if used:
@@ -164,7 +164,7 @@ def main():
         return 0
     if options.silent:
         (FOLDER / f'{lang}.mp3').unlink(missing_ok=True)
-        write_times(lang, *estimate(spoken), version=None)
+        write_times(lang, *estimate(spoken, holds), version=None)
         return 0
     if not voice.PROJECT:
         print('Set GCP_PROJECT to the Google Cloud project to use, for example:\n'
@@ -174,14 +174,24 @@ def main():
         print('The film\'s recording needs ffmpeg, which was not found.', file=sys.stderr)
         return 1
     try:
-        cues, length, note = record(lang, spoken, title)
+        cues, length, note = record(lang, spoken, holds, title)
     except voice.ApiError as error:
         print(f'{error}', file=sys.stderr)
         return 1
-    recipe = json.dumps([voice.PIPELINE, voice.LANGUAGES[lang]['voice'], PAUSES, spoken], ensure_ascii=False)
+    recipe = json.dumps([voice.PIPELINE, voice.LANGUAGES[lang]['voice'], PAUSES, spoken, holds], ensure_ascii=False)
     write_times(lang, cues, length, hashlib.sha1(recipe.encode('utf-8')).hexdigest()[:8])
     print(f'  {lang}.mp3  {(FOLDER / f"{lang}.mp3").stat().st_size // 1024} KB  {note}')
     return 0
+
+
+def main():
+    parser = argparse.ArgumentParser(description='Generates the narration of the film. See the top of this file.')
+    parser.add_argument('--lang', choices=[*PAGES, 'all'], default='all', help='which film page to read (default: all)')
+    parser.add_argument('--dry-run', action='store_true', help='show what would be spoken; write and send nothing')
+    parser.add_argument('--silent', action='store_true', help='no recording: write scene times estimated from the text')
+    options = parser.parse_args()
+    results = [generate(lang, options) for lang in (PAGES if options.lang == 'all' else [options.lang])]
+    return max(results)
 
 
 if __name__ == '__main__':
