@@ -49,7 +49,7 @@ INLINE_TAGS = {'a', 'abbr', 'b', 'cite', 'code', 'dfn', 'em', 'i', 'kbd', 'mark'
 IGNORED_TAGS = {'br', 'wbr', 'sup', 'sub', 'abbr'}
 # Attributes whose value is wording. Each page must have them in the same places, with its own text.
 PROSE_ATTRIBUTES = {'title', 'aria-label', 'placeholder', 'alt', 'data-title', 'data-label', 'data-cpu',
-                    'data-gpu', 'data-memory', 'data-empty'}
+                    'data-gpu', 'data-memory', 'data-empty', 'data-play', 'data-pause'}
 # Attributes a language may add or leave out freely.
 FREE_ATTRIBUTES = {'data-term', 'data-also', 'data-say', 'lang', 'hreflang'}
 
@@ -250,7 +250,7 @@ def check_head(lang, page):
     expect('og:locale:alternate',
            sorted(node.attrs.get('content') for node in find(head, 'meta', property='og:locale:alternate')),
            sorted(info['og'] for code, info in LANGUAGES.items() if code != lang))
-    expect('stylesheet', [node.attrs.get('href') for node in find(head, 'link', rel='stylesheet')], [up + 'style.css'])
+    expect('stylesheet', [node.attrs.get('href') for node in find(head, 'link', rel='stylesheet')], [up + 'style.css', up + 'film.css'])
     for what, nodes in [('<title>', find(head, 'title')),
                         ('meta description', find(head, 'meta', name='description')),
                         ('og:title', find(head, 'meta', property='og:title')),
@@ -261,7 +261,8 @@ def check_head(lang, page):
     # The scripts of the English page, from this page's folder and with this language's strings and recordings.
     reference_scripts = [node.attrs['src'] for node in find(pages[REFERENCE], 'script') if 'src' in node.attrs]
     wanted_scripts = [up + src.replace(f'i18n/{REFERENCE}.js', f'i18n/{lang}.js')
-                               .replace(f'audio/{REFERENCE}/', f'audio/{lang}/') for src in reference_scripts]
+                               .replace(f'audio/{REFERENCE}/', f'audio/{lang}/')
+                               .replace(f'audio/film/{REFERENCE}.js', f'audio/film/{lang}.js') for src in reference_scripts]
     expect('script tags', [node.attrs['src'] for node in find(page, 'script') if 'src' in node.attrs], wanted_scripts)
     for src in wanted_scripts:
         if not (ROOT / name).parent.joinpath(src).resolve().exists():

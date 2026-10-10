@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Generates the narration of the film (film.html, de/film.html, fr/film.html) and the times of its scenes.
+"""Generates the narration of the film and the times of its scenes.
 
-The film page lists its scenes as <li class="scene"> with one paragraph each.
+Each page of the guide holds the film's scenes as <li class="film-scene"> with one paragraph each.
 This script has every paragraph spoken by the voice of the guide, joins them
 with pauses into one recording, audio/film/<language>.mp3, and writes beside it
 <language>.js with the moment each scene begins. film.js moves its pictures by
@@ -35,8 +35,8 @@ import generate_voice as voice  # noqa: E402
 
 ROOT = voice.ROOT
 FOLDER = ROOT / 'audio' / 'film'
-# The film page of each language that has one.
-PAGES = {'en': 'film.html', 'de': 'de/film.html', 'fr': 'fr/film.html'}
+# The page of each language; the film is a part of it.
+PAGES = {'en': 'index.html', 'de': 'de/index.html', 'fr': 'fr/index.html'}
 # Seconds: before the first word, between two scenes, after the last word
 # (the last picture stays a moment).
 PAUSES = {'head': 0.4, 'scene': 0.9, 'tail': 1.8}
@@ -52,13 +52,16 @@ class SceneParser(HTMLParser):
     def __init__(self):
         super().__init__()
         self.scenes = []     # (name, text, seconds the scene is held after its text)
+        self.title = ''      # the film's name, from the label of its layer
         self.name = None
         self.hold = 0.0
         self.buffer = None
 
     def handle_starttag(self, tag, attrs):
         attrs = dict(attrs)
-        if tag == 'li' and 'scene' in (attrs.get('class') or '').split():
+        if attrs.get('id') == 'film':
+            self.title = attrs.get('aria-label') or ''
+        if tag == 'li' and 'film-scene' in (attrs.get('class') or '').split():
             self.name = attrs.get('data-scene')
             self.hold = float(attrs.get('data-hold') or 0)
         elif tag == 'p' and self.name:
@@ -80,8 +83,7 @@ def read_scenes(lang):
     parser = SceneParser()
     text = (ROOT / PAGES[lang]).read_text(encoding='utf-8')
     parser.feed(text)
-    title = text[text.index('<title>') + 7:text.index('</title>')]
-    return parser.scenes, voice.clean(title)
+    return parser.scenes, voice.clean(parser.title)
 
 
 def write_times(lang, cues, length, version):
@@ -186,7 +188,7 @@ def generate(lang, options):
 
 def main():
     parser = argparse.ArgumentParser(description='Generates the narration of the film. See the top of this file.')
-    parser.add_argument('--lang', choices=[*PAGES, 'all'], default='all', help='which film page to read (default: all)')
+    parser.add_argument('--lang', choices=[*PAGES, 'all'], default='all', help='which page to read (default: all)')
     parser.add_argument('--dry-run', action='store_true', help='show what would be spoken; write and send nothing')
     parser.add_argument('--silent', action='store_true', help='no recording: write scene times estimated from the text')
     options = parser.parse_args()

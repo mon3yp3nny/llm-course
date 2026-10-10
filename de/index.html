@@ -24,7 +24,8 @@
   <!-- Steps start out invisible and fade in only when scripts run; without them every tab is shown in full. -->
   <script>{ const root = document.documentElement; root.classList.add('js'); try { root.dataset.theme = localStorage.getItem('theme') || ''; root.dataset.text = localStorage.getItem('text') || ''; } catch { /* storage refused */ } }</script>
   <link rel="stylesheet" href="../style.css">
-  <noscript><style>.view[hidden] { display: block; } .menu[hidden] { display: block; } .rail, .menu-open, .search-open, .theme-open, .text-open, .toggle-extras, #view-search { display: none !important; }</style></noscript>
+  <link rel="stylesheet" href="../film.css">
+  <noscript><style>.view[hidden] { display: block; } .menu[hidden] { display: block; } .rail, .menu-open, .search-open, .theme-open, .text-open, .watch, .toggle-extras, #view-search { display: none !important; }</style></noscript>
 </head>
 <body>
   <a class="skip" href="#content">Zum Inhalt springen</a>
@@ -70,7 +71,6 @@
       <a href="#view-faq">FAQ</a>
       <a href="#view-quotes">Zitate</a>
       <a href="#view-glossary" class="aside">Glossar</a>
-      <a href="film.html#play">Kurzfilm</a>
     </nav>
   </div>
   <nav class="rail" aria-label="Schritte"></nav>
@@ -78,7 +78,7 @@
   <main id="content" tabindex="-1">
     <div class="view" id="view-use">
     <header class="hero">
-      <h1>Wie ein LLM aus Ihrem Text eine Antwort macht <a class="watch" href="film.html#play" aria-label="Den Kurzfilm ansehen" title="Den Kurzfilm ansehen"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="3.5" y="6" width="9" height="8" rx="1.8"/><path d="M12.5 9.3l4-2.3v6l-4-2.3"/></svg></a></h1>
+      <h1>Wie ein LLM aus Ihrem Text eine Antwort macht <a class="watch" href="#film" aria-label="Den Kurzfilm ansehen" title="Den Kurzfilm ansehen"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="3.5" y="6" width="9" height="8" rx="1.8"/><path d="M12.5 9.3l4-2.3v6l-4-2.3"/></svg></a></h1>
       <p class="lead">
         Folgen Sie einem Prompt durch die Maschine, Schritt für Schritt.
         Tippen Sie etwas ein und scrollen Sie dann.
@@ -3829,6 +3829,59 @@
   </main>
 
 
+  <!-- The film: the first part as a short animation, shown over the page. film.js draws
+       the pictures; the list holds what is said, scene by scene, and is not shown.
+       tools/generate_film_voice.py reads its paragraphs aloud. A scene with data-step is
+       one of the nine steps; data-hold keeps a scene that many seconds longer than its text. -->
+  <div class="film" id="film" role="dialog" aria-modal="true" aria-label="Wie ein LLM antwortet: der Film" hidden>
+    <a class="film-close" href="#view-use" aria-label="Film schließen" title="Film schließen">
+      <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 5l10 10M15 5L5 15"/></svg>
+    </a>
+    <div class="stage">
+      <svg id="film-stage" viewBox="0 0 960 540" role="img" aria-label="Animation: Ein Prompt wird in Tokens zerlegt, zu Zahlen und Vektoren, läuft durch das neuronale Netz und endet in einem gezogenen nächsten Token. Der gesprochene Text steht darunter."></svg>
+    </div>
+    <p class="film-caption" id="film-caption"></p>
+    <div class="film-bar">
+      <button type="button" class="film-play" id="film-play" data-play="Film abspielen" data-pause="Film anhalten"></button>
+      <div class="film-progress" id="film-progress" role="progressbar" aria-label="Stelle im Film" aria-valuemin="0" aria-valuemax="100"><i></i></div>
+    </div>
+    <ol class="film-scenes" hidden>
+      <li class="film-scene" data-scene="start">
+        <p>Was passiert, wenn Sie einem Sprachmodell etwas schreiben? Folgen wir einem kurzen Satz durch die Maschine.</p>
+      </li>
+      <li class="film-scene" data-scene="prompt" data-step="1" data-label="Prompt">
+        <p>Am Anfang steht Text: Ihr Prompt. Das Modell sieht nie Ihre Absicht, nur diese Zeichen.</p>
+      </li>
+      <li class="film-scene" data-scene="tokens" data-step="2" data-label="Tokens">
+        <p>Zuerst wird der Text in Tokens zerlegt. Das sind häufige Textstücke: oft ein ganzes Wort, manchmal nur ein Teil davon.</p>
+      </li>
+      <li class="film-scene" data-scene="ids" data-step="3" data-label="Token-IDs">
+        <p>Jedes Token wird durch seine Nummer im Vokabular ersetzt. Von hier an ist Ihr Prompt nur noch eine Folge von Zahlen.</p>
+      </li>
+      <li class="film-scene" data-scene="embeddings" data-step="4" data-label="Embeddings">
+        <p>Zu jeder Nummer gehört eine Liste von Zahlen, ein Vektor. Er setzt das Token als Punkt in einen Raum, in dem ähnliche Wörter nah beieinander liegen.</p>
+      </li>
+      <li class="film-scene" data-scene="network" data-step="5" data-label="Netz" data-hold="3">
+        <p>Die Vektoren wandern durch das neuronale Netz, einen langen Stapel von Schichten. Jede Schicht schreibt sie ein wenig um.</p>
+      </li>
+      <li class="film-scene" data-scene="attention" data-step="6" data-label="Attention">
+        <p>Dabei blickt jedes Token auf die Tokens vor ihm und auf sich selbst zurück und holt sich, was es braucht. Das ist die Attention.</p>
+      </li>
+      <li class="film-scene" data-scene="prediction" data-step="7" data-label="Vorhersage">
+        <p>Am Ende erhält jedes Token des Vokabulars eine Wahrscheinlichkeit: Wie wahrscheinlich kommt es als Nächstes? Bewertet wird, was wahrscheinlich ist, nicht, was wahr ist.</p>
+      </li>
+      <li class="film-scene" data-scene="sampling" data-step="8" data-label="Sampling">
+        <p>Dann wird gelost. Ein Token mit 45&nbsp;% bekommt 45 von 100 Losen. Meist gewinnt ein wahrscheinliches Token, manchmal ein überraschendes.</p>
+      </li>
+      <li class="film-scene" data-scene="loop" data-step="9" data-label="Schleife">
+        <p>Das gezogene Token wird an den Text gehängt, und alles läuft noch einmal ab. So entsteht die Antwort: Token für Token.</p>
+      </li>
+      <li class="film-scene" data-scene="end">
+        <p>Mehr ist es im Kern nicht: Text wird zu Zahlen, die Zahlen gehen durchs Netz, ein Token wird gezogen. Und dann von vorn.</p>
+      </li>
+    </ol>
+  </div>
+
   <script src="../i18n/de.js"></script>
   <script src="../i18n.js"></script>
   <script src="../tokenizer.js"></script>
@@ -3844,5 +3897,7 @@
   <script src="../papers.js"></script>
   <script src="../audio/de/manifest.js"></script>
   <script src="../audio.js"></script>
+  <script src="../audio/film/de.js"></script>
+  <script src="../film.js"></script>
 </body>
 </html>

@@ -1,12 +1,15 @@
-// Film: the first part of the guide as a short animation, told in scenes.
-// The page lists the scenes with the text that is spoken (not shown, but kept
-// for a screen reader); this script draws a picture for each and moves it in time with the
-// recording. The times come from audio/film/<language>.js, which
-// tools/generate_film_voice.py writes. Without a recording the film runs
-// silently by the same times.
+// Film: the first part of the guide as a short animation, told in scenes and
+// shown over the page. The page lists the scenes with the text that is spoken
+// (not shown, but kept for a screen reader); this script draws a picture for
+// each and moves it in time with the recording. The times come from
+// audio/film/<language>.js, which tools/generate_film_voice.py writes. Without
+// a recording the film runs silently by the same times.
 // Uses tokenize() and tokenId() from tokenizer.js and the toy model from
 // model.js, so its numbers are the ones the guide shows for the same prompt.
+// Everything lives inside one function, so its names do not meet those of the
+// guide's other scripts.
 
+(() => {
 const SVG_NS = 'http://www.w3.org/2000/svg';
 const FILM_PROMPT = 'The cat sat on the';
 // The tokens the toy model adds, taking the most likely one each time.
@@ -34,7 +37,7 @@ const MAP_MOMENTS = 36;
 // Where the drawn token appears in one scene and sets off from in the next.
 const WINNER = { x: 660, y: 470 };
 
-const film = { tracks: [], scenes: [], time: 0, length: FILM_VOICE.length, playing: false, audio: null, last: 0 };
+const film = { tracks: [], scenes: [], time: 0, length: FILM_VOICE.length, playing: false, audio: null, last: 0, built: false };
 
 const $ = (id) => document.getElementById(id);
 const filmTokens = tokenize(FILM_PROMPT);
@@ -423,7 +426,7 @@ function buildFilm() {
   film.likely = nextTokenProbs(filmTokens).slice(0, 5);
   film.answer = [];
   for (let n = 0; n < FILM_ANSWER_LENGTH; n++) film.answer.push(nextTokenProbs([...filmTokens, ...film.answer])[0].token);
-  film.scenes = [...document.querySelectorAll('.scene')].map((item, index) => ({
+  film.scenes = [...document.querySelectorAll('.film-scene')].map((item, index) => ({
     name: item.dataset.scene,
     step: item.dataset.step,
     label: item.dataset.label,
@@ -510,9 +513,18 @@ function seekFilm(seconds) {
   showFilm();
 }
 
-buildFilm();
-if (FILM_VOICE.src) {
-  film.audio = new Audio(new URL(FILM_VOICE.src, document.currentScript.src));
+// The recording is found from where this script lives, so it is the same from every page.
+const FILM_FOLDER = document.currentScript.src;
+const layer = $('film');
+const opener = document.querySelector('.watch');
+
+// The pictures are drawn when the film is first opened, not with every visit of the guide.
+function prepareFilm() {
+  if (film.built) return;
+  film.built = true;
+  buildFilm();
+  if (!FILM_VOICE.src) return;
+  film.audio = new Audio(new URL(FILM_VOICE.src, FILM_FOLDER));
   film.audio.preload = 'auto';
   film.audio.addEventListener('error', () => { film.audio = null; });
   // The recording may end a moment before the film's last picture.
@@ -522,16 +534,50 @@ if (FILM_VOICE.src) {
     showFilm();
   });
 }
-setPlaying(false);
-showFilm();
+
+const filmIsOpen = () => !layer.hidden;
+
+function openFilm() {
+  if (filmIsOpen()) return;
+  prepareFilm();
+  // A narration of the guide that is playing gives way to the film.
+  if (typeof narration !== 'undefined') narration.audio.pause();
+  layer.hidden = false;
+  document.documentElement.classList.add('film-open');
+  film.time = 0;
+  setPlaying(false);
+  showFilm();
+  // After the click that opened it has run its course, which would otherwise leave the focus on the page below.
+  setTimeout(() => $('film-play').focus({ preventScroll: true }));
+}
+
+function closeFilm() {
+  if (!filmIsOpen()) return;
+  pauseFilm();
+  layer.hidden = true;
+  document.documentElement.classList.remove('film-open');
+  opener?.focus({ preventScroll: true });
+}
+
+// The film has an address of its own, #film: the Back button closes it, and a link can lead to it.
+let openedFromHere = false;
+// The click starts the film right away: a browser lets sound begin only in answer to a press.
+opener?.addEventListener('click', () => {
+  openedFromHere = true;
+  openFilm();
+  playFilm();
+});
+window.addEventListener('hashchange', () => (location.hash === '#film' ? openFilm() : closeFilm()));
+if (location.hash === '#film') openFilm();
+layer.querySelector('.film-close').addEventListener('click', (event) => {
+  event.preventDefault();
+  // Back to where the reader was; someone who arrived at the film directly goes to the first part.
+  if (openedFromHere) history.back();
+  else location.hash = '#view-use';
+  openedFromHere = false;
+});
 
 const toggleFilm = () => (film.playing ? pauseFilm() : playFilm());
-// The links in the guide ask for the film to start at once. The request is
-// taken out of the address, so a reload does not start it again.
-if (location.hash === '#play') {
-  try { history.replaceState(null, '', location.pathname); } catch { /* refused for local files */ }
-  playFilm();
-}
 $('film-play').addEventListener('click', toggleFilm);
 $('film-stage').addEventListener('click', toggleFilm);
 // The thin line beside the button shows how far the film is; a click on it leads to that place.
@@ -540,18 +586,31 @@ $('film-progress').addEventListener('click', (event) => {
   seekFilm(((event.clientX - line.left) / line.width) * film.length);
 });
 // Space plays and pauses, the arrow keys go back and forth, as in a video player; Escape closes the film.
+// Asked before the guide's own keys, which do not apply while the film covers the page.
 document.addEventListener('keydown', (event) => {
-  if (event.metaKey || event.ctrlKey || event.altKey) return;
-  // Escape works from anywhere; the other keys belong to a button or the time bar while that has the focus.
-  if (event.key === 'Escape') document.querySelector('.film-close').click();
-  else if (event.target.closest('button, a, input')) return;
+  if (!filmIsOpen() || event.metaKey || event.ctrlKey || event.altKey) return;
+  event.stopPropagation();
+  // Escape works from anywhere; the other keys belong to a button while that has the focus.
+  if (event.key === 'Escape') layer.querySelector('.film-close').click();
+  else if (event.key === 'Tab') trapFocus(event);
+  else if (event.target.closest('button, a')) return;
   else if (event.key === ' ') toggleFilm();
   else if (event.key === 'ArrowRight') seekFilm(film.time + SKIP_SECONDS);
   else if (event.key === 'ArrowLeft') seekFilm(film.time - SKIP_SECONDS);
   else return;
+  if (event.key !== 'Tab') event.preventDefault();
+}, true);
+
+// The Tab key stays among the film's two controls while it is open.
+function trapFocus(event) {
+  const stops = [$('film-play'), layer.querySelector('.film-close')];
+  const next = stops[(stops.indexOf(document.activeElement) + 1) % stops.length];
   event.preventDefault();
-});
+  next.focus();
+}
+
 // Leaving the tab stops the sound and with it the film.
 document.addEventListener('visibilitychange', () => {
   if (document.hidden && film.playing) pauseFilm();
 });
+})();
