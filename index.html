@@ -21,10 +21,11 @@
   <link rel="alternate" hreflang="fr" href="https://mon3yp3nny.github.io/llm-course/fr/">
   <link rel="alternate" hreflang="x-default" href="https://mon3yp3nny.github.io/llm-course/">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='15' fill='%234b47d6'/%3E%3Cpath d='M12.5 9.5v13l11-6.5z' fill='%23faf9f6'/%3E%3C/svg%3E">
-  <!-- Steps start out invisible and fade in only when scripts run; without them every tab is shown in full. -->
-  <script>document.documentElement.classList.add('js')</script>
+  <!-- Steps start out invisible and fade in only when scripts run; without them every tab is shown in full.
+       A scheme or text size chosen earlier is set here, before the first paint. -->
+  <script>{ const root = document.documentElement; root.classList.add('js'); try { root.dataset.theme = localStorage.getItem('theme') || ''; root.dataset.text = localStorage.getItem('text') || ''; } catch { /* storage refused */ } }</script>
   <link rel="stylesheet" href="style.css">
-  <noscript><style>.view[hidden] { display: block; } .menu[hidden] { display: block; } .rail, .menu-open, .search-open, .toggle-extras, #view-search { display: none !important; }</style></noscript>
+  <noscript><style>.view[hidden] { display: block; } .menu[hidden] { display: block; } .rail, .menu-open, .search-open, .theme-open, .text-open, .toggle-extras, #view-search { display: none !important; }</style></noscript>
 </head>
 <body>
   <a class="skip" href="#content">Skip to content</a>
@@ -35,8 +36,21 @@
     <div class="menu-top">
       <a class="search-open" id="search-open" href="#view-search" aria-label="Search this guide" title="Search ( / )">
         <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5"/><line x1="12.7" y1="12.7" x2="17" y2="17"/></svg>
-        <span>Search</span>
       </a>
+      <button type="button" class="theme-open" id="theme-open" aria-label="Switch between light and dark" title="Switch between light and dark">
+        <svg class="sun" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="3.5"/><path d="M10 2.5v1.5M10 16v1.5M2.5 10H4M16 10h1.5M4.7 4.7l1.1 1.1M14.2 14.2l1.1 1.1M4.7 15.3l1.1-1.1M14.2 5.8l1.1-1.1"/></svg>
+        <svg class="moon" viewBox="0 0 20 20" aria-hidden="true"><path d="M16.5 11.6A7 7 0 0 1 8.4 3.5a7 7 0 1 0 8.1 8.1z"/></svg>
+      </button>
+      <div class="sizes">
+        <button type="button" class="text-open" id="text-open" aria-expanded="false" aria-controls="text-list" aria-label="Text size" title="Text size">
+          <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M1.5 16l3.2-8 3.2 8M2.7 13h4M9 16l4.5-12L18 16M10.6 12h5.8"/></svg>
+        </button>
+        <div class="text-list" id="text-list" hidden>
+          <button type="button" data-text="small">Small</button>
+          <button type="button" data-text="">Medium</button>
+          <button type="button" data-text="large">Large</button>
+        </div>
+      </div>
       <nav class="languages" aria-label="Language">
         <button type="button" class="language-open" id="language-open" aria-expanded="false" aria-controls="language-list">EN</button>
         <div class="language-list" id="language-list" hidden>

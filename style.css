@@ -12,13 +12,17 @@
   --c4: #e3d6fa;
   --neg: #2f7fd1;
   --pos: #d9772b;
+  /* Which symbol the scheme button shows: the scheme it switches to. */
+  --sun: none;
+  --moon: block;
   --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
   /* Scrollbars, sliders and other parts the browser draws follow the scheme too. */
   color-scheme: light dark;
 }
 
+/* Dark follows the device, unless the scheme button in the menu has chosen one. */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     --bg: #151517;
     --surface: #1e1e22;
     --text: #ecebe7;
@@ -32,15 +36,44 @@
     --c4: #44357a;
     --neg: #4d9be8;
     --pos: #e8914a;
+    --sun: block;
+    --moon: none;
   }
 }
 
+/* The same values again for a chosen dark scheme: keep the two lists alike. */
+:root[data-theme="dark"] {
+  --bg: #151517;
+  --surface: #1e1e22;
+  --text: #ecebe7;
+  --muted: #9a978f;
+  --border: #2f2f35;
+  --accent: #9d9aff;
+  --c0: #5c4320;
+  --c1: #24503a;
+  --c2: #2a3d70;
+  --c3: #5e2c45;
+  --c4: #44357a;
+  --neg: #4d9be8;
+  --pos: #e8914a;
+  --sun: block;
+  --moon: none;
+  color-scheme: dark;
+}
+
+:root[data-theme="light"] { color-scheme: light; }
+
 * { box-sizing: border-box; }
+
+/* The text sizes offered in the menu, beside the usual one; every size on the
+   page is measured from this one. */
+:root[data-text="small"] { font-size: 87.5%; }
+:root[data-text="large"] { font-size: 115%; }
 
 html {
   scroll-behavior: smooth;
   /* A jump or a Tab press never ends underneath the fixed tabs. */
-  scroll-padding-top: 64px;
+  scroll-padding-top: 72px;
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
 }
@@ -159,11 +192,18 @@ main:focus { outline: none; }
 }
 
 /* Menu: one button in the top left corner opens a panel with the tabs, the
-   search and the languages. */
+   search, the scheme, the text size and the languages. */
 .menu-open,
-.search-open {
+.search-open,
+.theme-open,
+.text-open {
   display: flex;
   align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border-radius: 50%;
   background: var(--surface);
   color: var(--muted);
   border: 1px solid var(--border);
@@ -175,25 +215,30 @@ main:focus { outline: none; }
   top: 12px;
   left: 12px;
   z-index: 6;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  padding: 0;
-  border-radius: 50%;
+  /* The size a finger needs. */
+  width: 44px;
+  height: 44px;
 }
 
 .menu-open:focus-visible,
 .menu-open[aria-expanded="true"],
-.search-open:focus-visible { color: var(--accent); border-color: var(--accent); }
+.search-open:focus-visible,
+.theme-open:focus-visible,
+.text-open:focus-visible,
+.text-open[aria-expanded="true"] { color: var(--accent); border-color: var(--accent); }
 
 /* Hover styles only where there is a pointer; on a touch screen they would stick after a tap. */
 @media (hover: hover) {
   .menu-open:hover,
-  .search-open:hover { color: var(--accent); border-color: var(--accent); }
+  .search-open:hover,
+  .theme-open:hover,
+  .text-open:hover { color: var(--accent); border-color: var(--accent); }
 }
 
 .menu-open svg,
-.search-open svg {
+.search-open svg,
+.theme-open svg,
+.text-open svg {
   width: 16px;
   height: 16px;
   flex: none;
@@ -201,11 +246,23 @@ main:focus { outline: none; }
   stroke: currentColor;
   stroke-width: 2;
   stroke-linecap: round;
+  stroke-linejoin: round;
 }
+
+.menu-open svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* Two letters in one symbol: thinner lines keep them apart. */
+.text-open svg { stroke-width: 1.6; }
+
+.theme-open .sun { display: var(--sun); }
+.theme-open .moon { display: var(--moon); }
 
 .menu {
   position: fixed;
-  top: 56px;
+  top: 64px;
   left: 12px;
   z-index: 6;
   display: flex;
@@ -213,7 +270,7 @@ main:focus { outline: none; }
   gap: 10px;
   width: 240px;
   max-width: calc(100vw - 24px);
-  max-height: calc(100dvh - 68px);
+  max-height: calc(100dvh - 76px);
   overflow-y: auto;
   overscroll-behavior: contain;
   padding: 10px;
@@ -225,7 +282,7 @@ main:focus { outline: none; }
 
 .menu[hidden] { display: none; }
 
-/* The first row: the search, and beside it the language. */
+/* The first row: the search, the scheme and the text size, and at its end the language. */
 .menu-top {
   display: flex;
   gap: 6px;
@@ -235,6 +292,13 @@ main:focus { outline: none; }
   display: flex;
   flex-direction: column;
   gap: 2px;
+}
+
+/* A line sets the parts off from the row above them. */
+.tabs::before {
+  content: "";
+  margin: 0 12px 8px;
+  border-top: 1px solid var(--border);
 }
 
 .tabs a {
@@ -272,21 +336,14 @@ main:focus { outline: none; }
 
 .step a { color: var(--accent); }
 
-/* In the menu the way to the search looks like its field. */
-.search-open {
-  flex: 1;
-  gap: 8px;
-  text-decoration: none;
-  min-width: 0;
-  padding: 7px 12px;
-  border-radius: 99px;
-  font: inherit;
-  font-size: 0.85rem;
-  font-weight: 600;
+/* Language: a button shows the current one and opens a list of the others. */
+.languages {
+  position: relative;
+  margin-left: auto;
 }
 
-/* Language: a button shows the current one and opens a list of the others. */
-.languages { position: relative; }
+/* Text size: its button opens a list in the same way. */
+.sizes { position: relative; }
 
 .language-open {
   height: 100%;
@@ -314,7 +371,8 @@ main:focus { outline: none; }
 .language-open:focus-visible,
 .language-open[aria-expanded="true"] { color: var(--accent); border-color: var(--accent); }
 
-.language-list {
+.language-list,
+.text-list {
   position: absolute;
   top: calc(100% + 6px);
   right: 0;
@@ -329,10 +387,28 @@ main:focus { outline: none; }
   box-shadow: 0 8px 24px rgb(0 0 0 / 0.12);
 }
 
+.text-list {
+  right: auto;
+  left: 0;
+}
+
 .language-list[hidden],
+.text-list[hidden],
 .language-list a[aria-current="true"] { display: none; }
 
-.language-list a {
+.text-list button {
+  background: none;
+  border: 0;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+/* The size in use is marked, not left out: all three stay in their order. */
+.text-list button[aria-current="true"] { color: var(--accent); }
+
+.language-list a,
+.text-list button {
   padding: 5px 12px;
   border-radius: 99px;
   color: var(--muted);
@@ -341,14 +417,16 @@ main:focus { outline: none; }
   text-decoration: none;
 }
 
-.language-list a:focus-visible {
+.language-list a:focus-visible,
+.text-list button:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
 
 @media (hover: hover) {
   .language-open:hover { color: var(--accent); border-color: var(--accent); }
-  .language-list a:hover { color: var(--accent); }
+  .language-list a:hover,
+  .text-list button:hover { color: var(--accent); }
 }
 
 /* Search: a part of its own, reached from the menu. It looks through every
@@ -1456,7 +1534,7 @@ button.chip:focus-visible {
 
 .time-bar {
   position: sticky;
-  top: 56px;
+  top: 64px;
   z-index: 4;
   display: flex;
   align-items: baseline;
@@ -1800,8 +1878,8 @@ button.chip:focus-visible {
 
 .alt-path { padding-bottom: 4vh; }
 
-/* Glossary: a compact reference list. It is wider than the text column and
-   flows into as many columns as fit. */
+/* Glossary: a reference list. It is wider than the text column and flows
+   into two columns where they fit. */
 .glossary {
   position: relative;
   left: 50%;
@@ -1811,15 +1889,13 @@ button.chip:focus-visible {
 }
 
 .glossary dl {
-  columns: 270px 3;
-  column-gap: 32px;
+  columns: 340px 2;
+  column-gap: 40px;
   margin: 20px 0 0;
-  font-size: 0.82rem;
-  line-height: 1.45;
 }
 
 .glossary dl > div {
-  margin: 0 0 9px;
+  margin: 0 0 14px;
   break-inside: avoid;
 }
 
@@ -1839,12 +1915,13 @@ button.chip:focus-visible {
 
 .glossary a {
   color: var(--accent);
-  font-size: 0.72rem;
+  font-size: 0.85em;
   font-weight: 600;
   white-space: nowrap;
 }
 
-/* Side rail */
+/* Side rail. It shows while the page moves and fades away when it rests;
+   the pointer or the Tab key brings it back. */
 .rail {
   position: fixed;
   top: 50%;
@@ -1853,6 +1930,20 @@ button.chip:focus-visible {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  opacity: 0;
+  transition: opacity 0.4s;
+}
+
+.rail.moving,
+.rail:focus-within { opacity: 1; }
+
+@media (hover: hover) {
+  .rail:hover { opacity: 1; }
+}
+
+/* On a touch screen nothing shows a hidden dot first, so it cannot be tapped by accident. */
+@media (hover: none) {
+  .rail:not(.moving) { pointer-events: none; }
 }
 
 .rail a {
@@ -1918,7 +2009,7 @@ button.chip:focus-visible {
   html { scroll-behavior: auto; }
   .js .step { opacity: 1; transform: none; transition: none; }
   .scroll-hint { animation: none; }
-  .bar-fill, .chip, .event::after, .rail .dot, .rail .label, #neural-net line { transition: none; }
+  .bar-fill, .chip, .event::after, .rail, .rail .dot, .rail .label, #neural-net line { transition: none; }
 }
 
 /* Windows high-contrast mode drops background colours, so whatever is shown

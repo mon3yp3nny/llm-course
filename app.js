@@ -966,10 +966,21 @@ function railLink(target, mark, title) {
   railLinks.set(target, link);
   return link;
 }
+// The rail shows while the page scrolls and for a moment after; then it fades.
+const RAIL_REST = 2000;
+let railTimer;
+function showRail() {
+  rail.classList.add('moving');
+  clearTimeout(railTimer);
+  railTimer = setTimeout(() => rail.classList.remove('moving'), RAIL_REST);
+}
+window.addEventListener('scroll', showRail, { passive: true });
 function buildRail() {
   railLinks.clear();
   const steps = views.find((view) => !view.hidden).querySelectorAll('.step');
   rail.replaceChildren(...[...steps].map((step, i) => railLink(step, i + 1, step.dataset.title)));
+  // A new part shows its dots once, so that they are known to be there.
+  showRail();
 }
 
 const currentObserver = new IntersectionObserver((entries) => {
@@ -1000,25 +1011,27 @@ function showView(id) {
   document.dispatchEvent(new CustomEvent('viewchange'));
 }
 
-// The menu: a button in the corner opens a panel with the tabs, the search and the languages.
+// The menu: a button in the corner opens a panel with the tabs, the search, the scheme, the text size and the languages.
 const menu = $('menu');
 const menuButton = $('menu-open');
-const languageButton = $('language-open');
-function setLanguages(open) {
-  $('language-list').hidden = !open;
-  languageButton.setAttribute('aria-expanded', open);
+// The languages and the text sizes each open as a list below their button.
+const menuLists = [[$('language-open'), $('language-list')], [$('text-open'), $('text-list')]];
+function setList([button, list], open) {
+  list.hidden = !open;
+  button.setAttribute('aria-expanded', open);
 }
 function setMenu(open) {
   menu.hidden = !open;
   menuButton.setAttribute('aria-expanded', open);
-  if (!open) setLanguages(false);
+  if (!open) menuLists.forEach((pair) => setList(pair, false));
 }
 menuButton.addEventListener('click', () => setMenu(menu.hidden));
 // Choosing a tab or the search closes it; a language link leaves the page anyway.
 menu.addEventListener('click', (event) => {
-  if (event.target.closest('.tabs a, .search-open')) setMenu(false);
-  else if (event.target === languageButton) setLanguages($('language-list').hidden);
-  else if (!event.target.closest('.languages')) setLanguages(false);
+  if (event.target.closest('.tabs a, .search-open')) return setMenu(false);
+  // A list opens and closes with its button; any other click in the menu closes it.
+  const pressed = event.target.closest('button');
+  for (const pair of menuLists) setList(pair, pair[0] === pressed && pair[1].hidden);
 });
 document.addEventListener('click', (event) => {
   if (!menu.hidden && !event.target.closest('#menu, #menu-open')) setMenu(false);
@@ -1027,6 +1040,48 @@ document.addEventListener('keydown', (event) => {
   if (event.key !== 'Escape' || menu.hidden) return;
   setMenu(false);
   menuButton.focus();
+});
+
+// The scheme button switches between light and dark. A choice that differs from
+// the device is remembered; one that matches it follows the device again.
+const darkQuery = window.matchMedia('(prefers-color-scheme: dark)');
+const themeColors = [...document.querySelectorAll('meta[name="theme-color"]')];
+const themeColor = { light: themeColors[0].content, dark: themeColors[1].content };
+function setTheme(theme) {
+  document.documentElement.dataset.theme = theme;
+  // The browser's own bar takes the colour of the page.
+  themeColors[0].content = themeColor[theme || 'light'];
+  themeColors[1].content = themeColor[theme || 'dark'];
+}
+setTheme(document.documentElement.dataset.theme);
+$('theme-open').addEventListener('click', () => {
+  const device = darkQuery.matches ? 'dark' : 'light';
+  const shown = document.documentElement.dataset.theme || device;
+  const theme = shown === 'dark' ? 'light' : 'dark';
+  setTheme(theme === device ? '' : theme);
+  try {
+    if (theme === device) localStorage.removeItem('theme');
+    else localStorage.setItem('theme', theme);
+  } catch { /* not remembered where storage is refused */ }
+});
+
+// The text size: small, medium (the usual one) or large. The one in use is marked in the list.
+const sizeButtons = [...$('text-list').querySelectorAll('button')];
+function setTextSize(size) {
+  document.documentElement.dataset.text = size;
+  for (const button of sizeButtons) button.setAttribute('aria-current', button.dataset.text === size);
+}
+// A size remembered from an earlier version that is no longer offered counts as the usual one.
+setTextSize(sizeButtons.some((button) => button.dataset.text === document.documentElement.dataset.text)
+  ? document.documentElement.dataset.text : '');
+$('text-list').addEventListener('click', (event) => {
+  const button = event.target.closest('button');
+  if (!button) return;
+  setTextSize(button.dataset.text);
+  try {
+    if (button.dataset.text) localStorage.setItem('text', button.dataset.text);
+    else localStorage.removeItem('text');
+  } catch { /* not remembered where storage is refused */ }
 });
 // Goes to an in-page target, switching to the other view first if it lives there.
 function route(hash) {
