@@ -142,6 +142,11 @@ def find(root, tag=None, **attrs):
                                                         for key, value in attrs.items())]
 
 
+def page_link(href):
+    """True for a link to another page of the site, such as the film: its path differs from folder to folder."""
+    return bool(href) and not href.startswith('#') and '://' not in href and not href.startswith('mailto:')
+
+
 def signature(node):
     """What must be the same about an element in every language."""
     parts = [node.tag]
@@ -152,6 +157,9 @@ def signature(node):
             parts.append(f'{key}="…"' if node.attrs[key].strip() else f'{key}=""')
         elif key == 'class':
             parts.append('class="' + ' '.join(sorted(node.classes())) + '"')
+        elif key == 'href' and node.tag == 'a' and page_link(node.attrs[key]):
+            # The same page from every language, whatever the way there.
+            parts.append('href="→ ' + node.attrs[key].split('#')[0].rsplit('/', 1)[-1] + '"')
         else:
             parts.append(f'{key}="{node.attrs[key]}"')
     return ' '.join(parts)
@@ -326,6 +334,8 @@ def check_links(lang, page, paper_keys, strings):
         href = node.attrs.get('href', '')
         if href.startswith('#') and href[1:] not in ids:
             problem(f'{name}:{node.line}: link to {href}, but no element has that id')
+        if page_link(href) and not (ROOT / name).parent.joinpath(href.split('#')[0]).resolve().is_file():
+            problem(f'{name}:{node.line}: link to {href}, but there is no such page')
         key = node.attrs.get('data-paper')
         if key is not None and key not in paper_keys:
             problem(f'{name}:{node.line}: data-paper="{key}" is not in papers.js')

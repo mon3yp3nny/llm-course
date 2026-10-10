@@ -1,0 +1,229 @@
+/* The film: a page of its own that fills the window with the picture, with
+   a play button and a line of progress below it, and a cross that leads back to the guide. It
+   takes its colours and type from style.css. */
+.film {
+  display: flex;
+  flex-direction: column;
+  max-width: none;
+  height: 100dvh;
+  padding: 12px 16px 16px;
+}
+
+/* The way back, in the corner where a window is closed. */
+.film-close {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  background: var(--surface);
+  color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 50%;
+}
+
+.film-close svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.film-close:focus-visible { color: var(--accent); border-color: var(--accent); }
+
+@media (hover: hover) {
+  .film-close:hover { color: var(--accent); border-color: var(--accent); }
+}
+
+/* The stage takes the room that is left; the picture keeps its shape inside it. */
+.stage {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+}
+
+.stage svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+/* Below the picture: the button that starts and pauses the film, and beside it how far the film is. */
+.film-bar {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.film-play {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  background: none;
+  color: var(--accent);
+  border: 1.5px solid var(--accent);
+  border-radius: 50%;
+  font: inherit;
+  cursor: pointer;
+}
+
+.film-play::before {
+  content: "▶\FE0E";
+  padding-left: 3px;
+  font-size: 14px;
+  line-height: 1;
+}
+
+.film-play.playing {
+  background: var(--accent);
+  color: var(--bg);
+}
+
+/* Pause: two bars, drawn, because the sign of a font runs together at this size. */
+.film-play.playing::before {
+  content: "";
+  box-sizing: border-box;
+  width: 12px;
+  height: 13px;
+  padding: 0;
+  border: solid currentColor;
+  border-width: 0 4px;
+}
+
+.film-play:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* What is being said is not shown: the film is made to be listened to. The
+   text stays on the page for a screen reader. */
+.film-caption {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* How far the film is: a thin line that fills from the left. The room around it makes it easier to hit. */
+.film-progress {
+  flex: 1;
+  min-width: 0;
+  padding: 8px 0;
+  cursor: pointer;
+}
+
+.film-progress::before,
+.film-progress i {
+  display: block;
+  height: 3px;
+  border-radius: 2px;
+}
+
+.film-progress::before {
+  content: "";
+  background: var(--border);
+}
+
+.film-progress i {
+  margin-top: -3px;
+  background: var(--accent);
+  transform-origin: left center;
+  scale: 0 1;
+}
+
+@media (max-width: 620px) {
+  .film-close { right: 8px; }
+}
+
+/* The picture. Everything in it is drawn by film.js; sizes are in the stage's own 960 by 540. */
+.stage svg * {
+  /* An element grows and shrinks around its own middle. */
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.stage text { fill: var(--text); }
+/* Named fonts first: in a drawing Safari shows ui-monospace as the ordinary text font,
+   and the film sets its characters at the even spacing of a monospace one. */
+.stage .f-mono { font-family: Menlo, Consolas, "DejaVu Sans Mono", var(--mono); }
+.stage .f-strong { font-weight: 700; }
+.stage .f-label { fill: var(--muted); }
+.stage .f-number { fill: var(--bg); font-weight: 600; }
+
+.stage .f-c0 { fill: var(--c0); }
+.stage .f-c1 { fill: var(--c1); }
+.stage .f-c2 { fill: var(--c2); }
+.stage .f-c3 { fill: var(--c3); }
+.stage .f-c4 { fill: var(--c4); }
+.stage .f-pos { fill: var(--pos); }
+.stage .f-neg { fill: var(--neg); }
+.stage .f-other { fill: var(--border); }
+.stage .f-lit { fill: var(--accent); }
+
+/* A dot of a pale colour needs an edge to stand out from the ground. */
+.stage .f-dot { stroke: var(--muted); stroke-width: 1; }
+.stage .f-ground { fill-opacity: 0.35; }
+.stage .f-bar { transform-origin: left center; }
+
+.stage .f-field,
+.stage .f-open {
+  fill: var(--bg);
+  stroke: var(--border);
+  stroke-width: 1.5;
+}
+
+.stage .f-open { stroke: var(--accent); stroke-dasharray: 5 4; }
+
+.stage .f-box,
+.stage .f-layer {
+  fill: var(--c4);
+  stroke: var(--accent);
+  stroke-width: 1.5;
+}
+
+.stage .f-caret { fill: var(--accent); }
+
+.stage .f-current,
+.stage .f-ring {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 3;
+}
+
+.stage .f-arc {
+  fill: none;
+  stroke: var(--accent);
+  stroke-linecap: round;
+}
+
+.stage .f-arrow line,
+.stage .f-arrow path,
+.stage .f-rule {
+  fill: none;
+  stroke: var(--muted);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+}
+
+.stage .f-arrow polygon { fill: var(--muted); }
+
+@media print {
+  .film-close, .film-bar { display: none; }
+}

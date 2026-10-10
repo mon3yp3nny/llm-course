@@ -33,6 +33,8 @@ dependencies: open `index.html` in a browser.
 - `network.js`, `training.js`, `agents.js`, `hardware.js`, `robots.js`, `timeline.js`: the neural network drawing and the demos of the other tabs
 - `audio.js`, `audio/en/`, `audio/de/`, `audio/fr/`: the narration player and the recordings of each language, with a `manifest.js` that lists them
 - `tools/generate_voice.py`: regenerates the recordings of a language with Google Cloud Text-to-Speech after its text has changed (`--lang en|de|fr|all`, `--dry-run` shows what would be spoken); how names, abbreviations and numbers are said is set in the tables at its top
+- `de/film.html`, `film.js`, `film.css`: the first tab as a short animated film (German only so far), linked from the menu; it fills the window and a cross leads back. The page holds the text of the scenes, `film.js` draws and moves a picture for each
+- `tools/generate_film_voice.py`, `audio/film/`: speaks the film's text into one recording and writes the second each scene begins, which the pictures follow; with `--silent` it writes estimated times and the film runs without sound
 - `tools/check_voice.py`: has the recordings transcribed by Google Cloud Speech-to-Text and prints where that differs from the text, to find mispronounced words
 - `tools/check_i18n.py`: checks that the three languages still fit together
 

@@ -96,6 +96,14 @@ function describeToSystem(button) {
 // Keeps the button on the same line as the title's last word, so it never
 // wraps onto a line of its own.
 function attachToLastWord(title, button) {
+  // A title may end in a link to the film; the button comes before it, and both stay with the last word.
+  const film = title.querySelector(':scope > .watch');
+  film?.remove();
+  attachBeforeFilm(title, button);
+  if (film) button.after(film);
+}
+
+function attachBeforeFilm(title, button) {
   const text = title.lastChild;
   // A title that ends in an element, not in plain text, gets the button after it.
   if (text?.nodeType !== Node.TEXT_NODE) {
